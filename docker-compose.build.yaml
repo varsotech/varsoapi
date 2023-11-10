@@ -1,0 +1,264 @@
+version: '3.9'
+services:
+  auth:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+      target: goappapi
+      args:
+        SERVICE: auth
+        PORT: 5000
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 5000:5000
+    networks:
+      - bridge_network
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+      target: goappapi
+      args:
+        SERVICE: app
+        PORT: 5001
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 5001:5001
+    networks:
+      - bridge_network
+    restart: always
+  
+  fileserver:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+      target: goappapi
+      args:
+        SERVICE: fileserver
+        PORT: 5002
+    volumes:
+      - ./:/app
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 5002:5002
+    networks:
+      - bridge_network
+    restart: always
+
+  www:
+    build:
+      context: .
+      dockerfile: ./src/services/www/Dockerfile
+      target: runner
+      args:
+        NPM_TOKEN: ${NPM_TOKEN}
+        NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
+    ports:
+      - 3000
+    networks:
+      - bridge_network
+    restart: always
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./src/services/nginx/Dockerfile
+    volumes:
+        - certbotdata:/var/www/certbot/:ro
+        - letsencrypt:/etc/letsencrypt/:rw
+        - ./src/services/www:/var/www/var.so/html:ro
+        - ./src/services/flosflowershop:/var/flosflowershop/var.so/html:ro
+    env_file:
+      - .env
+    ports: 
+      - 80:80
+      - 443:443
+    networks: 
+      - bridge_network
+    depends_on:
+      - auth
+      - app
+      - fileserver
+      - grafana
+    restart: always
+
+  postgres:
+    build:
+      context: .
+      dockerfile: ./src/services/postgres/Dockerfile
+    env_file:
+      - .env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    networks:
+      - bridge_network
+    restart: always
+
+  minio:
+    image: minio/minio
+    restart: always
+    command: server --console-address ":9001" /data
+    volumes:
+      - filestorage:/data
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    networks:
+      - bridge_network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    environment:
+      MINIO_ROOT_USER: ${FILESTORAGE_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${FILESTORAGE_SECRET_KEY}
+
+  prometheus:
+    build:
+      context: .
+      dockerfile: ./src/services/prometheus/Dockerfile
+    restart: always
+    volumes:
+      - ./src/services/prometheus:/etc/prometheus/:ro
+      - prometheus_data:/prometheus:rw
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yaml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    ports:
+      - 9090:9090
+    links:
+      - cadvisor:cadvisor
+      - alertmanager:alertmanager
+    depends_on:
+      - cadvisor
+    networks:
+      - bridge_network
+    env_file:
+      - .env
+
+  # PRODUCTION ONlY SERVICES
+
+  certbot:
+    build:
+      context: .
+      dockerfile: ./src/services/certbot/Dockerfile
+      args:
+        - CERTBOT_DOMAINS=${CERTBOT_DOMAINS}
+        - CERTBOT_EMAIL=${CERTBOT_EMAIL}
+    volumes:
+      - certbotdata:/var/www/certbot/:rw
+      - letsencrypt:/etc/letsencrypt/:rw
+      - ./log/letsencrypt/:/var/log/letsencrypt/:rw
+    env_file:
+      - .env
+    restart: "no"
+    depends_on:
+      - nginx
+
+  node_exporter:
+    image: prom/node-exporter
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+      - --collector.filesystem.ignored-mount-points
+      - '^/(sys|proc|dev|host|etc|rootfs/var/lib/docker/containers|rootfs/var/lib/docker/overlay2|rootfs/run/docker/netns|rootfs/var/lib/docker/aufs)($$|/)'
+    ports:
+      - 9100:9100
+    deploy:
+      mode: global
+    restart: always
+    networks:
+      - bridge_network
+
+  alertmanager:
+    build:
+      context: .
+      dockerfile: ./src/services/alertmanager/Dockerfile
+    ports:
+      - 9093:9093
+    volumes:
+      - alertmanager:/alertmanager
+    restart: always
+    env_file:
+      - .env
+    networks:
+      - bridge_network
+
+  alertmanager_discord:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+      target: goappapi
+      args:
+        SERVICE: alertmanager_discord
+        PORT: 9094
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 9094:9094
+    restart: always
+    networks:
+      - bridge_network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.47.1
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/snap/docker/common/var-lib-docker/:/var/lib/docker:ro
+    ports:
+      - 8080:8080
+    restart: always
+    deploy:
+      mode: global
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    volumes:
+      - grafana_data:/var/lib/grafana:rw
+      - ./src/services/grafana/provisioning/:/etc/grafana/provisioning/:ro
+    env_file:
+      - .env
+    ports:
+      - 3000:3000
+    depends_on:
+      - prometheus
+    networks:
+      - bridge_network
+
+networks:
+  bridge_network:
+    driver: bridge
+
+volumes:
+  filestorage:
+  prometheus_data:
+  grafana_data:
+  postgres-data:
+  letsencrypt:
+  alertmanager:
+  certbotdata:

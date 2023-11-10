@@ -1,0 +1,10 @@
+{
+  "go.testEnvFile": "${workspaceFolder}/.env",
+  "go.delveConfig": {
+    "debugAdapter": "dlv-dap"
+  },
+  "editor.formatOnSave": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
+}

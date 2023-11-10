@@ -1,0 +1,10 @@
+syntax = "proto3";
+package varso;
+
+option go_package = "client/models";
+
+message User {
+	string uuid = 1;
+	string discord_user_id = 2;
+	bool banned = 3;
+}
