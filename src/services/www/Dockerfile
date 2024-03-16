@@ -14,7 +14,6 @@ ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 COPY src/services/www/yarn.lock ./
 RUN echo @varsotech:registry=https://npm.pkg.github.com/ > .npmrc
 RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} >> .npmrc
-RUN cat .npmrc
 RUN yarn --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -31,7 +30,6 @@ ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN echo @varsotech:registry=https://npm.pkg.github.com/ > .npmrc
 RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} >> .npmrc
-RUN cat .npmrc
 RUN yarn run build
 
 # Production image, copy all the files and run next
@@ -44,7 +42,7 @@ ENV NEXT_TELEMETRY_DISABLED 1
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# COPY --from=builder /app/.next/standalone ./.next/standalone
+USER nextjs
 
 # Set the correct permission for prerender cache
 RUN mkdir .next
@@ -54,7 +52,6 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-USER nextjs
 
 EXPOSE 3000
 
