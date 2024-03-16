@@ -139,7 +139,7 @@ jobs:
               PORT=5002
           - service: www
             build-args: |
-              NPM_TOKEN=${{ github.token }}
+              NPM_TOKEN=${{ secrets.NPM_TOKEN }}
               NPM_REGISTRY_URL=${{ vars.CONTAINER_REGISTRY }}
           - service: nginx
           - service: postgres
