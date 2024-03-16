@@ -6422,10 +6422,10 @@
     "@typescript-eslint/types" "5.62.0"
     eslint-visitor-keys "^3.3.0"
 
-"@varsotech/varsoapi@0.0.1-alpha.3":
-  version "0.0.1-alpha.3"
-  resolved "https://npm.pkg.github.com/download/@varsotech/varsoapi/0.0.1-alpha.3/5f05f4373d87e63f79f4461bfd09f4d89b5fc5e3#5f05f4373d87e63f79f4461bfd09f4d89b5fc5e3"
-  integrity sha512-RznEs0QWCk4tDnIKIH2gXSasrq6y/BT9R9nGQOXkwgkugGcsH3yqh9RMrs0MMI7BpFHnpJ2prcC4Kqekm3rPgQ==
+"@varsotech/varsoapi@0.0.1-alpha.10":
+  version "0.0.1-alpha.10"
+  resolved "https://npm.pkg.github.com/download/@varsotech/varsoapi/0.0.1-alpha.10/b842d6f4df9ee85f7a9b060e5e31292937d9fd85#b842d6f4df9ee85f7a9b060e5e31292937d9fd85"
+  integrity sha512-UO8NkQfbW8VlRAhieAzPUOrAS9XgGwac4xIyrWAdniAZWkw/EnK9s9+q1fWyxw4wD6PBsAxVM1JGLsRcwm6CSg==
 
 "@vercel/otel@^0.3.0":
   version "0.3.0"

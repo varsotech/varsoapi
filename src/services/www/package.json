@@ -49,7 +49,7 @@
     "@tanstack/query-sync-storage-persister": "^5.8.3",
     "@tanstack/react-query": "^5.8.4",
     "@tanstack/react-query-persist-client": "^5.8.4",
-    "@varsotech/varsoapi": "0.0.1-alpha.3",
+    "@varsotech/varsoapi": "0.0.1-alpha.10",
     "@vercel/otel": "^0.3.0",
     "class-variance-authority": "^0.7.0",
     "lodash": "^4.17.21",
