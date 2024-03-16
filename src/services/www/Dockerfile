@@ -11,7 +11,7 @@ ARG NPM_REGISTRY_URL
 ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 
 # Install dependencies
-COPY ./src/services/www/yarn.lock ./
+COPY src/services/www/yarn.lock ./
 RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
 RUN yarn --frozen-lockfile
 
@@ -19,7 +19,7 @@ RUN yarn --frozen-lockfile
 FROM base AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-COPY ./src/services/www/. .
+COPY src/services/www/. .
 
 ARG NPM_TOKEN
 ENV NPM_TOKEN=${NPM_TOKEN}

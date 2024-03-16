@@ -56,7 +56,7 @@ services:
   www:
     image: ${CONTAINER_REGISTRY}/${GIT_FULL_REPO_NAME}/www:${DOCKER_IMAGE_TAG}
     ports:
-      - 3000
+      - 3000:5003
     networks:
       - bridge_network
     restart: always

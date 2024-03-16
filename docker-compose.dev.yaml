@@ -94,7 +94,7 @@ services:
       dockerfile: ./src/services/www/Dockerfile
       target: runner
     ports:
-      - 3000
+      - 3000:5003
     networks:
       - bridge_network
     restart: always
