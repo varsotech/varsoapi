@@ -234,12 +234,6 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v3
 
-      - name: Load env
-        run: |
-          export GIT_FULL_REPO_NAME=${{ github.repository }}
-          export DOCKER_IMAGE_TAG=${{ github.ref_name }}
-          ./scripts/apply_env.sh .env
-
       - name: Log in to the Container registry
         uses: docker/login-action@v2
         with:
@@ -248,7 +242,11 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Start Docker Compose
-        run: ./scripts/cicd/test_go/start_docker_compose.sh
+        run: |
+          export GIT_FULL_REPO_NAME=${{ github.repository }}
+          export DOCKER_IMAGE_TAG=${{ github.ref_name }}
+          ./scripts/apply_env.sh .env
+          ./scripts/cicd/test_go/start_docker_compose.sh
 
       - name: Docker Compose Healthcheck
         run: |
