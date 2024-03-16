@@ -1,9 +1,10 @@
 import { AppProps } from "next/app"
-import { AuthProvider } from "components/Auth/AuthProvider"
-import StyledComponentsRegistry from "components/StyledComponentsRegistry/StyledComponentsRegistry"
-import { ThemeProvider } from "components/Theme/Theme"
-import lightTheme from "themes/light"
-import { PersistQueryClientProvider } from "api/reactquery"
+import React from "react"
+import { PersistQueryClientProvider } from "../api/reactquery"
+import { AuthProvider } from "../components/Auth/AuthProvider"
+import StyledComponentsRegistry from "../components/StyledComponentsRegistry/StyledComponentsRegistry"
+import { ThemeProvider } from "../components/Theme/Theme"
+import lightTheme from "../themes/light"
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (

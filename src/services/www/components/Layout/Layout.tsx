@@ -1,7 +1,7 @@
 import Head from "next/head"
-import Header from "components/Header/Header"
-import { useTheme } from "components/Theme/Theme"
-import Topmenu from "components/Topmenu/Topmenu"
+import React from "react"
+import { useTheme } from "../Theme/Theme"
+import Topmenu from "../Topmenu/Topmenu"
 
 export type LayoutProps = {
   title: string

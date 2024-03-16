@@ -1,9 +1,10 @@
-import Icon from "components/Icon/Icon"
-import Link from "components/Link/Link"
-import { useTheme } from "components/Theme/Theme"
-import { useRouter } from "next/router"
+// import logo from "../../assets/img/Logo.svg"
 import Image from "next/image"
-import logo from "../../assets/img/Logo.svg"
+import { useRouter } from "next/router"
+import React from "react"
+import Icon from "../Icon/Icon"
+import Link from "../Link/Link"
+import { useTheme } from "../Theme/Theme"
 
 type LinkEntry = {
   icon: string
@@ -40,11 +41,11 @@ function Sidemenu() {
         color: theme.colors.neutral.darker,
       }}
     >
-      <div style={{ marginBottom: theme.spacing.xlarge, marginTop: -1 }}>
+      {/* <div style={{ marginBottom: theme.spacing.xlarge, marginTop: -1 }}>
         <Link href="/">
           <Image src={logo} alt="VA logo" style={{ width: "100%" }} />
         </Link>
-      </div>
+      </div> */}
 
       {linkEntries.map((v, i) => {
         return (

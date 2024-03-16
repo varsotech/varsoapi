@@ -1,5 +1,5 @@
 import React, { useMemo } from "react"
-import { useTheme } from "components/Theme/Theme"
+import { useTheme } from "../Theme/Theme"
 
 export type TitleType = "section" | "header"
 

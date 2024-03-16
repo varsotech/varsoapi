@@ -1,30 +1,13 @@
-import Button from "components/Button/Button"
-import Icon from "components/Icon/Icon"
-import Link from "components/Link/Link"
-import { useTheme } from "components/Theme/Theme"
-import { useRouter } from "next/router"
-import Image from "next/image"
-import logo from "../../assets/img/Logo.svg"
-
-type LinkEntry = {
-  icon: string
-  link: string
-}
-
-const linkEntries: LinkEntry[] = [
-  // {
-  //   icon: "globe",
-  //   link: "/cards",
-  // },
-  // {
-  //   icon: "settings",
-  //   link: "/settings",
-  // },
-]
+import React from "react"
+// import Image from "next/image"
+// import { useRouter } from "next/router"
+// import Link from "../Link/Link"
+import { useTheme } from "../Theme/Theme"
+// import logo from "../../assets/img/Logo.svg"
 
 function Topmenu() {
   const [theme] = useTheme()
-  const router = useRouter()
+  // const router = useRouter()
 
   return (
     <div
@@ -39,9 +22,9 @@ function Topmenu() {
         color: theme.colors.neutral.darker,
       }}
     >
-      <Link href="/" style={{ height: "42px", marginRight: 40 }}>
+      {/* <Link href="/" style={{ height: "42px", marginRight: 40 }}>
         <Image src={logo} alt="VA logo" style={{ height: "100%" }} />
-      </Link>
+      </Link> */}
 
       <div style={{ flex: 1 }} />
 

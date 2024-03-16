@@ -1,4 +1,5 @@
-import { useTheme } from "components/Theme/Theme"
+import React from "react"
+import { useTheme } from "../Theme/Theme"
 
 export type SectionProps = {
   children?: React.ReactNode

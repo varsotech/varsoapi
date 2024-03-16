@@ -1,5 +1,5 @@
-import { Theme } from "components/Theme/Theme"
 import styled from "styled-components"
+import { Theme } from "../Theme/Theme"
 
 export const Input = styled.input<{ theme: Theme }>`
   border: 1px solid ${({ theme }) => theme.colors.neutral.main};

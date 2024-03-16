@@ -1,5 +1,5 @@
-import { Theme } from "components/Theme/Theme"
 import styled from "styled-components"
+import { Theme } from "../Theme/Theme"
 
 export const StyledMusicEntry = styled.div<{ theme: Theme }>`
   color: ${({ theme }) => theme.colors.neutral.contrastText};

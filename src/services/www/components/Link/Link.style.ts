@@ -1,7 +1,7 @@
 import NextLink from "next/link"
 import styled from "styled-components"
-import { Theme } from "components/Theme/Theme"
 import { LinkType } from "./Link"
+import { Theme } from "../Theme/Theme"
 
 export const Link = styled(NextLink)<{ theme: Theme; type: LinkType }>`
   text-decoration: none;

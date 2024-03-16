@@ -1,5 +1,6 @@
-import { useTheme } from "components/Theme/Theme"
+import React from "react"
 import { StyledButton } from "./Button.style"
+import { useTheme } from "../Theme/Theme"
 
 export type ButtonProps = {
   onClick?: () => void

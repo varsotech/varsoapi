@@ -1,5 +1,6 @@
-import { useTheme } from "components/Theme/Theme"
-import Title from "components/Title/Title"
+import React from "react"
+import { useTheme } from "../Theme/Theme"
+import Title from "../Title/Title"
 
 export type HeaderProps = {
   title: string

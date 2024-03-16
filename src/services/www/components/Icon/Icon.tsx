@@ -1,3 +1,5 @@
+import React from "react"
+
 export type IconProps = {
   name: string
   size: number

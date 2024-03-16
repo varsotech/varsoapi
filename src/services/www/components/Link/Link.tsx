@@ -1,7 +1,7 @@
 import React from "react"
 import { UrlObject } from "url"
-import { useTheme } from "components/Theme/Theme"
 import * as Styled from "./Link.style"
+import { useTheme } from "../Theme/Theme"
 
 export type LinkType = "primary" | "clear"
 

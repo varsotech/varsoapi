@@ -1,6 +1,3 @@
-import { setAxiosToken } from "api/axios"
-import Layout from "components/Layout/Layout"
-import { useRouter } from "next/router"
 import React, { createContext, useContext, useEffect, useReducer } from "react"
 
 type AuthState = {

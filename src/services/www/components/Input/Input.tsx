@@ -1,5 +1,6 @@
-import { useTheme } from "components/Theme/Theme"
+import React from "react"
 import * as Styled from "./Input.style"
+import { useTheme } from "../Theme/Theme"
 
 export type InputProps = {
   value: string

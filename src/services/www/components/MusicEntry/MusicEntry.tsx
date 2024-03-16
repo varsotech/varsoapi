@@ -1,5 +1,6 @@
-import { useTheme } from "components/Theme/Theme"
+import React from "react"
 import { StyledMusicEntry } from "./MusicEntry.style"
+import { useTheme } from "../Theme/Theme"
 
 export type MusicEntryProps = {
   title: string

@@ -1,5 +1,5 @@
-import { Theme } from "components/Theme/Theme"
 import styled from "styled-components"
+import { Theme } from "../Theme/Theme"
 
 export const StyledButton = styled.button<{ theme: Theme }>`
   color: ${({ theme }) => theme.colors.neutral.contrastText};

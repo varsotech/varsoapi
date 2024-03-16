@@ -1,6 +1,6 @@
-import Input from "components/Input/Input"
-import Section from "components/Section/Section"
-import { useState } from "react"
+import React, { useState } from "react"
+import Input from "../Input/Input"
+import Section from "../Section/Section"
 
 function Search() {
   const [query, setQuery] = useState("")
