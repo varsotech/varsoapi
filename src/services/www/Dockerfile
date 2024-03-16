@@ -5,14 +5,14 @@ FROM base AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# ARG NPM_TOKEN
-# ENV NPM_TOKEN=${NPM_TOKEN}
-# ARG NPM_REGISTRY_URL
-# ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
+ARG NPM_TOKEN
+ENV NPM_TOKEN=${NPM_TOKEN}
+ARG NPM_REGISTRY_URL
+ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 
 # Install dependencies
 COPY src/services/www/yarn.lock ./
-# RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
+RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
 RUN yarn --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -21,13 +21,13 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY src/services/www/. .
 
-# ARG NPM_TOKEN
-# ENV NPM_TOKEN=${NPM_TOKEN}
-# ARG NPM_REGISTRY_URL
-# ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
+ARG NPM_TOKEN
+ENV NPM_TOKEN=${NPM_TOKEN}
+ARG NPM_REGISTRY_URL
+ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 
 ENV NEXT_TELEMETRY_DISABLED 1
-# RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
+RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
 RUN yarn run build
 
 # Production image, copy all the files and run next
