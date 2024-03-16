@@ -12,7 +12,9 @@ ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 
 # Install dependencies
 COPY src/services/www/yarn.lock ./
-RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
+RUN echo @varsotech:registry=https://npm.pkg.github.com/ > .npmrc
+RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} >> .npmrc
+RUN cat .npmrc
 RUN yarn --frozen-lockfile
 
 # Rebuild the source code only when needed
@@ -27,7 +29,9 @@ ARG NPM_REGISTRY_URL
 ENV NPM_REGISTRY_URL=${NPM_REGISTRY_URL}
 
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} > .npmrc
+RUN echo @varsotech:registry=https://npm.pkg.github.com/ > .npmrc
+RUN echo //${NPM_REGISTRY_URL}/:_authToken=\${NPM_TOKEN} >> .npmrc
+RUN cat .npmrc
 RUN yarn run build
 
 # Production image, copy all the files and run next
