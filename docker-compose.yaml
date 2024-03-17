@@ -52,19 +52,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-
-  www:
-    image: ${CONTAINER_REGISTRY}/${GIT_FULL_REPO_NAME}/www:${DOCKER_IMAGE_TAG}
-    ports:
-      - 3000:5003
-    networks:
-      - bridge_network
-    restart: always
-    healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
       
   nginx:
     image: ${CONTAINER_REGISTRY}/${GIT_FULL_REPO_NAME}/nginx:${DOCKER_IMAGE_TAG}

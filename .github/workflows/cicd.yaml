@@ -137,9 +137,6 @@ jobs:
             build-args: |
               SERVICE=fileserver
               PORT=5002
-          - service: www
-            build-args: |
-              NPM_REGISTRY_URL=${{ vars.NPM_REGISTRY_URL }}
           - service: nginx
           - service: postgres
           - service: certbot

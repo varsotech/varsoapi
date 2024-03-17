@@ -56,20 +56,6 @@ services:
       - bridge_network
     restart: always
 
-  www:
-    build:
-      context: .
-      dockerfile: ./src/services/www/Dockerfile
-      target: runner
-      args:
-        NPM_TOKEN: ${NPM_TOKEN}
-        NPM_REGISTRY_URL: ${NPM_REGISTRY_URL}
-    ports:
-      - 3000:5003
-    networks:
-      - bridge_network
-    restart: always
-
   nginx:
     build:
       context: .

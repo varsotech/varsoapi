@@ -87,18 +87,6 @@ services:
       timeout: 5s
       retries: 3
 
-
-  www:
-    build:
-      context: .
-      dockerfile: ./src/services/www/Dockerfile
-      target: runner
-    ports:
-      - 3000:5003
-    networks:
-      - bridge_network
-    restart: always
-
   nginx:
     build:
       context: .
