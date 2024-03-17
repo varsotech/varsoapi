@@ -94,7 +94,7 @@ services:
     volumes:
         - certbotdata:/var/www/certbot/:ro
         - letsencrypt:/etc/letsencrypt/:rw
-        - ./src/services/www:/var/www/var.so/html:ro
+        - ./src/services/www:/var/www/varso.org/html:ro
         - ./:/app
     env_file:
       - .env
