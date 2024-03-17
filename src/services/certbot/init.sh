@@ -1,5 +1,4 @@
 #!/bin/sh
-set -e
 
 function keep_running() {
     # Keep running in background to let our cron cert renewal job to run
