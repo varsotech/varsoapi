@@ -1,4 +1,3 @@
-set -e
 
 check_service_health() {
     local service_name="$1"
@@ -6,9 +5,7 @@ check_service_health() {
     local end_time=$((start_time + 60))  # 60 seconds timeout
 
     while true; do
-        set +e
         local health_status=$(docker-compose ps -q "$service_name" | xargs docker inspect --format='{{.State.Health.Status}}' 2>/dev/null)
-        set -e
 
         if [[ "$health_status" == "healthy" ]]; then
             echo "$service_name is healthy"
