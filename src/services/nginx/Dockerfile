@@ -32,4 +32,4 @@ EXPOSE 443
 EXPOSE 80
 
 
-CMD ["nginx", "-g", "daemon off;"]
+CMD ["nginx", "-u", "-g", "daemon off;"]
