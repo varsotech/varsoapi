@@ -6,15 +6,15 @@ function keep_running() {
     tail -f /dev/null
 }
 
-domain_args="" 
-for domain in ${CERTBOT_DOMAINS}; do
-    domain_args="$domain_args -d $domain"
-done
-
 if [ "${USE_TEST_CERT}" = "true" ]; then 
     echo "Using test certificate"
     keep_running
 fi
+
+domain_args="" 
+for domain in ${CERTBOT_DOMAINS}; do
+    domain_args="$domain_args -d $domain"
+done
 
 
 if [ -e "/etc/letsencrypt/live/.realcert" ]; then

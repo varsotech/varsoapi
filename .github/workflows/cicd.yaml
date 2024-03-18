@@ -28,6 +28,7 @@ env:
   CERTBOT_DOMAINS: ${{ vars.CERTBOT_DOMAINS }}
   CERTBOT_EMAIL: ${{ vars.CERTBOT_EMAIL }}
   NODE_VERSION: ${{ vars.NODE_VERSION }}
+  USE_TEST_CERT: ${{ vars.USE_TEST_CERT }}
 
 jobs:
   gosec:
