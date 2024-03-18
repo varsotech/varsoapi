@@ -58,7 +58,6 @@ services:
     volumes:
         - certbotdata:/var/www/certbot/:ro
         - letsencrypt:/etc/letsencrypt/:rw
-        - ./src/services/www:/var/www/varso.org/html:ro
     env_file:
       - .env
     ports: 
