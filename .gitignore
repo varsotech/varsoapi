@@ -21,7 +21,7 @@
 **/__debug_bin
 tmp
 .DS_Store
-log/
+/log/
 *.pem
 *.pb.go
 node_modules/
