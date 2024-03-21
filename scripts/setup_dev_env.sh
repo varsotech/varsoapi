@@ -1,7 +1,6 @@
 export APP_ENV="DEV"
 export SYSTEM_EXTERNAL_URL="http://localhost"
 export JWT_SECRET="devsecret"
-export ="MTEwOTQ1OTA2NzQwMDkwMDYwOQ.GNAvk4.cSUSj_51LwoWoNAiGqGZae66DsqqQ18psRmhug"
 export INTERNAL_AUTH_SECRET="devsecret"
 export FILESTORAGE_ACCESS_KEY="devsecret"
 export FILESTORAGE_SECRET_KEY="devsecret"
@@ -15,7 +14,7 @@ export CONTAINER_REGISTRY="ghcr.io"
 export GIT_FULL_REPO_NAME=`git remote get-url origin | awk -F: '{sub(/\.git$/, "", $2); print $2}'`
 export DOCKER_IMAGE_TAG="main"
 export CERTBOT_EMAIL="contact@varso.org"
-export CERTBOT_DOMAINS="localhost"
+export CERTBOT_DOMAINS="varso.org"
 export USE_TEST_CERT="true"
 export NPM_REGISTRY_URL="ghcr.io"
 

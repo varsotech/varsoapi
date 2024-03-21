@@ -4,8 +4,8 @@ certdir="/etc/letsencrypt/live"
 realcert="${certdir}/.realcert"
 fakecert="${certdir}/.fakecert"
 
-# Only create dummy certificate if real or fake doesn't exist
-if [ ! -f "$realcert" ] && [ ! -f "$fakecert" ]; then
+# Only create dummy certificate if no cert exists
+if [ ! -f "$path/fullchain.pem" ]; then
     for domain in ${CERTBOT_DOMAINS}; do
         path="/etc/letsencrypt/live/${domain}"
         mkdir -p "$path"

@@ -87,6 +87,35 @@ services:
       timeout: 5s
       retries: 3
 
+  analytics:
+    build:
+      context: .
+      dockerfile: ./src/dev.Dockerfile
+      target: goappapi
+      args:
+        SERVICE: analytics
+        PORT: 5003
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 5003:5003
+      - 2349:2345
+    networks:
+      - bridge_network
+    volumes:
+      - ./:/app
+    deploy:
+      restart_policy:   
+        condition: on-failure   
+        max_attempts: 5
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:5003/"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
   nginx:
     build:
       context: .
@@ -109,7 +138,7 @@ services:
     deploy:
       restart_policy:   
         condition: on-failure   
-        max_attempts: 3
+        max_attempts: 10
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:80/"]
       interval: 10s

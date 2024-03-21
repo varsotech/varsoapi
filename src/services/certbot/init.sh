@@ -16,12 +16,10 @@ for domain in ${CERTBOT_DOMAINS}; do
     domain_args="$domain_args -d $domain"
 done
 
-
 if [ -e "/etc/letsencrypt/live/.realcert" ]; then
     echo "/etc/letsencrypt/live/.realcert exists, not requesting certificate"
     keep_running
 fi
-
 
 echo "Waiting for NGINX to create .fakecert.."
 while [ ! -f "/etc/letsencrypt/live/.fakecert" ]; do
@@ -29,22 +27,14 @@ while [ ! -f "/etc/letsencrypt/live/.fakecert" ]; do
     sleep 5  # Adjust the sleep duration if needed
 done
 
-
 for domain in ${CERTBOT_DOMAINS}; do
     rm -Rf /etc/letsencrypt/live/$domain
     rm -Rf /etc/letsencrypt/archive/$domain
     rm -Rf /etc/letsencrypt/renewal/$domain.conf
 done
 
-
 rm /etc/letsencrypt/live/.fakecert
 mkdir -p /var/www/certbot
-
-# testcertarg=""
-# if [ "${USE_TEST_CERT}" == "true" ]; then
-#     testcertarg="--test-cert"
-# fi
-#  ${testcertarg}
 
 certbot certonly --webroot -w /var/www/certbot --email ${CERTBOT_EMAIL} $domain_args --rsa-key-size 4096 --agree-tos --keep-until-expiring --non-interactive || exit 1
 

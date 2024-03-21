@@ -56,6 +56,24 @@ services:
       - bridge_network
     restart: always
 
+  analytics:
+    build:
+      context: .
+      dockerfile: ./src/Dockerfile
+      target: goappapi
+      args:
+        SERVICE: analytics
+        PORT: 5003
+    depends_on:
+      - postgres
+    env_file:
+      - .env
+    ports:
+      - 5003:5003
+    networks:
+      - bridge_network
+    restart: always
+  
   nginx:
     build:
       context: .
@@ -152,7 +170,7 @@ services:
       - ./log/letsencrypt/:/var/log/letsencrypt/:rw
     env_file:
       - .env
-    restart: "no"
+    restart: always
     depends_on:
       - nginx
 
