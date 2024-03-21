@@ -311,6 +311,7 @@ jobs:
           echo "Copying .env file"
           export GIT_FULL_REPO_NAME=${{ github.repository }}
           export DOCKER_IMAGE_TAG=${{ github.ref_name }}
+          export USE_TEST_CERT=false
           ./scripts/apply_env.sh .env
           scp -o StrictHostKeyChecking=no -i private_key .env ${PROD_EC2_USERNAME}@${PROD_EC2_HOSTNAME}:${PROD_EC2_PROJECT_PATH}/.env
 
