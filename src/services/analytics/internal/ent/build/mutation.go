@@ -10,9 +10,7 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
-	"github.com/google/uuid"
-	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/comment"
-	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/post"
+	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/accesslog"
 	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/predicate"
 )
 
@@ -25,841 +23,41 @@ const (
 	OpUpdateOne = ent.OpUpdateOne
 
 	// Node types.
-	TypeComment = "Comment"
-	TypePost    = "Post"
+	TypeAccessLog = "AccessLog"
 )
 
-// CommentMutation represents an operation that mutates the Comment nodes in the graph.
-type CommentMutation struct {
-	config
-	op             Op
-	typ            string
-	id             *uuid.UUID
-	user_uuid      *uuid.UUID
-	text           *string
-	was_edited     *bool
-	total_votes    *int64
-	addtotal_votes *int64
-	upvotes        *int64
-	addupvotes     *int64
-	downvotes      *int64
-	adddownvotes   *int64
-	clearedFields  map[string]struct{}
-	post           map[uuid.UUID]struct{}
-	removedpost    map[uuid.UUID]struct{}
-	clearedpost    bool
-	done           bool
-	oldValue       func(context.Context) (*Comment, error)
-	predicates     []predicate.Comment
-}
-
-var _ ent.Mutation = (*CommentMutation)(nil)
-
-// commentOption allows management of the mutation configuration using functional options.
-type commentOption func(*CommentMutation)
-
-// newCommentMutation creates new mutation for the Comment entity.
-func newCommentMutation(c config, op Op, opts ...commentOption) *CommentMutation {
-	m := &CommentMutation{
-		config:        c,
-		op:            op,
-		typ:           TypeComment,
-		clearedFields: make(map[string]struct{}),
-	}
-	for _, opt := range opts {
-		opt(m)
-	}
-	return m
-}
-
-// withCommentID sets the ID field of the mutation.
-func withCommentID(id uuid.UUID) commentOption {
-	return func(m *CommentMutation) {
-		var (
-			err   error
-			once  sync.Once
-			value *Comment
-		)
-		m.oldValue = func(ctx context.Context) (*Comment, error) {
-			once.Do(func() {
-				if m.done {
-					err = errors.New("querying old values post mutation is not allowed")
-				} else {
-					value, err = m.Client().Comment.Get(ctx, id)
-				}
-			})
-			return value, err
-		}
-		m.id = &id
-	}
-}
-
-// withComment sets the old Comment of the mutation.
-func withComment(node *Comment) commentOption {
-	return func(m *CommentMutation) {
-		m.oldValue = func(context.Context) (*Comment, error) {
-			return node, nil
-		}
-		m.id = &node.ID
-	}
-}
-
-// Client returns a new `ent.Client` from the mutation. If the mutation was
-// executed in a transaction (ent.Tx), a transactional client is returned.
-func (m CommentMutation) Client() *Client {
-	client := &Client{config: m.config}
-	client.init()
-	return client
-}
-
-// Tx returns an `ent.Tx` for mutations that were executed in transactions;
-// it returns an error otherwise.
-func (m CommentMutation) Tx() (*Tx, error) {
-	if _, ok := m.driver.(*txDriver); !ok {
-		return nil, errors.New("build: mutation is not running in a transaction")
-	}
-	tx := &Tx{config: m.config}
-	tx.init()
-	return tx, nil
-}
-
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Comment entities.
-func (m *CommentMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
-// ID returns the ID value in the mutation. Note that the ID is only available
-// if it was provided to the builder or after it was returned from the database.
-func (m *CommentMutation) ID() (id uuid.UUID, exists bool) {
-	if m.id == nil {
-		return
-	}
-	return *m.id, true
-}
-
-// IDs queries the database and returns the entity ids that match the mutation's predicate.
-// That means, if the mutation is applied within a transaction with an isolation level such
-// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
-// or updated by the mutation.
-func (m *CommentMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
-	switch {
-	case m.op.Is(OpUpdateOne | OpDeleteOne):
-		id, exists := m.ID()
-		if exists {
-			return []uuid.UUID{id}, nil
-		}
-		fallthrough
-	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Comment.Query().Where(m.predicates...).IDs(ctx)
-	default:
-		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
-	}
-}
-
-// SetUserUUID sets the "user_uuid" field.
-func (m *CommentMutation) SetUserUUID(u uuid.UUID) {
-	m.user_uuid = &u
-}
-
-// UserUUID returns the value of the "user_uuid" field in the mutation.
-func (m *CommentMutation) UserUUID() (r uuid.UUID, exists bool) {
-	v := m.user_uuid
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUserUUID returns the old "user_uuid" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldUserUUID(ctx context.Context) (v uuid.UUID, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUserUUID is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUserUUID requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUserUUID: %w", err)
-	}
-	return oldValue.UserUUID, nil
-}
-
-// ResetUserUUID resets all changes to the "user_uuid" field.
-func (m *CommentMutation) ResetUserUUID() {
-	m.user_uuid = nil
-}
-
-// SetText sets the "text" field.
-func (m *CommentMutation) SetText(s string) {
-	m.text = &s
-}
-
-// Text returns the value of the "text" field in the mutation.
-func (m *CommentMutation) Text() (r string, exists bool) {
-	v := m.text
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldText returns the old "text" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldText(ctx context.Context) (v string, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldText is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldText requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldText: %w", err)
-	}
-	return oldValue.Text, nil
-}
-
-// ResetText resets all changes to the "text" field.
-func (m *CommentMutation) ResetText() {
-	m.text = nil
-}
-
-// SetWasEdited sets the "was_edited" field.
-func (m *CommentMutation) SetWasEdited(b bool) {
-	m.was_edited = &b
-}
-
-// WasEdited returns the value of the "was_edited" field in the mutation.
-func (m *CommentMutation) WasEdited() (r bool, exists bool) {
-	v := m.was_edited
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldWasEdited returns the old "was_edited" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldWasEdited(ctx context.Context) (v bool, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldWasEdited is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldWasEdited requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldWasEdited: %w", err)
-	}
-	return oldValue.WasEdited, nil
-}
-
-// ResetWasEdited resets all changes to the "was_edited" field.
-func (m *CommentMutation) ResetWasEdited() {
-	m.was_edited = nil
-}
-
-// SetTotalVotes sets the "total_votes" field.
-func (m *CommentMutation) SetTotalVotes(i int64) {
-	m.total_votes = &i
-	m.addtotal_votes = nil
-}
-
-// TotalVotes returns the value of the "total_votes" field in the mutation.
-func (m *CommentMutation) TotalVotes() (r int64, exists bool) {
-	v := m.total_votes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldTotalVotes returns the old "total_votes" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldTotalVotes(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotalVotes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotalVotes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotalVotes: %w", err)
-	}
-	return oldValue.TotalVotes, nil
-}
-
-// AddTotalVotes adds i to the "total_votes" field.
-func (m *CommentMutation) AddTotalVotes(i int64) {
-	if m.addtotal_votes != nil {
-		*m.addtotal_votes += i
-	} else {
-		m.addtotal_votes = &i
-	}
-}
-
-// AddedTotalVotes returns the value that was added to the "total_votes" field in this mutation.
-func (m *CommentMutation) AddedTotalVotes() (r int64, exists bool) {
-	v := m.addtotal_votes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetTotalVotes resets all changes to the "total_votes" field.
-func (m *CommentMutation) ResetTotalVotes() {
-	m.total_votes = nil
-	m.addtotal_votes = nil
-}
-
-// SetUpvotes sets the "upvotes" field.
-func (m *CommentMutation) SetUpvotes(i int64) {
-	m.upvotes = &i
-	m.addupvotes = nil
-}
-
-// Upvotes returns the value of the "upvotes" field in the mutation.
-func (m *CommentMutation) Upvotes() (r int64, exists bool) {
-	v := m.upvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpvotes returns the old "upvotes" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldUpvotes(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpvotes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpvotes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpvotes: %w", err)
-	}
-	return oldValue.Upvotes, nil
-}
-
-// AddUpvotes adds i to the "upvotes" field.
-func (m *CommentMutation) AddUpvotes(i int64) {
-	if m.addupvotes != nil {
-		*m.addupvotes += i
-	} else {
-		m.addupvotes = &i
-	}
-}
-
-// AddedUpvotes returns the value that was added to the "upvotes" field in this mutation.
-func (m *CommentMutation) AddedUpvotes() (r int64, exists bool) {
-	v := m.addupvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetUpvotes resets all changes to the "upvotes" field.
-func (m *CommentMutation) ResetUpvotes() {
-	m.upvotes = nil
-	m.addupvotes = nil
-}
-
-// SetDownvotes sets the "downvotes" field.
-func (m *CommentMutation) SetDownvotes(i int64) {
-	m.downvotes = &i
-	m.adddownvotes = nil
-}
-
-// Downvotes returns the value of the "downvotes" field in the mutation.
-func (m *CommentMutation) Downvotes() (r int64, exists bool) {
-	v := m.downvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDownvotes returns the old "downvotes" field's value of the Comment entity.
-// If the Comment object wasn't provided to the builder, the object is fetched from the database.
-// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *CommentMutation) OldDownvotes(ctx context.Context) (v int64, err error) {
-	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDownvotes is only allowed on UpdateOne operations")
-	}
-	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDownvotes requires an ID field in the mutation")
-	}
-	oldValue, err := m.oldValue(ctx)
-	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDownvotes: %w", err)
-	}
-	return oldValue.Downvotes, nil
-}
-
-// AddDownvotes adds i to the "downvotes" field.
-func (m *CommentMutation) AddDownvotes(i int64) {
-	if m.adddownvotes != nil {
-		*m.adddownvotes += i
-	} else {
-		m.adddownvotes = &i
-	}
-}
-
-// AddedDownvotes returns the value that was added to the "downvotes" field in this mutation.
-func (m *CommentMutation) AddedDownvotes() (r int64, exists bool) {
-	v := m.adddownvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// ResetDownvotes resets all changes to the "downvotes" field.
-func (m *CommentMutation) ResetDownvotes() {
-	m.downvotes = nil
-	m.adddownvotes = nil
-}
-
-// AddPostIDs adds the "post" edge to the Post entity by ids.
-func (m *CommentMutation) AddPostIDs(ids ...uuid.UUID) {
-	if m.post == nil {
-		m.post = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		m.post[ids[i]] = struct{}{}
-	}
-}
-
-// ClearPost clears the "post" edge to the Post entity.
-func (m *CommentMutation) ClearPost() {
-	m.clearedpost = true
-}
-
-// PostCleared reports if the "post" edge to the Post entity was cleared.
-func (m *CommentMutation) PostCleared() bool {
-	return m.clearedpost
-}
-
-// RemovePostIDs removes the "post" edge to the Post entity by IDs.
-func (m *CommentMutation) RemovePostIDs(ids ...uuid.UUID) {
-	if m.removedpost == nil {
-		m.removedpost = make(map[uuid.UUID]struct{})
-	}
-	for i := range ids {
-		delete(m.post, ids[i])
-		m.removedpost[ids[i]] = struct{}{}
-	}
-}
-
-// RemovedPost returns the removed IDs of the "post" edge to the Post entity.
-func (m *CommentMutation) RemovedPostIDs() (ids []uuid.UUID) {
-	for id := range m.removedpost {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// PostIDs returns the "post" edge IDs in the mutation.
-func (m *CommentMutation) PostIDs() (ids []uuid.UUID) {
-	for id := range m.post {
-		ids = append(ids, id)
-	}
-	return
-}
-
-// ResetPost resets all changes to the "post" edge.
-func (m *CommentMutation) ResetPost() {
-	m.post = nil
-	m.clearedpost = false
-	m.removedpost = nil
-}
-
-// Where appends a list predicates to the CommentMutation builder.
-func (m *CommentMutation) Where(ps ...predicate.Comment) {
-	m.predicates = append(m.predicates, ps...)
-}
-
-// WhereP appends storage-level predicates to the CommentMutation builder. Using this method,
-// users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *CommentMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Comment, len(ps))
-	for i := range ps {
-		p[i] = ps[i]
-	}
-	m.Where(p...)
-}
-
-// Op returns the operation name.
-func (m *CommentMutation) Op() Op {
-	return m.op
-}
-
-// SetOp allows setting the mutation operation.
-func (m *CommentMutation) SetOp(op Op) {
-	m.op = op
-}
-
-// Type returns the node type of this mutation (Comment).
-func (m *CommentMutation) Type() string {
-	return m.typ
-}
-
-// Fields returns all fields that were changed during this mutation. Note that in
-// order to get all numeric fields that were incremented/decremented, call
-// AddedFields().
-func (m *CommentMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m.user_uuid != nil {
-		fields = append(fields, comment.FieldUserUUID)
-	}
-	if m.text != nil {
-		fields = append(fields, comment.FieldText)
-	}
-	if m.was_edited != nil {
-		fields = append(fields, comment.FieldWasEdited)
-	}
-	if m.total_votes != nil {
-		fields = append(fields, comment.FieldTotalVotes)
-	}
-	if m.upvotes != nil {
-		fields = append(fields, comment.FieldUpvotes)
-	}
-	if m.downvotes != nil {
-		fields = append(fields, comment.FieldDownvotes)
-	}
-	return fields
-}
-
-// Field returns the value of a field with the given name. The second boolean
-// return value indicates that this field was not set, or was not defined in the
-// schema.
-func (m *CommentMutation) Field(name string) (ent.Value, bool) {
-	switch name {
-	case comment.FieldUserUUID:
-		return m.UserUUID()
-	case comment.FieldText:
-		return m.Text()
-	case comment.FieldWasEdited:
-		return m.WasEdited()
-	case comment.FieldTotalVotes:
-		return m.TotalVotes()
-	case comment.FieldUpvotes:
-		return m.Upvotes()
-	case comment.FieldDownvotes:
-		return m.Downvotes()
-	}
-	return nil, false
-}
-
-// OldField returns the old value of the field from the database. An error is
-// returned if the mutation operation is not UpdateOne, or the query to the
-// database failed.
-func (m *CommentMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
-	switch name {
-	case comment.FieldUserUUID:
-		return m.OldUserUUID(ctx)
-	case comment.FieldText:
-		return m.OldText(ctx)
-	case comment.FieldWasEdited:
-		return m.OldWasEdited(ctx)
-	case comment.FieldTotalVotes:
-		return m.OldTotalVotes(ctx)
-	case comment.FieldUpvotes:
-		return m.OldUpvotes(ctx)
-	case comment.FieldDownvotes:
-		return m.OldDownvotes(ctx)
-	}
-	return nil, fmt.Errorf("unknown Comment field %s", name)
-}
-
-// SetField sets the value of a field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *CommentMutation) SetField(name string, value ent.Value) error {
-	switch name {
-	case comment.FieldUserUUID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUserUUID(v)
-		return nil
-	case comment.FieldText:
-		v, ok := value.(string)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetText(v)
-		return nil
-	case comment.FieldWasEdited:
-		v, ok := value.(bool)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetWasEdited(v)
-		return nil
-	case comment.FieldTotalVotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetTotalVotes(v)
-		return nil
-	case comment.FieldUpvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetUpvotes(v)
-		return nil
-	case comment.FieldDownvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetDownvotes(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Comment field %s", name)
-}
-
-// AddedFields returns all numeric fields that were incremented/decremented during
-// this mutation.
-func (m *CommentMutation) AddedFields() []string {
-	var fields []string
-	if m.addtotal_votes != nil {
-		fields = append(fields, comment.FieldTotalVotes)
-	}
-	if m.addupvotes != nil {
-		fields = append(fields, comment.FieldUpvotes)
-	}
-	if m.adddownvotes != nil {
-		fields = append(fields, comment.FieldDownvotes)
-	}
-	return fields
-}
-
-// AddedField returns the numeric value that was incremented/decremented on a field
-// with the given name. The second boolean return value indicates that this field
-// was not set, or was not defined in the schema.
-func (m *CommentMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case comment.FieldTotalVotes:
-		return m.AddedTotalVotes()
-	case comment.FieldUpvotes:
-		return m.AddedUpvotes()
-	case comment.FieldDownvotes:
-		return m.AddedDownvotes()
-	}
-	return nil, false
-}
-
-// AddField adds the value to the field with the given name. It returns an error if
-// the field is not defined in the schema, or if the type mismatched the field
-// type.
-func (m *CommentMutation) AddField(name string, value ent.Value) error {
-	switch name {
-	case comment.FieldTotalVotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTotalVotes(v)
-		return nil
-	case comment.FieldUpvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUpvotes(v)
-		return nil
-	case comment.FieldDownvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDownvotes(v)
-		return nil
-	}
-	return fmt.Errorf("unknown Comment numeric field %s", name)
-}
-
-// ClearedFields returns all nullable fields that were cleared during this
-// mutation.
-func (m *CommentMutation) ClearedFields() []string {
-	return nil
-}
-
-// FieldCleared returns a boolean indicating if a field with the given name was
-// cleared in this mutation.
-func (m *CommentMutation) FieldCleared(name string) bool {
-	_, ok := m.clearedFields[name]
-	return ok
-}
-
-// ClearField clears the value of the field with the given name. It returns an
-// error if the field is not defined in the schema.
-func (m *CommentMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Comment nullable field %s", name)
-}
-
-// ResetField resets all changes in the mutation for the field with the given name.
-// It returns an error if the field is not defined in the schema.
-func (m *CommentMutation) ResetField(name string) error {
-	switch name {
-	case comment.FieldUserUUID:
-		m.ResetUserUUID()
-		return nil
-	case comment.FieldText:
-		m.ResetText()
-		return nil
-	case comment.FieldWasEdited:
-		m.ResetWasEdited()
-		return nil
-	case comment.FieldTotalVotes:
-		m.ResetTotalVotes()
-		return nil
-	case comment.FieldUpvotes:
-		m.ResetUpvotes()
-		return nil
-	case comment.FieldDownvotes:
-		m.ResetDownvotes()
-		return nil
-	}
-	return fmt.Errorf("unknown Comment field %s", name)
-}
-
-// AddedEdges returns all edge names that were set/added in this mutation.
-func (m *CommentMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.post != nil {
-		edges = append(edges, comment.EdgePost)
-	}
-	return edges
-}
-
-// AddedIDs returns all IDs (to other nodes) that were added for the given edge
-// name in this mutation.
-func (m *CommentMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case comment.EdgePost:
-		ids := make([]ent.Value, 0, len(m.post))
-		for id := range m.post {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// RemovedEdges returns all edge names that were removed in this mutation.
-func (m *CommentMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.removedpost != nil {
-		edges = append(edges, comment.EdgePost)
-	}
-	return edges
-}
-
-// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
-// the given name in this mutation.
-func (m *CommentMutation) RemovedIDs(name string) []ent.Value {
-	switch name {
-	case comment.EdgePost:
-		ids := make([]ent.Value, 0, len(m.removedpost))
-		for id := range m.removedpost {
-			ids = append(ids, id)
-		}
-		return ids
-	}
-	return nil
-}
-
-// ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *CommentMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedpost {
-		edges = append(edges, comment.EdgePost)
-	}
-	return edges
-}
-
-// EdgeCleared returns a boolean which indicates if the edge with the given name
-// was cleared in this mutation.
-func (m *CommentMutation) EdgeCleared(name string) bool {
-	switch name {
-	case comment.EdgePost:
-		return m.clearedpost
-	}
-	return false
-}
-
-// ClearEdge clears the value of the edge with the given name. It returns an error
-// if that edge is not defined in the schema.
-func (m *CommentMutation) ClearEdge(name string) error {
-	switch name {
-	}
-	return fmt.Errorf("unknown Comment unique edge %s", name)
-}
-
-// ResetEdge resets all changes to the edge with the given name in this mutation.
-// It returns an error if the edge is not defined in the schema.
-func (m *CommentMutation) ResetEdge(name string) error {
-	switch name {
-	case comment.EdgePost:
-		m.ResetPost()
-		return nil
-	}
-	return fmt.Errorf("unknown Comment edge %s", name)
-}
-
-// PostMutation represents an operation that mutates the Post nodes in the graph.
-type PostMutation struct {
+// AccessLogMutation represents an operation that mutates the AccessLog nodes in the graph.
+type AccessLogMutation struct {
 	config
 	op               Op
 	typ              string
-	id               *uuid.UUID
-	author_user_uuid *uuid.UUID
-	title            *string
-	cover_image      *string
-	total_votes      *int64
-	addtotal_votes   *int64
-	upvotes          *int64
-	addupvotes       *int64
-	downvotes        *int64
-	adddownvotes     *int64
+	id               *int
+	ip               *string
+	uri              *string
+	forwarded_for    *string
+	forwarded_proto  *string
+	forwarded_host   *string
+	forwarded_port   *string
+	forwarded_server *string
+	request_id       *string
+	user_agent       *string
 	clearedFields    map[string]struct{}
-	comments         *uuid.UUID
-	clearedcomments  bool
 	done             bool
-	oldValue         func(context.Context) (*Post, error)
-	predicates       []predicate.Post
+	oldValue         func(context.Context) (*AccessLog, error)
+	predicates       []predicate.AccessLog
 }
 
-var _ ent.Mutation = (*PostMutation)(nil)
+var _ ent.Mutation = (*AccessLogMutation)(nil)
 
-// postOption allows management of the mutation configuration using functional options.
-type postOption func(*PostMutation)
+// accesslogOption allows management of the mutation configuration using functional options.
+type accesslogOption func(*AccessLogMutation)
 
-// newPostMutation creates new mutation for the Post entity.
-func newPostMutation(c config, op Op, opts ...postOption) *PostMutation {
-	m := &PostMutation{
+// newAccessLogMutation creates new mutation for the AccessLog entity.
+func newAccessLogMutation(c config, op Op, opts ...accesslogOption) *AccessLogMutation {
+	m := &AccessLogMutation{
 		config:        c,
 		op:            op,
-		typ:           TypePost,
+		typ:           TypeAccessLog,
 		clearedFields: make(map[string]struct{}),
 	}
 	for _, opt := range opts {
@@ -868,20 +66,20 @@ func newPostMutation(c config, op Op, opts ...postOption) *PostMutation {
 	return m
 }
 
-// withPostID sets the ID field of the mutation.
-func withPostID(id uuid.UUID) postOption {
-	return func(m *PostMutation) {
+// withAccessLogID sets the ID field of the mutation.
+func withAccessLogID(id int) accesslogOption {
+	return func(m *AccessLogMutation) {
 		var (
 			err   error
 			once  sync.Once
-			value *Post
+			value *AccessLog
 		)
-		m.oldValue = func(ctx context.Context) (*Post, error) {
+		m.oldValue = func(ctx context.Context) (*AccessLog, error) {
 			once.Do(func() {
 				if m.done {
 					err = errors.New("querying old values post mutation is not allowed")
 				} else {
-					value, err = m.Client().Post.Get(ctx, id)
+					value, err = m.Client().AccessLog.Get(ctx, id)
 				}
 			})
 			return value, err
@@ -890,10 +88,10 @@ func withPostID(id uuid.UUID) postOption {
 	}
 }
 
-// withPost sets the old Post of the mutation.
-func withPost(node *Post) postOption {
-	return func(m *PostMutation) {
-		m.oldValue = func(context.Context) (*Post, error) {
+// withAccessLog sets the old AccessLog of the mutation.
+func withAccessLog(node *AccessLog) accesslogOption {
+	return func(m *AccessLogMutation) {
+		m.oldValue = func(context.Context) (*AccessLog, error) {
 			return node, nil
 		}
 		m.id = &node.ID
@@ -902,7 +100,7 @@ func withPost(node *Post) postOption {
 
 // Client returns a new `ent.Client` from the mutation. If the mutation was
 // executed in a transaction (ent.Tx), a transactional client is returned.
-func (m PostMutation) Client() *Client {
+func (m AccessLogMutation) Client() *Client {
 	client := &Client{config: m.config}
 	client.init()
 	return client
@@ -910,7 +108,7 @@ func (m PostMutation) Client() *Client {
 
 // Tx returns an `ent.Tx` for mutations that were executed in transactions;
 // it returns an error otherwise.
-func (m PostMutation) Tx() (*Tx, error) {
+func (m AccessLogMutation) Tx() (*Tx, error) {
 	if _, ok := m.driver.(*txDriver); !ok {
 		return nil, errors.New("build: mutation is not running in a transaction")
 	}
@@ -919,15 +117,9 @@ func (m PostMutation) Tx() (*Tx, error) {
 	return tx, nil
 }
 
-// SetID sets the value of the id field. Note that this
-// operation is only accepted on creation of Post entities.
-func (m *PostMutation) SetID(id uuid.UUID) {
-	m.id = &id
-}
-
 // ID returns the ID value in the mutation. Note that the ID is only available
 // if it was provided to the builder or after it was returned from the database.
-func (m *PostMutation) ID() (id uuid.UUID, exists bool) {
+func (m *AccessLogMutation) ID() (id int, exists bool) {
 	if m.id == nil {
 		return
 	}
@@ -938,345 +130,354 @@ func (m *PostMutation) ID() (id uuid.UUID, exists bool) {
 // That means, if the mutation is applied within a transaction with an isolation level such
 // as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
 // or updated by the mutation.
-func (m *PostMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+func (m *AccessLogMutation) IDs(ctx context.Context) ([]int, error) {
 	switch {
 	case m.op.Is(OpUpdateOne | OpDeleteOne):
 		id, exists := m.ID()
 		if exists {
-			return []uuid.UUID{id}, nil
+			return []int{id}, nil
 		}
 		fallthrough
 	case m.op.Is(OpUpdate | OpDelete):
-		return m.Client().Post.Query().Where(m.predicates...).IDs(ctx)
+		return m.Client().AccessLog.Query().Where(m.predicates...).IDs(ctx)
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
 }
 
-// SetAuthorUserUUID sets the "author_user_uuid" field.
-func (m *PostMutation) SetAuthorUserUUID(u uuid.UUID) {
-	m.author_user_uuid = &u
+// SetIP sets the "ip" field.
+func (m *AccessLogMutation) SetIP(s string) {
+	m.ip = &s
 }
 
-// AuthorUserUUID returns the value of the "author_user_uuid" field in the mutation.
-func (m *PostMutation) AuthorUserUUID() (r uuid.UUID, exists bool) {
-	v := m.author_user_uuid
+// IP returns the value of the "ip" field in the mutation.
+func (m *AccessLogMutation) IP() (r string, exists bool) {
+	v := m.ip
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldAuthorUserUUID returns the old "author_user_uuid" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldIP returns the old "ip" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldAuthorUserUUID(ctx context.Context) (v uuid.UUID, err error) {
+func (m *AccessLogMutation) OldIP(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldAuthorUserUUID is only allowed on UpdateOne operations")
+		return v, errors.New("OldIP is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldAuthorUserUUID requires an ID field in the mutation")
+		return v, errors.New("OldIP requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldAuthorUserUUID: %w", err)
+		return v, fmt.Errorf("querying old value for OldIP: %w", err)
 	}
-	return oldValue.AuthorUserUUID, nil
+	return oldValue.IP, nil
 }
 
-// ResetAuthorUserUUID resets all changes to the "author_user_uuid" field.
-func (m *PostMutation) ResetAuthorUserUUID() {
-	m.author_user_uuid = nil
+// ResetIP resets all changes to the "ip" field.
+func (m *AccessLogMutation) ResetIP() {
+	m.ip = nil
 }
 
-// SetTitle sets the "title" field.
-func (m *PostMutation) SetTitle(s string) {
-	m.title = &s
+// SetURI sets the "uri" field.
+func (m *AccessLogMutation) SetURI(s string) {
+	m.uri = &s
 }
 
-// Title returns the value of the "title" field in the mutation.
-func (m *PostMutation) Title() (r string, exists bool) {
-	v := m.title
+// URI returns the value of the "uri" field in the mutation.
+func (m *AccessLogMutation) URI() (r string, exists bool) {
+	v := m.uri
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTitle returns the old "title" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldURI returns the old "uri" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldTitle(ctx context.Context) (v string, err error) {
+func (m *AccessLogMutation) OldURI(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTitle is only allowed on UpdateOne operations")
+		return v, errors.New("OldURI is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTitle requires an ID field in the mutation")
+		return v, errors.New("OldURI requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTitle: %w", err)
+		return v, fmt.Errorf("querying old value for OldURI: %w", err)
 	}
-	return oldValue.Title, nil
+	return oldValue.URI, nil
 }
 
-// ResetTitle resets all changes to the "title" field.
-func (m *PostMutation) ResetTitle() {
-	m.title = nil
+// ResetURI resets all changes to the "uri" field.
+func (m *AccessLogMutation) ResetURI() {
+	m.uri = nil
 }
 
-// SetCoverImage sets the "cover_image" field.
-func (m *PostMutation) SetCoverImage(s string) {
-	m.cover_image = &s
+// SetForwardedFor sets the "forwarded_for" field.
+func (m *AccessLogMutation) SetForwardedFor(s string) {
+	m.forwarded_for = &s
 }
 
-// CoverImage returns the value of the "cover_image" field in the mutation.
-func (m *PostMutation) CoverImage() (r string, exists bool) {
-	v := m.cover_image
+// ForwardedFor returns the value of the "forwarded_for" field in the mutation.
+func (m *AccessLogMutation) ForwardedFor() (r string, exists bool) {
+	v := m.forwarded_for
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldCoverImage returns the old "cover_image" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldForwardedFor returns the old "forwarded_for" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldCoverImage(ctx context.Context) (v string, err error) {
+func (m *AccessLogMutation) OldForwardedFor(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldCoverImage is only allowed on UpdateOne operations")
+		return v, errors.New("OldForwardedFor is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldCoverImage requires an ID field in the mutation")
+		return v, errors.New("OldForwardedFor requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldCoverImage: %w", err)
+		return v, fmt.Errorf("querying old value for OldForwardedFor: %w", err)
 	}
-	return oldValue.CoverImage, nil
+	return oldValue.ForwardedFor, nil
 }
 
-// ResetCoverImage resets all changes to the "cover_image" field.
-func (m *PostMutation) ResetCoverImage() {
-	m.cover_image = nil
+// ResetForwardedFor resets all changes to the "forwarded_for" field.
+func (m *AccessLogMutation) ResetForwardedFor() {
+	m.forwarded_for = nil
 }
 
-// SetTotalVotes sets the "total_votes" field.
-func (m *PostMutation) SetTotalVotes(i int64) {
-	m.total_votes = &i
-	m.addtotal_votes = nil
+// SetForwardedProto sets the "forwarded_proto" field.
+func (m *AccessLogMutation) SetForwardedProto(s string) {
+	m.forwarded_proto = &s
 }
 
-// TotalVotes returns the value of the "total_votes" field in the mutation.
-func (m *PostMutation) TotalVotes() (r int64, exists bool) {
-	v := m.total_votes
+// ForwardedProto returns the value of the "forwarded_proto" field in the mutation.
+func (m *AccessLogMutation) ForwardedProto() (r string, exists bool) {
+	v := m.forwarded_proto
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// OldTotalVotes returns the old "total_votes" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldForwardedProto returns the old "forwarded_proto" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldTotalVotes(ctx context.Context) (v int64, err error) {
+func (m *AccessLogMutation) OldForwardedProto(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldTotalVotes is only allowed on UpdateOne operations")
+		return v, errors.New("OldForwardedProto is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldTotalVotes requires an ID field in the mutation")
+		return v, errors.New("OldForwardedProto requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldTotalVotes: %w", err)
+		return v, fmt.Errorf("querying old value for OldForwardedProto: %w", err)
 	}
-	return oldValue.TotalVotes, nil
+	return oldValue.ForwardedProto, nil
 }
 
-// AddTotalVotes adds i to the "total_votes" field.
-func (m *PostMutation) AddTotalVotes(i int64) {
-	if m.addtotal_votes != nil {
-		*m.addtotal_votes += i
-	} else {
-		m.addtotal_votes = &i
-	}
+// ResetForwardedProto resets all changes to the "forwarded_proto" field.
+func (m *AccessLogMutation) ResetForwardedProto() {
+	m.forwarded_proto = nil
 }
 
-// AddedTotalVotes returns the value that was added to the "total_votes" field in this mutation.
-func (m *PostMutation) AddedTotalVotes() (r int64, exists bool) {
-	v := m.addtotal_votes
+// SetForwardedHost sets the "forwarded_host" field.
+func (m *AccessLogMutation) SetForwardedHost(s string) {
+	m.forwarded_host = &s
+}
+
+// ForwardedHost returns the value of the "forwarded_host" field in the mutation.
+func (m *AccessLogMutation) ForwardedHost() (r string, exists bool) {
+	v := m.forwarded_host
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetTotalVotes resets all changes to the "total_votes" field.
-func (m *PostMutation) ResetTotalVotes() {
-	m.total_votes = nil
-	m.addtotal_votes = nil
-}
-
-// SetUpvotes sets the "upvotes" field.
-func (m *PostMutation) SetUpvotes(i int64) {
-	m.upvotes = &i
-	m.addupvotes = nil
-}
-
-// Upvotes returns the value of the "upvotes" field in the mutation.
-func (m *PostMutation) Upvotes() (r int64, exists bool) {
-	v := m.upvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldUpvotes returns the old "upvotes" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldForwardedHost returns the old "forwarded_host" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldUpvotes(ctx context.Context) (v int64, err error) {
+func (m *AccessLogMutation) OldForwardedHost(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldUpvotes is only allowed on UpdateOne operations")
+		return v, errors.New("OldForwardedHost is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldUpvotes requires an ID field in the mutation")
+		return v, errors.New("OldForwardedHost requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldUpvotes: %w", err)
+		return v, fmt.Errorf("querying old value for OldForwardedHost: %w", err)
 	}
-	return oldValue.Upvotes, nil
+	return oldValue.ForwardedHost, nil
 }
 
-// AddUpvotes adds i to the "upvotes" field.
-func (m *PostMutation) AddUpvotes(i int64) {
-	if m.addupvotes != nil {
-		*m.addupvotes += i
-	} else {
-		m.addupvotes = &i
-	}
+// ResetForwardedHost resets all changes to the "forwarded_host" field.
+func (m *AccessLogMutation) ResetForwardedHost() {
+	m.forwarded_host = nil
 }
 
-// AddedUpvotes returns the value that was added to the "upvotes" field in this mutation.
-func (m *PostMutation) AddedUpvotes() (r int64, exists bool) {
-	v := m.addupvotes
+// SetForwardedPort sets the "forwarded_port" field.
+func (m *AccessLogMutation) SetForwardedPort(s string) {
+	m.forwarded_port = &s
+}
+
+// ForwardedPort returns the value of the "forwarded_port" field in the mutation.
+func (m *AccessLogMutation) ForwardedPort() (r string, exists bool) {
+	v := m.forwarded_port
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetUpvotes resets all changes to the "upvotes" field.
-func (m *PostMutation) ResetUpvotes() {
-	m.upvotes = nil
-	m.addupvotes = nil
-}
-
-// SetDownvotes sets the "downvotes" field.
-func (m *PostMutation) SetDownvotes(i int64) {
-	m.downvotes = &i
-	m.adddownvotes = nil
-}
-
-// Downvotes returns the value of the "downvotes" field in the mutation.
-func (m *PostMutation) Downvotes() (r int64, exists bool) {
-	v := m.downvotes
-	if v == nil {
-		return
-	}
-	return *v, true
-}
-
-// OldDownvotes returns the old "downvotes" field's value of the Post entity.
-// If the Post object wasn't provided to the builder, the object is fetched from the database.
+// OldForwardedPort returns the old "forwarded_port" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
 // An error is returned if the mutation operation is not UpdateOne, or the database query fails.
-func (m *PostMutation) OldDownvotes(ctx context.Context) (v int64, err error) {
+func (m *AccessLogMutation) OldForwardedPort(ctx context.Context) (v string, err error) {
 	if !m.op.Is(OpUpdateOne) {
-		return v, errors.New("OldDownvotes is only allowed on UpdateOne operations")
+		return v, errors.New("OldForwardedPort is only allowed on UpdateOne operations")
 	}
 	if m.id == nil || m.oldValue == nil {
-		return v, errors.New("OldDownvotes requires an ID field in the mutation")
+		return v, errors.New("OldForwardedPort requires an ID field in the mutation")
 	}
 	oldValue, err := m.oldValue(ctx)
 	if err != nil {
-		return v, fmt.Errorf("querying old value for OldDownvotes: %w", err)
+		return v, fmt.Errorf("querying old value for OldForwardedPort: %w", err)
 	}
-	return oldValue.Downvotes, nil
+	return oldValue.ForwardedPort, nil
 }
 
-// AddDownvotes adds i to the "downvotes" field.
-func (m *PostMutation) AddDownvotes(i int64) {
-	if m.adddownvotes != nil {
-		*m.adddownvotes += i
-	} else {
-		m.adddownvotes = &i
-	}
+// ResetForwardedPort resets all changes to the "forwarded_port" field.
+func (m *AccessLogMutation) ResetForwardedPort() {
+	m.forwarded_port = nil
 }
 
-// AddedDownvotes returns the value that was added to the "downvotes" field in this mutation.
-func (m *PostMutation) AddedDownvotes() (r int64, exists bool) {
-	v := m.adddownvotes
+// SetForwardedServer sets the "forwarded_server" field.
+func (m *AccessLogMutation) SetForwardedServer(s string) {
+	m.forwarded_server = &s
+}
+
+// ForwardedServer returns the value of the "forwarded_server" field in the mutation.
+func (m *AccessLogMutation) ForwardedServer() (r string, exists bool) {
+	v := m.forwarded_server
 	if v == nil {
 		return
 	}
 	return *v, true
 }
 
-// ResetDownvotes resets all changes to the "downvotes" field.
-func (m *PostMutation) ResetDownvotes() {
-	m.downvotes = nil
-	m.adddownvotes = nil
-}
-
-// SetCommentsID sets the "comments" edge to the Comment entity by id.
-func (m *PostMutation) SetCommentsID(id uuid.UUID) {
-	m.comments = &id
-}
-
-// ClearComments clears the "comments" edge to the Comment entity.
-func (m *PostMutation) ClearComments() {
-	m.clearedcomments = true
-}
-
-// CommentsCleared reports if the "comments" edge to the Comment entity was cleared.
-func (m *PostMutation) CommentsCleared() bool {
-	return m.clearedcomments
-}
-
-// CommentsID returns the "comments" edge ID in the mutation.
-func (m *PostMutation) CommentsID() (id uuid.UUID, exists bool) {
-	if m.comments != nil {
-		return *m.comments, true
+// OldForwardedServer returns the old "forwarded_server" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessLogMutation) OldForwardedServer(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldForwardedServer is only allowed on UpdateOne operations")
 	}
-	return
-}
-
-// CommentsIDs returns the "comments" edge IDs in the mutation.
-// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
-// CommentsID instead. It exists only for internal usage by the builders.
-func (m *PostMutation) CommentsIDs() (ids []uuid.UUID) {
-	if id := m.comments; id != nil {
-		ids = append(ids, *id)
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldForwardedServer requires an ID field in the mutation")
 	}
-	return
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldForwardedServer: %w", err)
+	}
+	return oldValue.ForwardedServer, nil
 }
 
-// ResetComments resets all changes to the "comments" edge.
-func (m *PostMutation) ResetComments() {
-	m.comments = nil
-	m.clearedcomments = false
+// ResetForwardedServer resets all changes to the "forwarded_server" field.
+func (m *AccessLogMutation) ResetForwardedServer() {
+	m.forwarded_server = nil
 }
 
-// Where appends a list predicates to the PostMutation builder.
-func (m *PostMutation) Where(ps ...predicate.Post) {
+// SetRequestID sets the "request_id" field.
+func (m *AccessLogMutation) SetRequestID(s string) {
+	m.request_id = &s
+}
+
+// RequestID returns the value of the "request_id" field in the mutation.
+func (m *AccessLogMutation) RequestID() (r string, exists bool) {
+	v := m.request_id
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldRequestID returns the old "request_id" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessLogMutation) OldRequestID(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldRequestID is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldRequestID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldRequestID: %w", err)
+	}
+	return oldValue.RequestID, nil
+}
+
+// ResetRequestID resets all changes to the "request_id" field.
+func (m *AccessLogMutation) ResetRequestID() {
+	m.request_id = nil
+}
+
+// SetUserAgent sets the "user_agent" field.
+func (m *AccessLogMutation) SetUserAgent(s string) {
+	m.user_agent = &s
+}
+
+// UserAgent returns the value of the "user_agent" field in the mutation.
+func (m *AccessLogMutation) UserAgent() (r string, exists bool) {
+	v := m.user_agent
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldUserAgent returns the old "user_agent" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessLogMutation) OldUserAgent(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldUserAgent is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldUserAgent requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserAgent: %w", err)
+	}
+	return oldValue.UserAgent, nil
+}
+
+// ResetUserAgent resets all changes to the "user_agent" field.
+func (m *AccessLogMutation) ResetUserAgent() {
+	m.user_agent = nil
+}
+
+// Where appends a list predicates to the AccessLogMutation builder.
+func (m *AccessLogMutation) Where(ps ...predicate.AccessLog) {
 	m.predicates = append(m.predicates, ps...)
 }
 
-// WhereP appends storage-level predicates to the PostMutation builder. Using this method,
+// WhereP appends storage-level predicates to the AccessLogMutation builder. Using this method,
 // users can use type-assertion to append predicates that do not depend on any generated package.
-func (m *PostMutation) WhereP(ps ...func(*sql.Selector)) {
-	p := make([]predicate.Post, len(ps))
+func (m *AccessLogMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.AccessLog, len(ps))
 	for i := range ps {
 		p[i] = ps[i]
 	}
@@ -1284,42 +485,51 @@ func (m *PostMutation) WhereP(ps ...func(*sql.Selector)) {
 }
 
 // Op returns the operation name.
-func (m *PostMutation) Op() Op {
+func (m *AccessLogMutation) Op() Op {
 	return m.op
 }
 
 // SetOp allows setting the mutation operation.
-func (m *PostMutation) SetOp(op Op) {
+func (m *AccessLogMutation) SetOp(op Op) {
 	m.op = op
 }
 
-// Type returns the node type of this mutation (Post).
-func (m *PostMutation) Type() string {
+// Type returns the node type of this mutation (AccessLog).
+func (m *AccessLogMutation) Type() string {
 	return m.typ
 }
 
 // Fields returns all fields that were changed during this mutation. Note that in
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
-func (m *PostMutation) Fields() []string {
-	fields := make([]string, 0, 6)
-	if m.author_user_uuid != nil {
-		fields = append(fields, post.FieldAuthorUserUUID)
+func (m *AccessLogMutation) Fields() []string {
+	fields := make([]string, 0, 9)
+	if m.ip != nil {
+		fields = append(fields, accesslog.FieldIP)
 	}
-	if m.title != nil {
-		fields = append(fields, post.FieldTitle)
+	if m.uri != nil {
+		fields = append(fields, accesslog.FieldURI)
 	}
-	if m.cover_image != nil {
-		fields = append(fields, post.FieldCoverImage)
+	if m.forwarded_for != nil {
+		fields = append(fields, accesslog.FieldForwardedFor)
 	}
-	if m.total_votes != nil {
-		fields = append(fields, post.FieldTotalVotes)
+	if m.forwarded_proto != nil {
+		fields = append(fields, accesslog.FieldForwardedProto)
 	}
-	if m.upvotes != nil {
-		fields = append(fields, post.FieldUpvotes)
+	if m.forwarded_host != nil {
+		fields = append(fields, accesslog.FieldForwardedHost)
 	}
-	if m.downvotes != nil {
-		fields = append(fields, post.FieldDownvotes)
+	if m.forwarded_port != nil {
+		fields = append(fields, accesslog.FieldForwardedPort)
+	}
+	if m.forwarded_server != nil {
+		fields = append(fields, accesslog.FieldForwardedServer)
+	}
+	if m.request_id != nil {
+		fields = append(fields, accesslog.FieldRequestID)
+	}
+	if m.user_agent != nil {
+		fields = append(fields, accesslog.FieldUserAgent)
 	}
 	return fields
 }
@@ -1327,20 +537,26 @@ func (m *PostMutation) Fields() []string {
 // Field returns the value of a field with the given name. The second boolean
 // return value indicates that this field was not set, or was not defined in the
 // schema.
-func (m *PostMutation) Field(name string) (ent.Value, bool) {
+func (m *AccessLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
-	case post.FieldAuthorUserUUID:
-		return m.AuthorUserUUID()
-	case post.FieldTitle:
-		return m.Title()
-	case post.FieldCoverImage:
-		return m.CoverImage()
-	case post.FieldTotalVotes:
-		return m.TotalVotes()
-	case post.FieldUpvotes:
-		return m.Upvotes()
-	case post.FieldDownvotes:
-		return m.Downvotes()
+	case accesslog.FieldIP:
+		return m.IP()
+	case accesslog.FieldURI:
+		return m.URI()
+	case accesslog.FieldForwardedFor:
+		return m.ForwardedFor()
+	case accesslog.FieldForwardedProto:
+		return m.ForwardedProto()
+	case accesslog.FieldForwardedHost:
+		return m.ForwardedHost()
+	case accesslog.FieldForwardedPort:
+		return m.ForwardedPort()
+	case accesslog.FieldForwardedServer:
+		return m.ForwardedServer()
+	case accesslog.FieldRequestID:
+		return m.RequestID()
+	case accesslog.FieldUserAgent:
+		return m.UserAgent()
 	}
 	return nil, false
 }
@@ -1348,251 +564,222 @@ func (m *PostMutation) Field(name string) (ent.Value, bool) {
 // OldField returns the old value of the field from the database. An error is
 // returned if the mutation operation is not UpdateOne, or the query to the
 // database failed.
-func (m *PostMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+func (m *AccessLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
-	case post.FieldAuthorUserUUID:
-		return m.OldAuthorUserUUID(ctx)
-	case post.FieldTitle:
-		return m.OldTitle(ctx)
-	case post.FieldCoverImage:
-		return m.OldCoverImage(ctx)
-	case post.FieldTotalVotes:
-		return m.OldTotalVotes(ctx)
-	case post.FieldUpvotes:
-		return m.OldUpvotes(ctx)
-	case post.FieldDownvotes:
-		return m.OldDownvotes(ctx)
+	case accesslog.FieldIP:
+		return m.OldIP(ctx)
+	case accesslog.FieldURI:
+		return m.OldURI(ctx)
+	case accesslog.FieldForwardedFor:
+		return m.OldForwardedFor(ctx)
+	case accesslog.FieldForwardedProto:
+		return m.OldForwardedProto(ctx)
+	case accesslog.FieldForwardedHost:
+		return m.OldForwardedHost(ctx)
+	case accesslog.FieldForwardedPort:
+		return m.OldForwardedPort(ctx)
+	case accesslog.FieldForwardedServer:
+		return m.OldForwardedServer(ctx)
+	case accesslog.FieldRequestID:
+		return m.OldRequestID(ctx)
+	case accesslog.FieldUserAgent:
+		return m.OldUserAgent(ctx)
 	}
-	return nil, fmt.Errorf("unknown Post field %s", name)
+	return nil, fmt.Errorf("unknown AccessLog field %s", name)
 }
 
 // SetField sets the value of a field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *PostMutation) SetField(name string, value ent.Value) error {
+func (m *AccessLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
-	case post.FieldAuthorUserUUID:
-		v, ok := value.(uuid.UUID)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.SetAuthorUserUUID(v)
-		return nil
-	case post.FieldTitle:
+	case accesslog.FieldIP:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTitle(v)
+		m.SetIP(v)
 		return nil
-	case post.FieldCoverImage:
+	case accesslog.FieldURI:
 		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetCoverImage(v)
+		m.SetURI(v)
 		return nil
-	case post.FieldTotalVotes:
-		v, ok := value.(int64)
+	case accesslog.FieldForwardedFor:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetTotalVotes(v)
+		m.SetForwardedFor(v)
 		return nil
-	case post.FieldUpvotes:
-		v, ok := value.(int64)
+	case accesslog.FieldForwardedProto:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetUpvotes(v)
+		m.SetForwardedProto(v)
 		return nil
-	case post.FieldDownvotes:
-		v, ok := value.(int64)
+	case accesslog.FieldForwardedHost:
+		v, ok := value.(string)
 		if !ok {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
-		m.SetDownvotes(v)
+		m.SetForwardedHost(v)
+		return nil
+	case accesslog.FieldForwardedPort:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForwardedPort(v)
+		return nil
+	case accesslog.FieldForwardedServer:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetForwardedServer(v)
+		return nil
+	case accesslog.FieldRequestID:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetRequestID(v)
+		return nil
+	case accesslog.FieldUserAgent:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetUserAgent(v)
 		return nil
 	}
-	return fmt.Errorf("unknown Post field %s", name)
+	return fmt.Errorf("unknown AccessLog field %s", name)
 }
 
 // AddedFields returns all numeric fields that were incremented/decremented during
 // this mutation.
-func (m *PostMutation) AddedFields() []string {
-	var fields []string
-	if m.addtotal_votes != nil {
-		fields = append(fields, post.FieldTotalVotes)
-	}
-	if m.addupvotes != nil {
-		fields = append(fields, post.FieldUpvotes)
-	}
-	if m.adddownvotes != nil {
-		fields = append(fields, post.FieldDownvotes)
-	}
-	return fields
+func (m *AccessLogMutation) AddedFields() []string {
+	return nil
 }
 
 // AddedField returns the numeric value that was incremented/decremented on a field
 // with the given name. The second boolean return value indicates that this field
 // was not set, or was not defined in the schema.
-func (m *PostMutation) AddedField(name string) (ent.Value, bool) {
-	switch name {
-	case post.FieldTotalVotes:
-		return m.AddedTotalVotes()
-	case post.FieldUpvotes:
-		return m.AddedUpvotes()
-	case post.FieldDownvotes:
-		return m.AddedDownvotes()
-	}
+func (m *AccessLogMutation) AddedField(name string) (ent.Value, bool) {
 	return nil, false
 }
 
 // AddField adds the value to the field with the given name. It returns an error if
 // the field is not defined in the schema, or if the type mismatched the field
 // type.
-func (m *PostMutation) AddField(name string, value ent.Value) error {
+func (m *AccessLogMutation) AddField(name string, value ent.Value) error {
 	switch name {
-	case post.FieldTotalVotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddTotalVotes(v)
-		return nil
-	case post.FieldUpvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddUpvotes(v)
-		return nil
-	case post.FieldDownvotes:
-		v, ok := value.(int64)
-		if !ok {
-			return fmt.Errorf("unexpected type %T for field %s", value, name)
-		}
-		m.AddDownvotes(v)
-		return nil
 	}
-	return fmt.Errorf("unknown Post numeric field %s", name)
+	return fmt.Errorf("unknown AccessLog numeric field %s", name)
 }
 
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
-func (m *PostMutation) ClearedFields() []string {
+func (m *AccessLogMutation) ClearedFields() []string {
 	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
 // cleared in this mutation.
-func (m *PostMutation) FieldCleared(name string) bool {
+func (m *AccessLogMutation) FieldCleared(name string) bool {
 	_, ok := m.clearedFields[name]
 	return ok
 }
 
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
-func (m *PostMutation) ClearField(name string) error {
-	return fmt.Errorf("unknown Post nullable field %s", name)
+func (m *AccessLogMutation) ClearField(name string) error {
+	return fmt.Errorf("unknown AccessLog nullable field %s", name)
 }
 
 // ResetField resets all changes in the mutation for the field with the given name.
 // It returns an error if the field is not defined in the schema.
-func (m *PostMutation) ResetField(name string) error {
+func (m *AccessLogMutation) ResetField(name string) error {
 	switch name {
-	case post.FieldAuthorUserUUID:
-		m.ResetAuthorUserUUID()
+	case accesslog.FieldIP:
+		m.ResetIP()
 		return nil
-	case post.FieldTitle:
-		m.ResetTitle()
+	case accesslog.FieldURI:
+		m.ResetURI()
 		return nil
-	case post.FieldCoverImage:
-		m.ResetCoverImage()
+	case accesslog.FieldForwardedFor:
+		m.ResetForwardedFor()
 		return nil
-	case post.FieldTotalVotes:
-		m.ResetTotalVotes()
+	case accesslog.FieldForwardedProto:
+		m.ResetForwardedProto()
 		return nil
-	case post.FieldUpvotes:
-		m.ResetUpvotes()
+	case accesslog.FieldForwardedHost:
+		m.ResetForwardedHost()
 		return nil
-	case post.FieldDownvotes:
-		m.ResetDownvotes()
+	case accesslog.FieldForwardedPort:
+		m.ResetForwardedPort()
+		return nil
+	case accesslog.FieldForwardedServer:
+		m.ResetForwardedServer()
+		return nil
+	case accesslog.FieldRequestID:
+		m.ResetRequestID()
+		return nil
+	case accesslog.FieldUserAgent:
+		m.ResetUserAgent()
 		return nil
 	}
-	return fmt.Errorf("unknown Post field %s", name)
+	return fmt.Errorf("unknown AccessLog field %s", name)
 }
 
 // AddedEdges returns all edge names that were set/added in this mutation.
-func (m *PostMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.comments != nil {
-		edges = append(edges, post.EdgeComments)
-	}
+func (m *AccessLogMutation) AddedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // AddedIDs returns all IDs (to other nodes) that were added for the given edge
 // name in this mutation.
-func (m *PostMutation) AddedIDs(name string) []ent.Value {
-	switch name {
-	case post.EdgeComments:
-		if id := m.comments; id != nil {
-			return []ent.Value{*id}
-		}
-	}
+func (m *AccessLogMutation) AddedIDs(name string) []ent.Value {
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
-func (m *PostMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+func (m *AccessLogMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
 // the given name in this mutation.
-func (m *PostMutation) RemovedIDs(name string) []ent.Value {
+func (m *AccessLogMutation) RemovedIDs(name string) []ent.Value {
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
-func (m *PostMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
-	if m.clearedcomments {
-		edges = append(edges, post.EdgeComments)
-	}
+func (m *AccessLogMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 0)
 	return edges
 }
 
 // EdgeCleared returns a boolean which indicates if the edge with the given name
 // was cleared in this mutation.
-func (m *PostMutation) EdgeCleared(name string) bool {
-	switch name {
-	case post.EdgeComments:
-		return m.clearedcomments
-	}
+func (m *AccessLogMutation) EdgeCleared(name string) bool {
 	return false
 }
 
 // ClearEdge clears the value of the edge with the given name. It returns an error
 // if that edge is not defined in the schema.
-func (m *PostMutation) ClearEdge(name string) error {
-	switch name {
-	case post.EdgeComments:
-		m.ClearComments()
-		return nil
-	}
-	return fmt.Errorf("unknown Post unique edge %s", name)
+func (m *AccessLogMutation) ClearEdge(name string) error {
+	return fmt.Errorf("unknown AccessLog unique edge %s", name)
 }
 
 // ResetEdge resets all changes to the edge with the given name in this mutation.
 // It returns an error if the edge is not defined in the schema.
-func (m *PostMutation) ResetEdge(name string) error {
-	switch name {
-	case post.EdgeComments:
-		m.ResetComments()
-		return nil
-	}
-	return fmt.Errorf("unknown Post edge %s", name)
+func (m *AccessLogMutation) ResetEdge(name string) error {
+	return fmt.Errorf("unknown AccessLog edge %s", name)
 }

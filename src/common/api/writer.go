@@ -39,7 +39,7 @@ func (w *Writer) writeError(aErr *Error) {
 		log.Info("expected api error")
 	}
 
-	aErr = w.writeJSON(aErr.httpStatusCode, aErr)
+	aErr = w.writeJSON(aErr.httpStatusCode, nil)
 	if aErr != nil {
 		logrus.WithError(aErr.Err).Error("failed writing error JSON")
 	}

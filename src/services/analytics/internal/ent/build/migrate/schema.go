@@ -8,83 +8,42 @@ import (
 )
 
 var (
-	// CommentsColumns holds the columns for the "comments" table.
-	CommentsColumns = []*schema.Column{
-		{Name: "uuid", Type: field.TypeUUID, Unique: true},
-		{Name: "user_uuid", Type: field.TypeUUID},
-		{Name: "text", Type: field.TypeString},
-		{Name: "was_edited", Type: field.TypeBool, Default: false},
-		{Name: "total_votes", Type: field.TypeInt64},
-		{Name: "upvotes", Type: field.TypeInt64},
-		{Name: "downvotes", Type: field.TypeInt64},
+	// AccessLogsColumns holds the columns for the "access_logs" table.
+	AccessLogsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "ip", Type: field.TypeString},
+		{Name: "uri", Type: field.TypeString},
+		{Name: "forwarded_for", Type: field.TypeString},
+		{Name: "forwarded_proto", Type: field.TypeString},
+		{Name: "forwarded_host", Type: field.TypeString},
+		{Name: "forwarded_port", Type: field.TypeString},
+		{Name: "forwarded_server", Type: field.TypeString},
+		{Name: "request_id", Type: field.TypeString},
+		{Name: "user_agent", Type: field.TypeString},
 	}
-	// CommentsTable holds the schema information for the "comments" table.
-	CommentsTable = &schema.Table{
-		Name:       "comments",
-		Columns:    CommentsColumns,
-		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+	// AccessLogsTable holds the schema information for the "access_logs" table.
+	AccessLogsTable = &schema.Table{
+		Name:       "access_logs",
+		Columns:    AccessLogsColumns,
+		PrimaryKey: []*schema.Column{AccessLogsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "comment_uuid",
-				Unique:  true,
-				Columns: []*schema.Column{CommentsColumns[0]},
-			},
-			{
-				Name:    "comment_user_uuid",
+				Name:    "accesslog_ip",
 				Unique:  false,
-				Columns: []*schema.Column{CommentsColumns[1]},
-			},
-		},
-	}
-	// PostsColumns holds the columns for the "posts" table.
-	PostsColumns = []*schema.Column{
-		{Name: "uuid", Type: field.TypeUUID, Unique: true},
-		{Name: "author_user_uuid", Type: field.TypeUUID},
-		{Name: "title", Type: field.TypeString},
-		{Name: "cover_image", Type: field.TypeString},
-		{Name: "total_votes", Type: field.TypeInt64},
-		{Name: "upvotes", Type: field.TypeInt64},
-		{Name: "downvotes", Type: field.TypeInt64},
-		{Name: "post_comments", Type: field.TypeUUID, Nullable: true},
-	}
-	// PostsTable holds the schema information for the "posts" table.
-	PostsTable = &schema.Table{
-		Name:       "posts",
-		Columns:    PostsColumns,
-		PrimaryKey: []*schema.Column{PostsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "posts_comments_comments",
-				Columns:    []*schema.Column{PostsColumns[7]},
-				RefColumns: []*schema.Column{CommentsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "post_uuid",
-				Unique:  true,
-				Columns: []*schema.Column{PostsColumns[0]},
+				Columns: []*schema.Column{AccessLogsColumns[1]},
 			},
 			{
-				Name:    "post_author_user_uuid",
+				Name:    "accesslog_uri",
 				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[1]},
-			},
-			{
-				Name:    "post_total_votes",
-				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[4]},
+				Columns: []*schema.Column{AccessLogsColumns[2]},
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		CommentsTable,
-		PostsTable,
+		AccessLogsTable,
 	}
 )
 
 func init() {
-	PostsTable.ForeignKeys[0].RefTable = CommentsTable
 }

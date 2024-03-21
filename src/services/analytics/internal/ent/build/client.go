@@ -9,15 +9,12 @@ import (
 	"log"
 	"reflect"
 
-	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/migrate"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
-	"entgo.io/ent/dialect/sql/sqlgraph"
-	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/comment"
-	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/post"
+	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/accesslog"
 
 	stdsql "database/sql"
 )
@@ -27,10 +24,8 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
-	// Comment is the client for interacting with the Comment builders.
-	Comment *CommentClient
-	// Post is the client for interacting with the Post builders.
-	Post *PostClient
+	// AccessLog is the client for interacting with the AccessLog builders.
+	AccessLog *AccessLogClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -42,8 +37,7 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
-	c.Comment = NewCommentClient(c.config)
-	c.Post = NewPostClient(c.config)
+	c.AccessLog = NewAccessLogClient(c.config)
 }
 
 type (
@@ -134,10 +128,9 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	cfg := c.config
 	cfg.driver = tx
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Comment: NewCommentClient(cfg),
-		Post:    NewPostClient(cfg),
+		ctx:       ctx,
+		config:    cfg,
+		AccessLog: NewAccessLogClient(cfg),
 	}, nil
 }
 
@@ -155,17 +148,16 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	cfg := c.config
 	cfg.driver = &txDriver{tx: tx, drv: c.driver}
 	return &Tx{
-		ctx:     ctx,
-		config:  cfg,
-		Comment: NewCommentClient(cfg),
-		Post:    NewPostClient(cfg),
+		ctx:       ctx,
+		config:    cfg,
+		AccessLog: NewAccessLogClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Comment.
+//		AccessLog.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -187,130 +179,126 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
-	c.Comment.Use(hooks...)
-	c.Post.Use(hooks...)
+	c.AccessLog.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
-	c.Comment.Intercept(interceptors...)
-	c.Post.Intercept(interceptors...)
+	c.AccessLog.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
-	case *CommentMutation:
-		return c.Comment.mutate(ctx, m)
-	case *PostMutation:
-		return c.Post.mutate(ctx, m)
+	case *AccessLogMutation:
+		return c.AccessLog.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("build: unknown mutation type %T", m)
 	}
 }
 
-// CommentClient is a client for the Comment schema.
-type CommentClient struct {
+// AccessLogClient is a client for the AccessLog schema.
+type AccessLogClient struct {
 	config
 }
 
-// NewCommentClient returns a client for the Comment from the given config.
-func NewCommentClient(c config) *CommentClient {
-	return &CommentClient{config: c}
+// NewAccessLogClient returns a client for the AccessLog from the given config.
+func NewAccessLogClient(c config) *AccessLogClient {
+	return &AccessLogClient{config: c}
 }
 
 // Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `comment.Hooks(f(g(h())))`.
-func (c *CommentClient) Use(hooks ...Hook) {
-	c.hooks.Comment = append(c.hooks.Comment, hooks...)
+// A call to `Use(f, g, h)` equals to `accesslog.Hooks(f(g(h())))`.
+func (c *AccessLogClient) Use(hooks ...Hook) {
+	c.hooks.AccessLog = append(c.hooks.AccessLog, hooks...)
 }
 
 // Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `comment.Intercept(f(g(h())))`.
-func (c *CommentClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Comment = append(c.inters.Comment, interceptors...)
+// A call to `Intercept(f, g, h)` equals to `accesslog.Intercept(f(g(h())))`.
+func (c *AccessLogClient) Intercept(interceptors ...Interceptor) {
+	c.inters.AccessLog = append(c.inters.AccessLog, interceptors...)
 }
 
-// Create returns a builder for creating a Comment entity.
-func (c *CommentClient) Create() *CommentCreate {
-	mutation := newCommentMutation(c.config, OpCreate)
-	return &CommentCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Create returns a builder for creating a AccessLog entity.
+func (c *AccessLogClient) Create() *AccessLogCreate {
+	mutation := newAccessLogMutation(c.config, OpCreate)
+	return &AccessLogCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// CreateBulk returns a builder for creating a bulk of Comment entities.
-func (c *CommentClient) CreateBulk(builders ...*CommentCreate) *CommentCreateBulk {
-	return &CommentCreateBulk{config: c.config, builders: builders}
+// CreateBulk returns a builder for creating a bulk of AccessLog entities.
+func (c *AccessLogClient) CreateBulk(builders ...*AccessLogCreate) *AccessLogCreateBulk {
+	return &AccessLogCreateBulk{config: c.config, builders: builders}
 }
 
 // MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
 // a builder and applies setFunc on it.
-func (c *CommentClient) MapCreateBulk(slice any, setFunc func(*CommentCreate, int)) *CommentCreateBulk {
+func (c *AccessLogClient) MapCreateBulk(slice any, setFunc func(*AccessLogCreate, int)) *AccessLogCreateBulk {
 	rv := reflect.ValueOf(slice)
 	if rv.Kind() != reflect.Slice {
-		return &CommentCreateBulk{err: fmt.Errorf("calling to CommentClient.MapCreateBulk with wrong type %T, need slice", slice)}
+		return &AccessLogCreateBulk{err: fmt.Errorf("calling to AccessLogClient.MapCreateBulk with wrong type %T, need slice", slice)}
 	}
-	builders := make([]*CommentCreate, rv.Len())
+	builders := make([]*AccessLogCreate, rv.Len())
 	for i := 0; i < rv.Len(); i++ {
 		builders[i] = c.Create()
 		setFunc(builders[i], i)
 	}
-	return &CommentCreateBulk{config: c.config, builders: builders}
+	return &AccessLogCreateBulk{config: c.config, builders: builders}
 }
 
-// Update returns an update builder for Comment.
-func (c *CommentClient) Update() *CommentUpdate {
-	mutation := newCommentMutation(c.config, OpUpdate)
-	return &CommentUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Update returns an update builder for AccessLog.
+func (c *AccessLogClient) Update() *AccessLogUpdate {
+	mutation := newAccessLogMutation(c.config, OpUpdate)
+	return &AccessLogUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOne returns an update builder for the given entity.
-func (c *CommentClient) UpdateOne(co *Comment) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne, withComment(co))
-	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *AccessLogClient) UpdateOne(al *AccessLog) *AccessLogUpdateOne {
+	mutation := newAccessLogMutation(c.config, OpUpdateOne, withAccessLog(al))
+	return &AccessLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // UpdateOneID returns an update builder for the given id.
-func (c *CommentClient) UpdateOneID(id uuid.UUID) *CommentUpdateOne {
-	mutation := newCommentMutation(c.config, OpUpdateOne, withCommentID(id))
-	return &CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+func (c *AccessLogClient) UpdateOneID(id int) *AccessLogUpdateOne {
+	mutation := newAccessLogMutation(c.config, OpUpdateOne, withAccessLogID(id))
+	return &AccessLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
-// Delete returns a delete builder for Comment.
-func (c *CommentClient) Delete() *CommentDelete {
-	mutation := newCommentMutation(c.config, OpDelete)
-	return &CommentDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+// Delete returns a delete builder for AccessLog.
+func (c *AccessLogClient) Delete() *AccessLogDelete {
+	mutation := newAccessLogMutation(c.config, OpDelete)
+	return &AccessLogDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
 }
 
 // DeleteOne returns a builder for deleting the given entity.
-func (c *CommentClient) DeleteOne(co *Comment) *CommentDeleteOne {
-	return c.DeleteOneID(co.ID)
+func (c *AccessLogClient) DeleteOne(al *AccessLog) *AccessLogDeleteOne {
+	return c.DeleteOneID(al.ID)
 }
 
 // DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *CommentClient) DeleteOneID(id uuid.UUID) *CommentDeleteOne {
-	builder := c.Delete().Where(comment.ID(id))
+func (c *AccessLogClient) DeleteOneID(id int) *AccessLogDeleteOne {
+	builder := c.Delete().Where(accesslog.ID(id))
 	builder.mutation.id = &id
 	builder.mutation.op = OpDeleteOne
-	return &CommentDeleteOne{builder}
+	return &AccessLogDeleteOne{builder}
 }
 
-// Query returns a query builder for Comment.
-func (c *CommentClient) Query() *CommentQuery {
-	return &CommentQuery{
+// Query returns a query builder for AccessLog.
+func (c *AccessLogClient) Query() *AccessLogQuery {
+	return &AccessLogQuery{
 		config: c.config,
-		ctx:    &QueryContext{Type: TypeComment},
+		ctx:    &QueryContext{Type: TypeAccessLog},
 		inters: c.Interceptors(),
 	}
 }
 
-// Get returns a Comment entity by its id.
-func (c *CommentClient) Get(ctx context.Context, id uuid.UUID) (*Comment, error) {
-	return c.Query().Where(comment.ID(id)).Only(ctx)
+// Get returns a AccessLog entity by its id.
+func (c *AccessLogClient) Get(ctx context.Context, id int) (*AccessLog, error) {
+	return c.Query().Where(accesslog.ID(id)).Only(ctx)
 }
 
 // GetX is like Get, but panics if an error occurs.
-func (c *CommentClient) GetX(ctx context.Context, id uuid.UUID) *Comment {
+func (c *AccessLogClient) GetX(ctx context.Context, id int) *AccessLog {
 	obj, err := c.Get(ctx, id)
 	if err != nil {
 		panic(err)
@@ -318,203 +306,38 @@ func (c *CommentClient) GetX(ctx context.Context, id uuid.UUID) *Comment {
 	return obj
 }
 
-// QueryPost queries the post edge of a Comment.
-func (c *CommentClient) QueryPost(co *Comment) *PostQuery {
-	query := (&PostClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := co.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(comment.Table, comment.FieldID, id),
-			sqlgraph.To(post.Table, post.FieldID),
-			sqlgraph.Edge(sqlgraph.O2M, true, comment.PostTable, comment.PostColumn),
-		)
-		fromV = sqlgraph.Neighbors(co.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
 // Hooks returns the client hooks.
-func (c *CommentClient) Hooks() []Hook {
-	return c.hooks.Comment
+func (c *AccessLogClient) Hooks() []Hook {
+	return c.hooks.AccessLog
 }
 
 // Interceptors returns the client interceptors.
-func (c *CommentClient) Interceptors() []Interceptor {
-	return c.inters.Comment
+func (c *AccessLogClient) Interceptors() []Interceptor {
+	return c.inters.AccessLog
 }
 
-func (c *CommentClient) mutate(ctx context.Context, m *CommentMutation) (Value, error) {
+func (c *AccessLogClient) mutate(ctx context.Context, m *AccessLogMutation) (Value, error) {
 	switch m.Op() {
 	case OpCreate:
-		return (&CommentCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&AccessLogCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdate:
-		return (&CommentUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&AccessLogUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpUpdateOne:
-		return (&CommentUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+		return (&AccessLogUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
 	case OpDelete, OpDeleteOne:
-		return (&CommentDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+		return (&AccessLogDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
-		return nil, fmt.Errorf("build: unknown Comment mutation op: %q", m.Op())
-	}
-}
-
-// PostClient is a client for the Post schema.
-type PostClient struct {
-	config
-}
-
-// NewPostClient returns a client for the Post from the given config.
-func NewPostClient(c config) *PostClient {
-	return &PostClient{config: c}
-}
-
-// Use adds a list of mutation hooks to the hooks stack.
-// A call to `Use(f, g, h)` equals to `post.Hooks(f(g(h())))`.
-func (c *PostClient) Use(hooks ...Hook) {
-	c.hooks.Post = append(c.hooks.Post, hooks...)
-}
-
-// Intercept adds a list of query interceptors to the interceptors stack.
-// A call to `Intercept(f, g, h)` equals to `post.Intercept(f(g(h())))`.
-func (c *PostClient) Intercept(interceptors ...Interceptor) {
-	c.inters.Post = append(c.inters.Post, interceptors...)
-}
-
-// Create returns a builder for creating a Post entity.
-func (c *PostClient) Create() *PostCreate {
-	mutation := newPostMutation(c.config, OpCreate)
-	return &PostCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// CreateBulk returns a builder for creating a bulk of Post entities.
-func (c *PostClient) CreateBulk(builders ...*PostCreate) *PostCreateBulk {
-	return &PostCreateBulk{config: c.config, builders: builders}
-}
-
-// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
-// a builder and applies setFunc on it.
-func (c *PostClient) MapCreateBulk(slice any, setFunc func(*PostCreate, int)) *PostCreateBulk {
-	rv := reflect.ValueOf(slice)
-	if rv.Kind() != reflect.Slice {
-		return &PostCreateBulk{err: fmt.Errorf("calling to PostClient.MapCreateBulk with wrong type %T, need slice", slice)}
-	}
-	builders := make([]*PostCreate, rv.Len())
-	for i := 0; i < rv.Len(); i++ {
-		builders[i] = c.Create()
-		setFunc(builders[i], i)
-	}
-	return &PostCreateBulk{config: c.config, builders: builders}
-}
-
-// Update returns an update builder for Post.
-func (c *PostClient) Update() *PostUpdate {
-	mutation := newPostMutation(c.config, OpUpdate)
-	return &PostUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOne returns an update builder for the given entity.
-func (c *PostClient) UpdateOne(po *Post) *PostUpdateOne {
-	mutation := newPostMutation(c.config, OpUpdateOne, withPost(po))
-	return &PostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// UpdateOneID returns an update builder for the given id.
-func (c *PostClient) UpdateOneID(id uuid.UUID) *PostUpdateOne {
-	mutation := newPostMutation(c.config, OpUpdateOne, withPostID(id))
-	return &PostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// Delete returns a delete builder for Post.
-func (c *PostClient) Delete() *PostDelete {
-	mutation := newPostMutation(c.config, OpDelete)
-	return &PostDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
-}
-
-// DeleteOne returns a builder for deleting the given entity.
-func (c *PostClient) DeleteOne(po *Post) *PostDeleteOne {
-	return c.DeleteOneID(po.ID)
-}
-
-// DeleteOneID returns a builder for deleting the given entity by its id.
-func (c *PostClient) DeleteOneID(id uuid.UUID) *PostDeleteOne {
-	builder := c.Delete().Where(post.ID(id))
-	builder.mutation.id = &id
-	builder.mutation.op = OpDeleteOne
-	return &PostDeleteOne{builder}
-}
-
-// Query returns a query builder for Post.
-func (c *PostClient) Query() *PostQuery {
-	return &PostQuery{
-		config: c.config,
-		ctx:    &QueryContext{Type: TypePost},
-		inters: c.Interceptors(),
-	}
-}
-
-// Get returns a Post entity by its id.
-func (c *PostClient) Get(ctx context.Context, id uuid.UUID) (*Post, error) {
-	return c.Query().Where(post.ID(id)).Only(ctx)
-}
-
-// GetX is like Get, but panics if an error occurs.
-func (c *PostClient) GetX(ctx context.Context, id uuid.UUID) *Post {
-	obj, err := c.Get(ctx, id)
-	if err != nil {
-		panic(err)
-	}
-	return obj
-}
-
-// QueryComments queries the comments edge of a Post.
-func (c *PostClient) QueryComments(po *Post) *CommentQuery {
-	query := (&CommentClient{config: c.config}).Query()
-	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
-		id := po.ID
-		step := sqlgraph.NewStep(
-			sqlgraph.From(post.Table, post.FieldID, id),
-			sqlgraph.To(comment.Table, comment.FieldID),
-			sqlgraph.Edge(sqlgraph.M2O, false, post.CommentsTable, post.CommentsColumn),
-		)
-		fromV = sqlgraph.Neighbors(po.driver.Dialect(), step)
-		return fromV, nil
-	}
-	return query
-}
-
-// Hooks returns the client hooks.
-func (c *PostClient) Hooks() []Hook {
-	return c.hooks.Post
-}
-
-// Interceptors returns the client interceptors.
-func (c *PostClient) Interceptors() []Interceptor {
-	return c.inters.Post
-}
-
-func (c *PostClient) mutate(ctx context.Context, m *PostMutation) (Value, error) {
-	switch m.Op() {
-	case OpCreate:
-		return (&PostCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdate:
-		return (&PostUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpUpdateOne:
-		return (&PostUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
-	case OpDelete, OpDeleteOne:
-		return (&PostDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
-	default:
-		return nil, fmt.Errorf("build: unknown Post mutation op: %q", m.Op())
+		return nil, fmt.Errorf("build: unknown AccessLog mutation op: %q", m.Op())
 	}
 }
 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Comment, Post []ent.Hook
+		AccessLog []ent.Hook
 	}
 	inters struct {
-		Comment, Post []ent.Interceptor
+		AccessLog []ent.Interceptor
 	}
 )
 
