@@ -25,7 +25,7 @@ func main() {
 	api.RouteGET(router, api.Public, "/", api.SuccessEndpoint)
 
 	// Posts
-	api.RouteGET(router, api.Public, "/api/v1/analytics/access_log/:uri", log.AccessLog)
+	api.RouteGET(router, api.Public, "/api/v1/analytics/access_log/:ip/:uri", log.AccessLog)
 
 	logrus.Fatal(router.ListenAndServe(":5003"))
 }

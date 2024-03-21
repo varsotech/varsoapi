@@ -11,10 +11,10 @@ import (
 	Users can submit posts in either the main chart or the friends chart.
 */
 
-func Create(ctx context.Context, uri, forwardedFor, ip, proto, host, port, server, id, userAgent string) error {
+func Create(ctx context.Context, ip, uri, forwardedFor, proto, host, port, server, id, userAgent string) error {
 	err := ent.Database.AccessLog.Create().
-		SetURI(uri).
 		SetIP(ip).
+		SetURI(uri).
 		SetForwardedFor(forwardedFor).
 		SetForwardedHost(host).
 		SetForwardedPort(port).
