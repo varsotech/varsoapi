@@ -138,6 +138,10 @@ jobs:
             build-args: |
               SERVICE=fileserver
               PORT=5002
+          - service: analytics
+            build-args: |
+              SERVICE=analytics
+              PORT=5003
           - service: nginx
           - service: postgres
           - service: certbot
