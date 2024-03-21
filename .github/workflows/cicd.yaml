@@ -48,8 +48,6 @@ jobs:
 
       - name: Run Gosec Security Scanner
         uses: securego/gosec@master
-        with:
-          args: -exclude-generated ./...
 
   # test_www:
   #   name: Test www
