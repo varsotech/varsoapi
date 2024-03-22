@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -32,6 +33,7 @@ type AccessLogMutation struct {
 	op               Op
 	typ              string
 	id               *int
+	create_time      *time.Time
 	ip               *string
 	uri              *string
 	forwarded_for    *string
@@ -143,6 +145,42 @@ func (m *AccessLogMutation) IDs(ctx context.Context) ([]int, error) {
 	default:
 		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
 	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *AccessLogMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *AccessLogMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the AccessLog entity.
+// If the AccessLog object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *AccessLogMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *AccessLogMutation) ResetCreateTime() {
+	m.create_time = nil
 }
 
 // SetIP sets the "ip" field.
@@ -503,7 +541,10 @@ func (m *AccessLogMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *AccessLogMutation) Fields() []string {
-	fields := make([]string, 0, 9)
+	fields := make([]string, 0, 10)
+	if m.create_time != nil {
+		fields = append(fields, accesslog.FieldCreateTime)
+	}
 	if m.ip != nil {
 		fields = append(fields, accesslog.FieldIP)
 	}
@@ -539,6 +580,8 @@ func (m *AccessLogMutation) Fields() []string {
 // schema.
 func (m *AccessLogMutation) Field(name string) (ent.Value, bool) {
 	switch name {
+	case accesslog.FieldCreateTime:
+		return m.CreateTime()
 	case accesslog.FieldIP:
 		return m.IP()
 	case accesslog.FieldURI:
@@ -566,6 +609,8 @@ func (m *AccessLogMutation) Field(name string) (ent.Value, bool) {
 // database failed.
 func (m *AccessLogMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
 	switch name {
+	case accesslog.FieldCreateTime:
+		return m.OldCreateTime(ctx)
 	case accesslog.FieldIP:
 		return m.OldIP(ctx)
 	case accesslog.FieldURI:
@@ -593,6 +638,13 @@ func (m *AccessLogMutation) OldField(ctx context.Context, name string) (ent.Valu
 // type.
 func (m *AccessLogMutation) SetField(name string, value ent.Value) error {
 	switch name {
+	case accesslog.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
 	case accesslog.FieldIP:
 		v, ok := value.(string)
 		if !ok {
@@ -705,6 +757,9 @@ func (m *AccessLogMutation) ClearField(name string) error {
 // It returns an error if the field is not defined in the schema.
 func (m *AccessLogMutation) ResetField(name string) error {
 	switch name {
+	case accesslog.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
 	case accesslog.FieldIP:
 		m.ResetIP()
 		return nil

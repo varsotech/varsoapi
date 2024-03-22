@@ -5,6 +5,7 @@ package build
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
@@ -16,6 +17,8 @@ type AccessLog struct {
 	config `json:"-"`
 	// ID of the ent.
 	ID int `json:"id,omitempty"`
+	// CreateTime holds the value of the "create_time" field.
+	CreateTime time.Time `json:"create_time,omitempty"`
 	// IP holds the value of the "ip" field.
 	IP string `json:"ip,omitempty"`
 	// URI holds the value of the "uri" field.
@@ -46,6 +49,8 @@ func (*AccessLog) scanValues(columns []string) ([]any, error) {
 			values[i] = new(sql.NullInt64)
 		case accesslog.FieldIP, accesslog.FieldURI, accesslog.FieldForwardedFor, accesslog.FieldForwardedProto, accesslog.FieldForwardedHost, accesslog.FieldForwardedPort, accesslog.FieldForwardedServer, accesslog.FieldRequestID, accesslog.FieldUserAgent:
 			values[i] = new(sql.NullString)
+		case accesslog.FieldCreateTime:
+			values[i] = new(sql.NullTime)
 		default:
 			values[i] = new(sql.UnknownType)
 		}
@@ -67,6 +72,12 @@ func (al *AccessLog) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field id", value)
 			}
 			al.ID = int(value.Int64)
+		case accesslog.FieldCreateTime:
+			if value, ok := values[i].(*sql.NullTime); !ok {
+				return fmt.Errorf("unexpected type %T for field create_time", values[i])
+			} else if value.Valid {
+				al.CreateTime = value.Time
+			}
 		case accesslog.FieldIP:
 			if value, ok := values[i].(*sql.NullString); !ok {
 				return fmt.Errorf("unexpected type %T for field ip", values[i])
@@ -157,6 +168,9 @@ func (al *AccessLog) String() string {
 	var builder strings.Builder
 	builder.WriteString("AccessLog(")
 	builder.WriteString(fmt.Sprintf("id=%v, ", al.ID))
+	builder.WriteString("create_time=")
+	builder.WriteString(al.CreateTime.Format(time.ANSIC))
+	builder.WriteString(", ")
 	builder.WriteString("ip=")
 	builder.WriteString(al.IP)
 	builder.WriteString(", ")

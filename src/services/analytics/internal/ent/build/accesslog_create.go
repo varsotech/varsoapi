@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"time"
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
@@ -19,6 +20,20 @@ type AccessLogCreate struct {
 	mutation *AccessLogMutation
 	hooks    []Hook
 	conflict []sql.ConflictOption
+}
+
+// SetCreateTime sets the "create_time" field.
+func (alc *AccessLogCreate) SetCreateTime(t time.Time) *AccessLogCreate {
+	alc.mutation.SetCreateTime(t)
+	return alc
+}
+
+// SetNillableCreateTime sets the "create_time" field if the given value is not nil.
+func (alc *AccessLogCreate) SetNillableCreateTime(t *time.Time) *AccessLogCreate {
+	if t != nil {
+		alc.SetCreateTime(*t)
+	}
+	return alc
 }
 
 // SetIP sets the "ip" field.
@@ -82,6 +97,7 @@ func (alc *AccessLogCreate) Mutation() *AccessLogMutation {
 
 // Save creates the AccessLog in the database.
 func (alc *AccessLogCreate) Save(ctx context.Context) (*AccessLog, error) {
+	alc.defaults()
 	return withHooks(ctx, alc.sqlSave, alc.mutation, alc.hooks)
 }
 
@@ -107,8 +123,19 @@ func (alc *AccessLogCreate) ExecX(ctx context.Context) {
 	}
 }
 
+// defaults sets the default values of the builder before save.
+func (alc *AccessLogCreate) defaults() {
+	if _, ok := alc.mutation.CreateTime(); !ok {
+		v := accesslog.DefaultCreateTime()
+		alc.mutation.SetCreateTime(v)
+	}
+}
+
 // check runs all checks and user-defined validators on the builder.
 func (alc *AccessLogCreate) check() error {
+	if _, ok := alc.mutation.CreateTime(); !ok {
+		return &ValidationError{Name: "create_time", err: errors.New(`build: missing required field "AccessLog.create_time"`)}
+	}
 	if _, ok := alc.mutation.IP(); !ok {
 		return &ValidationError{Name: "ip", err: errors.New(`build: missing required field "AccessLog.ip"`)}
 	}
@@ -163,6 +190,10 @@ func (alc *AccessLogCreate) createSpec() (*AccessLog, *sqlgraph.CreateSpec) {
 		_spec = sqlgraph.NewCreateSpec(accesslog.Table, sqlgraph.NewFieldSpec(accesslog.FieldID, field.TypeInt))
 	)
 	_spec.OnConflict = alc.conflict
+	if value, ok := alc.mutation.CreateTime(); ok {
+		_spec.SetField(accesslog.FieldCreateTime, field.TypeTime, value)
+		_node.CreateTime = value
+	}
 	if value, ok := alc.mutation.IP(); ok {
 		_spec.SetField(accesslog.FieldIP, field.TypeString, value)
 		_node.IP = value
@@ -206,7 +237,7 @@ func (alc *AccessLogCreate) createSpec() (*AccessLog, *sqlgraph.CreateSpec) {
 // of the `INSERT` statement. For example:
 //
 //	client.AccessLog.Create().
-//		SetIP(v).
+//		SetCreateTime(v).
 //		OnConflict(
 //			// Update the row with the new values
 //			// the was proposed for insertion.
@@ -215,7 +246,7 @@ func (alc *AccessLogCreate) createSpec() (*AccessLog, *sqlgraph.CreateSpec) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccessLogUpsert) {
-//			SetIP(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (alc *AccessLogCreate) OnConflict(opts ...sql.ConflictOption) *AccessLogUpsertOne {
@@ -369,6 +400,11 @@ func (u *AccessLogUpsert) UpdateUserAgent() *AccessLogUpsert {
 //		Exec(ctx)
 func (u *AccessLogUpsertOne) UpdateNewValues() *AccessLogUpsertOne {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.CreateTime(); exists {
+			s.SetIgnore(accesslog.FieldCreateTime)
+		}
+	}))
 	return u
 }
 
@@ -577,6 +613,7 @@ func (alcb *AccessLogCreateBulk) Save(ctx context.Context) ([]*AccessLog, error)
 	for i := range alcb.builders {
 		func(i int, root context.Context) {
 			builder := alcb.builders[i]
+			builder.defaults()
 			var mut Mutator = MutateFunc(func(ctx context.Context, m Mutation) (Value, error) {
 				mutation, ok := m.(*AccessLogMutation)
 				if !ok {
@@ -659,7 +696,7 @@ func (alcb *AccessLogCreateBulk) ExecX(ctx context.Context) {
 //		// Override some of the fields with custom
 //		// update values.
 //		Update(func(u *ent.AccessLogUpsert) {
-//			SetIP(v+v).
+//			SetCreateTime(v+v).
 //		}).
 //		Exec(ctx)
 func (alcb *AccessLogCreateBulk) OnConflict(opts ...sql.ConflictOption) *AccessLogUpsertBulk {
@@ -698,6 +735,13 @@ type AccessLogUpsertBulk struct {
 //		Exec(ctx)
 func (u *AccessLogUpsertBulk) UpdateNewValues() *AccessLogUpsertBulk {
 	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.CreateTime(); exists {
+				s.SetIgnore(accesslog.FieldCreateTime)
+			}
+		}
+	}))
 	return u
 }
 

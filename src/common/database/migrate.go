@@ -84,7 +84,7 @@ func CreateMigration(serviceDirName, databaseName, migrationName string, connect
 		logrus.Errorf("failed generating migration file: %v", err)
 
 		if strings.Contains(err.Error(), "postgres: scanning system variables: EOF") {
-			logrus.Panicf("This is a known issue - please re-run and it should work")
+			logrus.Panicf("This is a known issue - please re-run, and if it still fails restart your machine")
 		}
 
 		absPath, _ := filepath.Abs(fmt.Sprintf("./src/services/%s/internal/ent/migrations", serviceDirName))

@@ -3,6 +3,8 @@
 package accesslog
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 )
 
@@ -11,6 +13,8 @@ const (
 	Label = "access_log"
 	// FieldID holds the string denoting the id field in the database.
 	FieldID = "id"
+	// FieldCreateTime holds the string denoting the create_time field in the database.
+	FieldCreateTime = "create_time"
 	// FieldIP holds the string denoting the ip field in the database.
 	FieldIP = "ip"
 	// FieldURI holds the string denoting the uri field in the database.
@@ -36,6 +40,7 @@ const (
 // Columns holds all SQL columns for accesslog fields.
 var Columns = []string{
 	FieldID,
+	FieldCreateTime,
 	FieldIP,
 	FieldURI,
 	FieldForwardedFor,
@@ -57,12 +62,22 @@ func ValidColumn(column string) bool {
 	return false
 }
 
+var (
+	// DefaultCreateTime holds the default value on creation for the "create_time" field.
+	DefaultCreateTime func() time.Time
+)
+
 // OrderOption defines the ordering options for the AccessLog queries.
 type OrderOption func(*sql.Selector)
 
 // ByID orders the results by the id field.
 func ByID(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldID, opts...).ToFunc()
+}
+
+// ByCreateTime orders the results by the create_time field.
+func ByCreateTime(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldCreateTime, opts...).ToFunc()
 }
 
 // ByIP orders the results by the ip field.

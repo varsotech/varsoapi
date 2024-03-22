@@ -263,12 +263,12 @@ func (alq *AccessLogQuery) Clone() *AccessLogQuery {
 // Example:
 //
 //	var v []struct {
-//		IP string `json:"ip,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //		Count int `json:"count,omitempty"`
 //	}
 //
 //	client.AccessLog.Query().
-//		GroupBy(accesslog.FieldIP).
+//		GroupBy(accesslog.FieldCreateTime).
 //		Aggregate(build.Count()).
 //		Scan(ctx, &v)
 func (alq *AccessLogQuery) GroupBy(field string, fields ...string) *AccessLogGroupBy {
@@ -286,11 +286,11 @@ func (alq *AccessLogQuery) GroupBy(field string, fields ...string) *AccessLogGro
 // Example:
 //
 //	var v []struct {
-//		IP string `json:"ip,omitempty"`
+//		CreateTime time.Time `json:"create_time,omitempty"`
 //	}
 //
 //	client.AccessLog.Query().
-//		Select(accesslog.FieldIP).
+//		Select(accesslog.FieldCreateTime).
 //		Scan(ctx, &v)
 func (alq *AccessLogQuery) Select(fields ...string) *AccessLogSelect {
 	alq.ctx.Fields = append(alq.ctx.Fields, fields...)

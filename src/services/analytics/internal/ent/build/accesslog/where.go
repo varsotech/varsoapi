@@ -3,6 +3,8 @@
 package accesslog
 
 import (
+	"time"
+
 	"entgo.io/ent/dialect/sql"
 	"github.com/varsotech/varsoapi/src/services/analytics/internal/ent/build/predicate"
 )
@@ -52,6 +54,11 @@ func IDLTE(id int) predicate.AccessLog {
 	return predicate.AccessLog(sql.FieldLTE(FieldID, id))
 }
 
+// CreateTime applies equality check predicate on the "create_time" field. It's identical to CreateTimeEQ.
+func CreateTime(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldEQ(FieldCreateTime, v))
+}
+
 // IP applies equality check predicate on the "ip" field. It's identical to IPEQ.
 func IP(v string) predicate.AccessLog {
 	return predicate.AccessLog(sql.FieldEQ(FieldIP, v))
@@ -95,6 +102,46 @@ func RequestID(v string) predicate.AccessLog {
 // UserAgent applies equality check predicate on the "user_agent" field. It's identical to UserAgentEQ.
 func UserAgent(v string) predicate.AccessLog {
 	return predicate.AccessLog(sql.FieldEQ(FieldUserAgent, v))
+}
+
+// CreateTimeEQ applies the EQ predicate on the "create_time" field.
+func CreateTimeEQ(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldEQ(FieldCreateTime, v))
+}
+
+// CreateTimeNEQ applies the NEQ predicate on the "create_time" field.
+func CreateTimeNEQ(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldNEQ(FieldCreateTime, v))
+}
+
+// CreateTimeIn applies the In predicate on the "create_time" field.
+func CreateTimeIn(vs ...time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeNotIn applies the NotIn predicate on the "create_time" field.
+func CreateTimeNotIn(vs ...time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldNotIn(FieldCreateTime, vs...))
+}
+
+// CreateTimeGT applies the GT predicate on the "create_time" field.
+func CreateTimeGT(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldGT(FieldCreateTime, v))
+}
+
+// CreateTimeGTE applies the GTE predicate on the "create_time" field.
+func CreateTimeGTE(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldGTE(FieldCreateTime, v))
+}
+
+// CreateTimeLT applies the LT predicate on the "create_time" field.
+func CreateTimeLT(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldLT(FieldCreateTime, v))
+}
+
+// CreateTimeLTE applies the LTE predicate on the "create_time" field.
+func CreateTimeLTE(v time.Time) predicate.AccessLog {
+	return predicate.AccessLog(sql.FieldLTE(FieldCreateTime, v))
 }
 
 // IPEQ applies the EQ predicate on the "ip" field.

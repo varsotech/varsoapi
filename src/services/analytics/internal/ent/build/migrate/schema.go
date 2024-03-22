@@ -11,6 +11,7 @@ var (
 	// AccessLogsColumns holds the columns for the "access_logs" table.
 	AccessLogsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "create_time", Type: field.TypeTime},
 		{Name: "ip", Type: field.TypeString},
 		{Name: "uri", Type: field.TypeString},
 		{Name: "forwarded_for", Type: field.TypeString},
@@ -30,12 +31,12 @@ var (
 			{
 				Name:    "accesslog_ip",
 				Unique:  false,
-				Columns: []*schema.Column{AccessLogsColumns[1]},
+				Columns: []*schema.Column{AccessLogsColumns[2]},
 			},
 			{
 				Name:    "accesslog_uri",
 				Unique:  false,
-				Columns: []*schema.Column{AccessLogsColumns[2]},
+				Columns: []*schema.Column{AccessLogsColumns[3]},
 			},
 		},
 	}

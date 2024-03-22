@@ -1,20 +1,15 @@
 package schema
 
 import (
+	"time"
+
 	"entgo.io/ent"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
-	"entgo.io/ent/schema/mixin"
 )
 
 type AccessLog struct {
 	ent.Schema
-}
-
-func (AccessLog) Mixins() []ent.Mixin {
-	return []ent.Mixin{
-		mixin.CreateTime{},
-	}
 }
 
 func (AccessLog) Indexes() []ent.Index {
@@ -26,6 +21,7 @@ func (AccessLog) Indexes() []ent.Index {
 
 func (AccessLog) Fields() []ent.Field {
 	return []ent.Field{
+		field.Time("create_time").Default(time.Now).Immutable(),
 		field.String("ip"),
 		field.String("uri"),
 
