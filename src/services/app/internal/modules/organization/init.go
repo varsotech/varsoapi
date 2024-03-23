@@ -17,6 +17,24 @@ var orgs = []models.Organization{
 		WebsiteUrl:  "https://www.972mag.com",
 		RssFeedUrl:  "https://www.972mag.com/feed",
 	},
+
+	models.Organization{
+		Uuid:        "278ae4c8-b190-4543-93ec-4e28d558633e",
+		UniqueName:  "btselem",
+		Name:        "Btselem",
+		Description: "Independent commentary and news from Israel & Palestine",
+		WebsiteUrl:  "https://www.btselem.org",
+		RssFeedUrl:  "https://www.btselem.org/rss",
+	},
+
+	models.Organization{
+		Uuid:        "ad470590-8199-4906-b189-782acb7e672d",
+		UniqueName:  "mondoweiss",
+		Name:        "Mondoweiss",
+		Description: "News & Opinion about Palestine, Israel & the United States",
+		WebsiteUrl:  "https://mondoweiss.net",
+		RssFeedUrl:  "https://mondoweiss.net/rss",
+	},
 }
 
 func Initialize(ctx context.Context) error {

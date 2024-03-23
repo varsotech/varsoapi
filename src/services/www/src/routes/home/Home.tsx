@@ -1,17 +1,31 @@
 import { RSSFeed as RSSFeedModel } from "@varsotech/varsoapi/src/app/base";
-import RSSFeed from "../../components/RSSFeed/RSSFeed";
+import RSSFeedPreview from "../../components/RSSFeed/RSSFeedPreview";
 import { useNews } from "../../api/news";
+import Layout from "../../components/Layout/Layout";
 
 function Home() {
   const { data } = useNews();
 
   return (
-    <div>
-      <h1>News</h1>
-      {data?.data?.feeds.map((feed: RSSFeedModel) => {
-        return <RSSFeed key={feed.title} feed={feed} />;
-      }) || null}
-    </div>
+    <Layout>
+      <div
+        style={{
+          display: "flex",
+          padding: 30,
+          flexDirection: "column",
+          borderRight: "1px solid #f2f2f2",
+          flex: 2,
+        }}
+      >
+        <h1>News</h1>
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {data?.data?.feeds?.map((feed: RSSFeedModel) => {
+            return <RSSFeedPreview key={feed.title} feed={feed} />;
+          }) || null}
+        </div>
+      </div>
+      <div style={{ flex: 1 }}>Hey</div>
+    </Layout>
   );
 }
 
