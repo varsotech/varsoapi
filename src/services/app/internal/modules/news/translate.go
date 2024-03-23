@@ -1,10 +1,15 @@
 package news
 
 import (
+	"html"
+	"regexp"
+
 	"github.com/mmcdole/gofeed"
 	"github.com/varsotech/varsoapi/src/services/app/client/models"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+var htmlTagRegex = regexp.MustCompile("<[^>]*>")
 
 func TranslateRSSFeed(feed *gofeed.Feed) *models.RSSFeed {
 	if feed == nil {
@@ -25,6 +30,12 @@ func TranslateRSSItems(items []*gofeed.Item) []*models.RSSItem {
 	return translated
 }
 
+func translateHTML(htmlText string) string {
+	htmlText = html.UnescapeString(htmlText)
+	htmlText = htmlTagRegex.ReplaceAllString(htmlText, "")
+	return htmlText
+}
+
 func TranslateRSSItem(item *gofeed.Item) *models.RSSItem {
 	if item == nil {
 		return &models.RSSItem{}
@@ -42,8 +53,8 @@ func TranslateRSSItem(item *gofeed.Item) *models.RSSItem {
 
 	return &models.RSSItem{
 		Title:       item.Title,
-		Description: item.Description,
-		Content:     item.Content,
+		Description: translateHTML(item.Description),
+		Content:     translateHTML(item.Content),
 		Link:        item.Link,
 		Links:       item.Links,
 		UpdateDate:  updateDate,

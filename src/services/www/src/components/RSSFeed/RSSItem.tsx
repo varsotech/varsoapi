@@ -8,6 +8,7 @@ function RSSItem({ item }: RSSItemProps) {
   return (
     <div>
       <h4>{item.title}</h4>
+      <pre>{item.description}</pre>
     </div>
   );
 }
