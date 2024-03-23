@@ -10,10 +10,7 @@ message GetOrganizationsResponse {
 }
 
 message GetNewsResponse {
-  repeated GetNewsResponseItem items = 1;
-}
-
-message GetNewsResponseItem {
-  RSSFeed feed = 1;
-  Organization organization = 2;
+  map<string, Organization> organizations = 1;
+  RSSItem featured = 2;
+  RSSFeed latest = 3;
 }

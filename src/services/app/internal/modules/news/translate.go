@@ -4,6 +4,7 @@ import (
 	"html"
 	"regexp"
 
+	"github.com/google/uuid"
 	"github.com/mmcdole/gofeed"
 	"github.com/varsotech/varsoapi/src/services/app/client/models"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -11,21 +12,10 @@ import (
 
 var htmlTagRegex = regexp.MustCompile("<[^>]*>")
 
-func TranslateRSSFeed(feed *gofeed.Feed) *models.RSSFeed {
-	if feed == nil {
-		return &models.RSSFeed{}
-	}
-
-	return &models.RSSFeed{
-		Title: feed.Title,
-		Items: TranslateRSSItems(feed.Items),
-	}
-}
-
-func TranslateRSSItems(items []*gofeed.Item) []*models.RSSItem {
+func TranslateRSSItems(items []*gofeed.Item, orgUUID uuid.UUID) []*models.RSSItem {
 	var translated []*models.RSSItem
 	for _, item := range items {
-		translated = append(translated, TranslateRSSItem(item))
+		translated = append(translated, TranslateRSSItem(item, orgUUID))
 	}
 	return translated
 }
@@ -36,7 +26,7 @@ func translateHTML(htmlText string) string {
 	return htmlText
 }
 
-func TranslateRSSItem(item *gofeed.Item) *models.RSSItem {
+func TranslateRSSItem(item *gofeed.Item, orgUUID uuid.UUID) *models.RSSItem {
 	if item == nil {
 		return &models.RSSItem{}
 	}
@@ -52,17 +42,18 @@ func TranslateRSSItem(item *gofeed.Item) *models.RSSItem {
 	}
 
 	return &models.RSSItem{
-		Title:       item.Title,
-		Description: translateHTML(item.Description),
-		Content:     translateHTML(item.Content),
-		Link:        item.Link,
-		Links:       item.Links,
-		UpdateDate:  updateDate,
-		PublishDate: publishDate,
-		Authors:     TranslateRSSAuthors(item.Authors),
-		Uuid:        item.GUID,
-		Image:       TranslateRSSImage(item.Image),
-		Categories:  item.Categories,
+		Title:            item.Title,
+		Description:      translateHTML(item.Description),
+		Content:          translateHTML(item.Content),
+		Link:             item.Link,
+		Links:            item.Links,
+		UpdateDate:       updateDate,
+		PublishDate:      publishDate,
+		Authors:          TranslateRSSAuthors(item.Authors),
+		Uuid:             item.GUID,
+		Image:            TranslateRSSImage(item.Image),
+		Categories:       item.Categories,
+		OrganizationUuid: orgUUID.String(),
 	}
 }
 

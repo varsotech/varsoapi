@@ -14,7 +14,6 @@ export interface Organization {
 }
 
 export interface RSSFeed {
-  title: string;
   items: RSSItem[];
 }
 
@@ -30,6 +29,7 @@ export interface RSSItem {
   uuid: string;
   image: RSSImage | undefined;
   categories: string[];
+  organizationUuid: string;
 }
 
 export interface RSSAuthor {
@@ -177,16 +177,13 @@ export const Organization = {
 };
 
 function createBaseRSSFeed(): RSSFeed {
-  return { title: "", items: [] };
+  return { items: [] };
 }
 
 export const RSSFeed = {
   encode(message: RSSFeed, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.title !== "") {
-      writer.uint32(10).string(message.title);
-    }
     for (const v of message.items) {
-      RSSItem.encode(v!, writer.uint32(18).fork()).ldelim();
+      RSSItem.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -203,13 +200,6 @@ export const RSSFeed = {
             break;
           }
 
-          message.title = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
           message.items.push(RSSItem.decode(reader, reader.uint32()));
           continue;
       }
@@ -222,17 +212,11 @@ export const RSSFeed = {
   },
 
   fromJSON(object: any): RSSFeed {
-    return {
-      title: isSet(object.title) ? String(object.title) : "",
-      items: Array.isArray(object?.items) ? object.items.map((e: any) => RSSItem.fromJSON(e)) : [],
-    };
+    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => RSSItem.fromJSON(e)) : [] };
   },
 
   toJSON(message: RSSFeed): unknown {
     const obj: any = {};
-    if (message.title !== "") {
-      obj.title = message.title;
-    }
     if (message.items?.length) {
       obj.items = message.items.map((e) => RSSItem.toJSON(e));
     }
@@ -244,7 +228,6 @@ export const RSSFeed = {
   },
   fromPartial<I extends Exact<DeepPartial<RSSFeed>, I>>(object: I): RSSFeed {
     const message = createBaseRSSFeed();
-    message.title = object.title ?? "";
     message.items = object.items?.map((e) => RSSItem.fromPartial(e)) || [];
     return message;
   },
@@ -263,6 +246,7 @@ function createBaseRSSItem(): RSSItem {
     uuid: "",
     image: undefined,
     categories: [],
+    organizationUuid: "",
   };
 }
 
@@ -300,6 +284,9 @@ export const RSSItem = {
     }
     for (const v of message.categories) {
       writer.uint32(90).string(v!);
+    }
+    if (message.organizationUuid !== "") {
+      writer.uint32(98).string(message.organizationUuid);
     }
     return writer;
   },
@@ -388,6 +375,13 @@ export const RSSItem = {
 
           message.categories.push(reader.string());
           continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.organizationUuid = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -410,6 +404,7 @@ export const RSSItem = {
       uuid: isSet(object.uuid) ? String(object.uuid) : "",
       image: isSet(object.image) ? RSSImage.fromJSON(object.image) : undefined,
       categories: Array.isArray(object?.categories) ? object.categories.map((e: any) => String(e)) : [],
+      organizationUuid: isSet(object.organizationUuid) ? String(object.organizationUuid) : "",
     };
   },
 
@@ -448,6 +443,9 @@ export const RSSItem = {
     if (message.categories?.length) {
       obj.categories = message.categories;
     }
+    if (message.organizationUuid !== "") {
+      obj.organizationUuid = message.organizationUuid;
+    }
     return obj;
   },
 
@@ -469,6 +467,7 @@ export const RSSItem = {
       ? RSSImage.fromPartial(object.image)
       : undefined;
     message.categories = object.categories?.map((e) => e) || [];
+    message.organizationUuid = object.organizationUuid ?? "";
     return message;
   },
 };

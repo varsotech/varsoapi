@@ -4,6 +4,7 @@ import {
 } from "@varsotech/varsoapi/src/app/base";
 import * as Styled from "./RSSItemPreview.style";
 import RSSItemMetadata from "./RSSItemMetadata";
+import RSSImage from "./RSSItemImage";
 
 type RSSItemPreviewProps = {
   item: RSSItemModel;
@@ -30,15 +31,7 @@ function RSSItemPreview({ item, organization, featured }: RSSItemPreviewProps) {
           </Styled.RSSItemDescription>
         </Styled.RSSItemContentContainer>
       </div>
-      {item.image?.url ? (
-        <img
-          src={item.image?.url}
-          alt={item.image?.title}
-          // height={featured ? "100%" : 200}
-          width="100%"
-          style={{ flex: 1, maxWidth: 700 }}
-        />
-      ) : null}
+      <RSSImage image={item.image} featured={featured} />
     </Styled.RSSItemPreview>
   );
 }

@@ -15,8 +15,7 @@ message Organization {
 }
 
 message RSSFeed {
-	string title = 1;
-	repeated RSSItem items = 2;
+	repeated RSSItem items = 1;
 }
 
 message RSSItem {
@@ -31,6 +30,7 @@ message RSSItem {
 	string uuid = 9;
 	RSSImage image = 10;
 	repeated string categories = 11;
+	string organization_uuid = 12;
 }
 
 message RSSAuthor {

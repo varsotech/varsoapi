@@ -8,11 +8,11 @@ import * as Styled from "./RSSFeedPreview.style";
 
 type RSSFeedProps = {
   feed: RSSFeedModel | undefined;
-  organization: Organization | undefined;
+  organizations: { [key: string]: Organization };
   featured?: boolean;
 };
 
-function RSSFeedPreview({ feed, organization, featured }: RSSFeedProps) {
+function RSSFeedPreview({ feed, organizations, featured }: RSSFeedProps) {
   return (
     <Styled.RSSFeedPreview>
       <Styled.RSSFeedItems>
@@ -28,12 +28,8 @@ function RSSFeedPreview({ feed, organization, featured }: RSSFeedProps) {
             <RSSItemPreview
               key={item.uuid}
               item={item}
-              organization={organization}
-              featured={
-                featured ===
-                (item.title ===
-                  "Malcolm X’s final written words were about Zionism. Here is what he said.")
-              }
+              organization={organizations[item.organizationUuid]}
+              featured={featured}
             />
           );
         })}

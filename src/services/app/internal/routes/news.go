@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"slices"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/mmcdole/gofeed"
@@ -21,7 +22,10 @@ func GetNews(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT) (*
 	fp := gofeed.NewParser()
 	fp.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
-	response := models.GetNewsResponse{}
+	response := models.GetNewsResponse{
+		Organizations: map[string]*models.Organization{},
+		Latest:        &models.RSSFeed{},
+	}
 
 	for _, org := range orgs {
 		feed, err := fp.ParseURL(org.RssFeedURL)
@@ -30,9 +34,15 @@ func GetNews(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT) (*
 			continue
 		}
 
-		response.Items = append(response.Items, &models.GetNewsResponseItem{
-			Feed:         news.TranslateRSSFeed(feed),
-			Organization: organization.TranslateOrganization(org),
+		response.Organizations[org.ID.String()] = organization.TranslateOrganization(org)
+		response.Latest.Items = append(response.Latest.Items, news.TranslateRSSItems(feed.Items, org.ID)...)
+
+		slices.SortFunc(response.Latest.Items, func(item1, item2 *models.RSSItem) int {
+			if item1.PublishDate.AsTime().After(item2.PublishDate.AsTime()) {
+				return -1
+			}
+
+			return 1
 		})
 	}
 

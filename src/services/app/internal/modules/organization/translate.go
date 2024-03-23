@@ -17,11 +17,11 @@ func TranslateOrganizations(posts []*build.Organization) []*models.Organization 
 
 func TranslateOrganization(org *build.Organization) *models.Organization {
 	return &models.Organization{
-		Uuid:       org.ID.String(),
-		UniqueName: org.UniqueName,
-		Description: org.,
-		Name:       org.Name,
-		WebsiteUrl: org.WebsiteURL,
-		RssFeedUrl: org.RssFeedURL,
+		Uuid:        org.ID.String(),
+		UniqueName:  org.UniqueName,
+		Description: org.Description,
+		Name:        org.Name,
+		WebsiteUrl:  org.WebsiteURL,
+		RssFeedUrl:  org.RssFeedURL,
 	}
 }

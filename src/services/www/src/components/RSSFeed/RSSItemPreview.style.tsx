@@ -10,7 +10,7 @@ export const RSSItemPreview = styled.div`
   gap: 10px;
   align-items: center;
   justify-content: center;
-  max-width: 700px;
+  /* max-width: 700px; */
 `;
 
 export const RSSItemContentContainer = styled.a`

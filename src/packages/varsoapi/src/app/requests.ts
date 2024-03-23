@@ -1,6 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Organization, RSSFeed } from "./base";
+import { Organization, RSSFeed, RSSItem } from "./base";
 
 export const protobufPackage = "varso";
 
@@ -9,12 +9,14 @@ export interface GetOrganizationsResponse {
 }
 
 export interface GetNewsResponse {
-  items: GetNewsResponseItem[];
+  organizations: { [key: string]: Organization };
+  featured: RSSItem | undefined;
+  latest: RSSFeed | undefined;
 }
 
-export interface GetNewsResponseItem {
-  feed: RSSFeed | undefined;
-  organization: Organization | undefined;
+export interface GetNewsResponse_OrganizationsEntry {
+  key: string;
+  value: Organization | undefined;
 }
 
 function createBaseGetOrganizationsResponse(): GetOrganizationsResponse {
@@ -79,13 +81,19 @@ export const GetOrganizationsResponse = {
 };
 
 function createBaseGetNewsResponse(): GetNewsResponse {
-  return { items: [] };
+  return { organizations: {}, featured: undefined, latest: undefined };
 }
 
 export const GetNewsResponse = {
   encode(message: GetNewsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.items) {
-      GetNewsResponseItem.encode(v!, writer.uint32(10).fork()).ldelim();
+    Object.entries(message.organizations).forEach(([key, value]) => {
+      GetNewsResponse_OrganizationsEntry.encode({ key: key as any, value }, writer.uint32(10).fork()).ldelim();
+    });
+    if (message.featured !== undefined) {
+      RSSItem.encode(message.featured, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.latest !== undefined) {
+      RSSFeed.encode(message.latest, writer.uint32(26).fork()).ldelim();
     }
     return writer;
   },
@@ -102,7 +110,24 @@ export const GetNewsResponse = {
             break;
           }
 
-          message.items.push(GetNewsResponseItem.decode(reader, reader.uint32()));
+          const entry1 = GetNewsResponse_OrganizationsEntry.decode(reader, reader.uint32());
+          if (entry1.value !== undefined) {
+            message.organizations[entry1.key] = entry1.value;
+          }
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.featured = RSSItem.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.latest = RSSFeed.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -114,13 +139,34 @@ export const GetNewsResponse = {
   },
 
   fromJSON(object: any): GetNewsResponse {
-    return { items: Array.isArray(object?.items) ? object.items.map((e: any) => GetNewsResponseItem.fromJSON(e)) : [] };
+    return {
+      organizations: isObject(object.organizations)
+        ? Object.entries(object.organizations).reduce<{ [key: string]: Organization }>((acc, [key, value]) => {
+          acc[key] = Organization.fromJSON(value);
+          return acc;
+        }, {})
+        : {},
+      featured: isSet(object.featured) ? RSSItem.fromJSON(object.featured) : undefined,
+      latest: isSet(object.latest) ? RSSFeed.fromJSON(object.latest) : undefined,
+    };
   },
 
   toJSON(message: GetNewsResponse): unknown {
     const obj: any = {};
-    if (message.items?.length) {
-      obj.items = message.items.map((e) => GetNewsResponseItem.toJSON(e));
+    if (message.organizations) {
+      const entries = Object.entries(message.organizations);
+      if (entries.length > 0) {
+        obj.organizations = {};
+        entries.forEach(([k, v]) => {
+          obj.organizations[k] = Organization.toJSON(v);
+        });
+      }
+    }
+    if (message.featured !== undefined) {
+      obj.featured = RSSItem.toJSON(message.featured);
+    }
+    if (message.latest !== undefined) {
+      obj.latest = RSSFeed.toJSON(message.latest);
     }
     return obj;
   },
@@ -130,30 +176,44 @@ export const GetNewsResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetNewsResponse>, I>>(object: I): GetNewsResponse {
     const message = createBaseGetNewsResponse();
-    message.items = object.items?.map((e) => GetNewsResponseItem.fromPartial(e)) || [];
+    message.organizations = Object.entries(object.organizations ?? {}).reduce<{ [key: string]: Organization }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = Organization.fromPartial(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.featured = (object.featured !== undefined && object.featured !== null)
+      ? RSSItem.fromPartial(object.featured)
+      : undefined;
+    message.latest = (object.latest !== undefined && object.latest !== null)
+      ? RSSFeed.fromPartial(object.latest)
+      : undefined;
     return message;
   },
 };
 
-function createBaseGetNewsResponseItem(): GetNewsResponseItem {
-  return { feed: undefined, organization: undefined };
+function createBaseGetNewsResponse_OrganizationsEntry(): GetNewsResponse_OrganizationsEntry {
+  return { key: "", value: undefined };
 }
 
-export const GetNewsResponseItem = {
-  encode(message: GetNewsResponseItem, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.feed !== undefined) {
-      RSSFeed.encode(message.feed, writer.uint32(10).fork()).ldelim();
+export const GetNewsResponse_OrganizationsEntry = {
+  encode(message: GetNewsResponse_OrganizationsEntry, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
     }
-    if (message.organization !== undefined) {
-      Organization.encode(message.organization, writer.uint32(18).fork()).ldelim();
+    if (message.value !== undefined) {
+      Organization.encode(message.value, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetNewsResponseItem {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetNewsResponse_OrganizationsEntry {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetNewsResponseItem();
+    const message = createBaseGetNewsResponse_OrganizationsEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -162,14 +222,14 @@ export const GetNewsResponseItem = {
             break;
           }
 
-          message.feed = RSSFeed.decode(reader, reader.uint32());
+          message.key = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.organization = Organization.decode(reader, reader.uint32());
+          message.value = Organization.decode(reader, reader.uint32());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -180,32 +240,36 @@ export const GetNewsResponseItem = {
     return message;
   },
 
-  fromJSON(object: any): GetNewsResponseItem {
+  fromJSON(object: any): GetNewsResponse_OrganizationsEntry {
     return {
-      feed: isSet(object.feed) ? RSSFeed.fromJSON(object.feed) : undefined,
-      organization: isSet(object.organization) ? Organization.fromJSON(object.organization) : undefined,
+      key: isSet(object.key) ? String(object.key) : "",
+      value: isSet(object.value) ? Organization.fromJSON(object.value) : undefined,
     };
   },
 
-  toJSON(message: GetNewsResponseItem): unknown {
+  toJSON(message: GetNewsResponse_OrganizationsEntry): unknown {
     const obj: any = {};
-    if (message.feed !== undefined) {
-      obj.feed = RSSFeed.toJSON(message.feed);
+    if (message.key !== "") {
+      obj.key = message.key;
     }
-    if (message.organization !== undefined) {
-      obj.organization = Organization.toJSON(message.organization);
+    if (message.value !== undefined) {
+      obj.value = Organization.toJSON(message.value);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetNewsResponseItem>, I>>(base?: I): GetNewsResponseItem {
-    return GetNewsResponseItem.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetNewsResponse_OrganizationsEntry>, I>>(
+    base?: I,
+  ): GetNewsResponse_OrganizationsEntry {
+    return GetNewsResponse_OrganizationsEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetNewsResponseItem>, I>>(object: I): GetNewsResponseItem {
-    const message = createBaseGetNewsResponseItem();
-    message.feed = (object.feed !== undefined && object.feed !== null) ? RSSFeed.fromPartial(object.feed) : undefined;
-    message.organization = (object.organization !== undefined && object.organization !== null)
-      ? Organization.fromPartial(object.organization)
+  fromPartial<I extends Exact<DeepPartial<GetNewsResponse_OrganizationsEntry>, I>>(
+    object: I,
+  ): GetNewsResponse_OrganizationsEntry {
+    const message = createBaseGetNewsResponse_OrganizationsEntry();
+    message.key = object.key ?? "";
+    message.value = (object.value !== undefined && object.value !== null)
+      ? Organization.fromPartial(object.value)
       : undefined;
     return message;
   },
@@ -221,6 +285,10 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function isObject(value: any): boolean {
+  return typeof value === "object" && value !== null;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
