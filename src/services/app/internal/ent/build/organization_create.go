@@ -58,6 +58,12 @@ func (oc *OrganizationCreate) SetName(s string) *OrganizationCreate {
 	return oc
 }
 
+// SetDescription sets the "description" field.
+func (oc *OrganizationCreate) SetDescription(s string) *OrganizationCreate {
+	oc.mutation.SetDescription(s)
+	return oc
+}
+
 // SetWebsiteURL sets the "website_url" field.
 func (oc *OrganizationCreate) SetWebsiteURL(s string) *OrganizationCreate {
 	oc.mutation.SetWebsiteURL(s)
@@ -142,6 +148,9 @@ func (oc *OrganizationCreate) check() error {
 	if _, ok := oc.mutation.Name(); !ok {
 		return &ValidationError{Name: "name", err: errors.New(`build: missing required field "Organization.name"`)}
 	}
+	if _, ok := oc.mutation.Description(); !ok {
+		return &ValidationError{Name: "description", err: errors.New(`build: missing required field "Organization.description"`)}
+	}
 	if _, ok := oc.mutation.WebsiteURL(); !ok {
 		return &ValidationError{Name: "website_url", err: errors.New(`build: missing required field "Organization.website_url"`)}
 	}
@@ -195,6 +204,10 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 	if value, ok := oc.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 		_node.Name = value
+	}
+	if value, ok := oc.mutation.Description(); ok {
+		_spec.SetField(organization.FieldDescription, field.TypeString, value)
+		_node.Description = value
 	}
 	if value, ok := oc.mutation.WebsiteURL(); ok {
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)
@@ -283,6 +296,18 @@ func (u *OrganizationUpsert) SetName(v string) *OrganizationUpsert {
 // UpdateName sets the "name" field to the value that was provided on create.
 func (u *OrganizationUpsert) UpdateName() *OrganizationUpsert {
 	u.SetExcluded(organization.FieldName)
+	return u
+}
+
+// SetDescription sets the "description" field.
+func (u *OrganizationUpsert) SetDescription(v string) *OrganizationUpsert {
+	u.Set(organization.FieldDescription, v)
+	return u
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OrganizationUpsert) UpdateDescription() *OrganizationUpsert {
+	u.SetExcluded(organization.FieldDescription)
 	return u
 }
 
@@ -393,6 +418,20 @@ func (u *OrganizationUpsertOne) SetName(v string) *OrganizationUpsertOne {
 func (u *OrganizationUpsertOne) UpdateName() *OrganizationUpsertOne {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *OrganizationUpsertOne) SetDescription(v string) *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OrganizationUpsertOne) UpdateDescription() *OrganizationUpsertOne {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateDescription()
 	})
 }
 
@@ -674,6 +713,20 @@ func (u *OrganizationUpsertBulk) SetName(v string) *OrganizationUpsertBulk {
 func (u *OrganizationUpsertBulk) UpdateName() *OrganizationUpsertBulk {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateName()
+	})
+}
+
+// SetDescription sets the "description" field.
+func (u *OrganizationUpsertBulk) SetDescription(v string) *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.SetDescription(v)
+	})
+}
+
+// UpdateDescription sets the "description" field to the value that was provided on create.
+func (u *OrganizationUpsertBulk) UpdateDescription() *OrganizationUpsertBulk {
+	return u.Update(func(s *OrganizationUpsert) {
+		s.UpdateDescription()
 	})
 }
 

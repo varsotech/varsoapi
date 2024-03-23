@@ -39,7 +39,7 @@ var orgs = []models.Organization{
 
 func Initialize(ctx context.Context) error {
 	for _, org := range orgs {
-		err := UpsertOrganization(ctx, uuid.MustParse(org.Uuid), org.Name, org.WebsiteUrl, org.RssFeedUrl)
+		err := UpsertOrganization(ctx, uuid.MustParse(org.Uuid), org.Name, org.Description, org.WebsiteUrl, org.RssFeedUrl)
 		if err != nil {
 			return errors.Wrapf(err, "failed upserting org with uuid '%s'", org.Uuid)
 		}

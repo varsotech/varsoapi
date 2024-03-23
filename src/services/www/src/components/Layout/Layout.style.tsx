@@ -16,4 +16,5 @@ export const PageWrapper = styled.div`
   display: flex;
   width: 100%;
   max-width: 1200px;
+  flex-wrap: wrap;
 `;

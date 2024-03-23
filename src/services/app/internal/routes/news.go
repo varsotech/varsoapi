@@ -21,9 +21,7 @@ func GetNews(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT) (*
 	fp := gofeed.NewParser()
 	fp.UserAgent = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 
-	response := models.GetNewsResponse{
-		Feeds: []*models.RSSFeed{},
-	}
+	response := models.GetNewsResponse{}
 
 	for _, org := range orgs {
 		feed, err := fp.ParseURL(org.RssFeedURL)
@@ -32,7 +30,10 @@ func GetNews(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT) (*
 			continue
 		}
 
-		response.Feeds = append(response.Feeds, news.TranslateRSSFeed(feed))
+		response.Items = append(response.Items, &models.GetNewsResponseItem{
+			Feed:         news.TranslateRSSFeed(feed),
+			Organization: organization.TranslateOrganization(org),
+		})
 	}
 
 	return &response, nil

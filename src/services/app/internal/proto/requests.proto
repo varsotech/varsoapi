@@ -10,5 +10,10 @@ message GetOrganizationsResponse {
 }
 
 message GetNewsResponse {
-  repeated RSSFeed feeds = 1;
+  repeated GetNewsResponseItem items = 1;
+}
+
+message GetNewsResponseItem {
+  RSSFeed feed = 1;
+  Organization organization = 2;
 }

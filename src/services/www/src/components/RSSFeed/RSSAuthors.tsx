@@ -1,35 +1,39 @@
-import { RSSAuthor as RSSAuthorModel } from "@varsotech/varsoapi/src/app/base";
+import {
+  Organization,
+  RSSAuthor as RSSAuthorModel,
+} from "@varsotech/varsoapi/src/app/base";
 
 type RSSAuthorsProps = {
   authors: RSSAuthorModel[];
-  organizationName: string | undefined;
+  organization: Organization | undefined;
 };
 
-function RSSAuthors({ authors, organizationName }: RSSAuthorsProps) {
+function RSSAuthors({ authors, organization }: RSSAuthorsProps) {
   return (
-    <div style={{ marginBottom: 8, display: "inline-block" }}>
+    <span>
       {authors
         .map((author: RSSAuthorModel) => {
           return author.name;
         })
         .join(", ")}
-      {organizationName ? (
+      {organization ? (
         <span>
           <span style={{ color: "#5c5c5c" }}> from </span>
-          <span
+          <a
+            href={organization.websiteUrl}
             style={{
               fontSize: 17,
               fontFamily: "Source Serif Pro",
               fontWeight: 600,
             }}
           >
-            {organizationName}
-          </span>
+            {organization.name}
+          </a>
         </span>
       ) : (
         ""
       )}
-    </div>
+    </span>
   );
 }
 

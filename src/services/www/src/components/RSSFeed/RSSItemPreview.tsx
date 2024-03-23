@@ -1,49 +1,44 @@
-import { RSSItem as RSSItemModel } from "@varsotech/varsoapi/src/app/base";
+import {
+  Organization,
+  RSSItem as RSSItemModel,
+} from "@varsotech/varsoapi/src/app/base";
 import * as Styled from "./RSSItemPreview.style";
-import RSSAuthors from "./RSSAuthors";
-import { timeAgo } from "../../utils/timeago";
+import RSSItemMetadata from "./RSSItemMetadata";
 
 type RSSItemPreviewProps = {
   item: RSSItemModel;
-  organizationName: string | undefined;
+  organization: Organization | undefined;
+  featured?: boolean;
 };
 
-function RSSItemPreview({ item, organizationName }: RSSItemPreviewProps) {
+function RSSItemPreview({ item, organization, featured }: RSSItemPreviewProps) {
   return (
     <Styled.RSSItemPreview>
-      <div style={{ fontSize: 15 }}>
-        <RSSAuthors
-          authors={item.authors}
-          organizationName={organizationName}
-        />
-        <span style={{ marginLeft: 5, color: "#5c5c5c" }}>
-          {item.publishDate ? "· " + timeAgo(item.publishDate) : ""}
-        </span>
+      <div
+        style={{
+          display: "flex",
+          flex: 1,
+          flexDirection: "column",
+          minWidth: 300,
+        }}
+      >
+        <RSSItemMetadata item={item} organization={organization} />
+        <Styled.RSSItemContentContainer href={item.link}>
+          <Styled.RSSItemTitle>{item.title}</Styled.RSSItemTitle>
+          <Styled.RSSItemDescription>
+            {item.description}
+          </Styled.RSSItemDescription>
+        </Styled.RSSItemContentContainer>
       </div>
-
-      <a style={{ display: "flex", alignItems: "center" }} href={item.link}>
-        <div
-          style={{
-            paddingRight: 70,
-            flex: 1,
-          }}
-        >
-          <a href={item.link}>
-            <h3>{item.title}</h3>
-            <span
-              style={{
-                fontSize: 16,
-                color: "#5e5e5e",
-              }}
-            >
-              {item.description}
-            </span>
-          </a>
-        </div>
-        {item.image?.url ? (
-          <img src={item.image?.url} height={100} alt={item.image?.title} />
-        ) : null}
-      </a>
+      {item.image?.url ? (
+        <img
+          src={item.image?.url}
+          alt={item.image?.title}
+          // height={featured ? "100%" : 200}
+          width="100%"
+          style={{ flex: 1, maxWidth: 700 }}
+        />
+      ) : null}
     </Styled.RSSItemPreview>
   );
 }

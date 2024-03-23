@@ -24,6 +24,8 @@ type Organization struct {
 	UniqueName string `json:"unique_name,omitempty"`
 	// Name holds the value of the "name" field.
 	Name string `json:"name,omitempty"`
+	// Description holds the value of the "description" field.
+	Description string `json:"description,omitempty"`
 	// WebsiteURL holds the value of the "website_url" field.
 	WebsiteURL string `json:"website_url,omitempty"`
 	// RssFeedURL holds the value of the "rss_feed_url" field.
@@ -36,7 +38,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case organization.FieldUniqueName, organization.FieldName, organization.FieldWebsiteURL, organization.FieldRssFeedURL:
+		case organization.FieldUniqueName, organization.FieldName, organization.FieldDescription, organization.FieldWebsiteURL, organization.FieldRssFeedURL:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -80,6 +82,12 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 				return fmt.Errorf("unexpected type %T for field name", values[i])
 			} else if value.Valid {
 				o.Name = value.String
+			}
+		case organization.FieldDescription:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field description", values[i])
+			} else if value.Valid {
+				o.Description = value.String
 			}
 		case organization.FieldWebsiteURL:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -137,6 +145,9 @@ func (o *Organization) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("name=")
 	builder.WriteString(o.Name)
+	builder.WriteString(", ")
+	builder.WriteString("description=")
+	builder.WriteString(o.Description)
 	builder.WriteString(", ")
 	builder.WriteString("website_url=")
 	builder.WriteString(o.WebsiteURL)

@@ -61,6 +61,20 @@ func (ou *OrganizationUpdate) SetNillableName(s *string) *OrganizationUpdate {
 	return ou
 }
 
+// SetDescription sets the "description" field.
+func (ou *OrganizationUpdate) SetDescription(s string) *OrganizationUpdate {
+	ou.mutation.SetDescription(s)
+	return ou
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ou *OrganizationUpdate) SetNillableDescription(s *string) *OrganizationUpdate {
+	if s != nil {
+		ou.SetDescription(*s)
+	}
+	return ou
+}
+
 // SetWebsiteURL sets the "website_url" field.
 func (ou *OrganizationUpdate) SetWebsiteURL(s string) *OrganizationUpdate {
 	ou.mutation.SetWebsiteURL(s)
@@ -152,6 +166,9 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ou.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 	}
+	if value, ok := ou.mutation.Description(); ok {
+		_spec.SetField(organization.FieldDescription, field.TypeString, value)
+	}
 	if value, ok := ou.mutation.WebsiteURL(); ok {
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)
 	}
@@ -208,6 +225,20 @@ func (ouo *OrganizationUpdateOne) SetName(s string) *OrganizationUpdateOne {
 func (ouo *OrganizationUpdateOne) SetNillableName(s *string) *OrganizationUpdateOne {
 	if s != nil {
 		ouo.SetName(*s)
+	}
+	return ouo
+}
+
+// SetDescription sets the "description" field.
+func (ouo *OrganizationUpdateOne) SetDescription(s string) *OrganizationUpdateOne {
+	ouo.mutation.SetDescription(s)
+	return ouo
+}
+
+// SetNillableDescription sets the "description" field if the given value is not nil.
+func (ouo *OrganizationUpdateOne) SetNillableDescription(s *string) *OrganizationUpdateOne {
+	if s != nil {
+		ouo.SetDescription(*s)
 	}
 	return ouo
 }
@@ -332,6 +363,9 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 	}
 	if value, ok := ouo.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
+	}
+	if value, ok := ouo.mutation.Description(); ok {
+		_spec.SetField(organization.FieldDescription, field.TypeString, value)
 	}
 	if value, ok := ouo.mutation.WebsiteURL(); ok {
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)

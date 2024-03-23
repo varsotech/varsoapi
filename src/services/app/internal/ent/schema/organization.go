@@ -32,6 +32,7 @@ func (Organization) Fields() []ent.Field {
 		field.UUID("id", uuid.New()).Default(uuid.New).Unique().StorageKey("uuid"),
 		field.String("unique_name").Match(regexp.MustCompile("[a-zA-Z_]+$")).MinLen(4).Optional(),
 		field.String("name"),
+		field.String("description"),
 		field.String("website_url"),
 		field.String("rss_feed_url"),
 	}

@@ -37,6 +37,7 @@ type OrganizationMutation struct {
 	create_time   *time.Time
 	unique_name   *string
 	name          *string
+	description   *string
 	website_url   *string
 	rss_feed_url  *string
 	clearedFields map[string]struct{}
@@ -270,6 +271,42 @@ func (m *OrganizationMutation) ResetName() {
 	m.name = nil
 }
 
+// SetDescription sets the "description" field.
+func (m *OrganizationMutation) SetDescription(s string) {
+	m.description = &s
+}
+
+// Description returns the value of the "description" field in the mutation.
+func (m *OrganizationMutation) Description() (r string, exists bool) {
+	v := m.description
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldDescription returns the old "description" field's value of the Organization entity.
+// If the Organization object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *OrganizationMutation) OldDescription(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldDescription is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldDescription requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldDescription: %w", err)
+	}
+	return oldValue.Description, nil
+}
+
+// ResetDescription resets all changes to the "description" field.
+func (m *OrganizationMutation) ResetDescription() {
+	m.description = nil
+}
+
 // SetWebsiteURL sets the "website_url" field.
 func (m *OrganizationMutation) SetWebsiteURL(s string) {
 	m.website_url = &s
@@ -376,7 +413,7 @@ func (m *OrganizationMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *OrganizationMutation) Fields() []string {
-	fields := make([]string, 0, 5)
+	fields := make([]string, 0, 6)
 	if m.create_time != nil {
 		fields = append(fields, organization.FieldCreateTime)
 	}
@@ -385,6 +422,9 @@ func (m *OrganizationMutation) Fields() []string {
 	}
 	if m.name != nil {
 		fields = append(fields, organization.FieldName)
+	}
+	if m.description != nil {
+		fields = append(fields, organization.FieldDescription)
 	}
 	if m.website_url != nil {
 		fields = append(fields, organization.FieldWebsiteURL)
@@ -406,6 +446,8 @@ func (m *OrganizationMutation) Field(name string) (ent.Value, bool) {
 		return m.UniqueName()
 	case organization.FieldName:
 		return m.Name()
+	case organization.FieldDescription:
+		return m.Description()
 	case organization.FieldWebsiteURL:
 		return m.WebsiteURL()
 	case organization.FieldRssFeedURL:
@@ -425,6 +467,8 @@ func (m *OrganizationMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldUniqueName(ctx)
 	case organization.FieldName:
 		return m.OldName(ctx)
+	case organization.FieldDescription:
+		return m.OldDescription(ctx)
 	case organization.FieldWebsiteURL:
 		return m.OldWebsiteURL(ctx)
 	case organization.FieldRssFeedURL:
@@ -458,6 +502,13 @@ func (m *OrganizationMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetName(v)
+		return nil
+	case organization.FieldDescription:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetDescription(v)
 		return nil
 	case organization.FieldWebsiteURL:
 		v, ok := value.(string)
@@ -539,6 +590,9 @@ func (m *OrganizationMutation) ResetField(name string) error {
 		return nil
 	case organization.FieldName:
 		m.ResetName()
+		return nil
+	case organization.FieldDescription:
+		m.ResetDescription()
 		return nil
 	case organization.FieldWebsiteURL:
 		m.ResetWebsiteURL()

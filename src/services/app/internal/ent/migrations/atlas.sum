@@ -1,5 +1,7 @@
-h1:5ZQ4MfuTezWtK0oAPOErPHFpfFHqYlt3PFBsuOwkiOw=
+h1:8jx8WLeiirqOngaG8vsK+EsJbcnUfSufwEKIWMBTeTg=
 20240323104356_create_org.down.sql h1:UsL9foV5pQQqSI8HRJsled9Q3X9plGaJuohvNRI3VKc=
 20240323104356_create_org.up.sql h1:bctjeUBRW34YnrKS/PMGKsfYuZ8AZbul4mi0PQuQlEQ=
 20240323145823_add_unique_name.down.sql h1:v/vgmnXfOjcl1n2iiaUJybyzKI9HNqPasrCiw0BmqHw=
 20240323145823_add_unique_name.up.sql h1:TXhJJkbo3ZsXVIEMnk+M/dt7XPB1ZTWfeH0VCoALf+8=
+20240323191211_add_description.down.sql h1:fAwtUhLkQ8Ff7npDykUFVTwzVC1d2zUHBpFtjWTXHoc=
+20240323191211_add_description.up.sql h1:WVMUu+tLXvTIgBtDhMTCqD3qrMGv1/RTQAGShs4Qeb8=
