@@ -4,7 +4,11 @@ import { useNews } from "../../api/news";
 import Layout from "../../components/Layout/Layout";
 
 function Home() {
-  const { data } = useNews();
+  const { data, isLoading } = useNews();
+
+  if (isLoading) {
+    return <Layout>Loading..</Layout>;
+  }
 
   return (
     <Layout>

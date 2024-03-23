@@ -1,6 +1,7 @@
 import { RSSItem as RSSItemModel } from "@varsotech/varsoapi/src/app/base";
 import * as Styled from "./RSSItemPreview.style";
 import RSSAuthors from "./RSSAuthors";
+import { timeAgo } from "../../utils/timeago";
 
 type RSSItemPreviewProps = {
   item: RSSItemModel;
@@ -10,7 +11,16 @@ type RSSItemPreviewProps = {
 function RSSItemPreview({ item, organizationName }: RSSItemPreviewProps) {
   return (
     <Styled.RSSItemPreview>
-      <RSSAuthors authors={item.authors} organizationName={organizationName} />
+      <div style={{ fontSize: 15 }}>
+        <RSSAuthors
+          authors={item.authors}
+          organizationName={organizationName}
+        />
+        <span style={{ marginLeft: 5, color: "#5c5c5c" }}>
+          {item.publishDate ? "· " + timeAgo(item.publishDate) : ""}
+        </span>
+      </div>
+
       <a style={{ display: "flex", alignItems: "center" }} href={item.link}>
         <div
           style={{

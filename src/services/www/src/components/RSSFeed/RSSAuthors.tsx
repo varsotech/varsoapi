@@ -7,7 +7,7 @@ type RSSAuthorsProps = {
 
 function RSSAuthors({ authors, organizationName }: RSSAuthorsProps) {
   return (
-    <div style={{ fontSize: 15, marginBottom: 8 }}>
+    <div style={{ marginBottom: 8, display: "inline-block" }}>
       {authors
         .map((author: RSSAuthorModel) => {
           return author.name;

@@ -47,7 +47,7 @@ func TranslateRSSItem(item *gofeed.Item) *models.RSSItem {
 	}
 
 	var publishDate *timestamppb.Timestamp
-	if item.UpdatedParsed != nil {
+	if item.PublishedParsed != nil {
 		publishDate = timestamppb.New(*item.PublishedParsed)
 	}
 
