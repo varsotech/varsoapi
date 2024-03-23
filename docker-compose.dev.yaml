@@ -53,7 +53,7 @@ services:
         condition: on-failure   
         max_attempts: 5
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5001/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5001/api/v1/app"]
       interval: 10s
       timeout: 5s
       retries: 3
@@ -120,6 +120,8 @@ services:
     build:
       context: .
       dockerfile: ./src/services/nginx/Dockerfile
+      args:
+        SYSTEM_EXTERNAL_URL: ${SYSTEM_EXTERNAL_URL}
     volumes:
         - certbotdata:/var/www/certbot/:ro
         - letsencrypt:/etc/letsencrypt/:rw

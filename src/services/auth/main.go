@@ -8,8 +8,6 @@ import (
 	"github.com/varsotech/varsoapi/src/common/api"
 	"github.com/varsotech/varsoapi/src/common/config"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/routes/discord_login"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/routes/easyregister"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/routes/internal_login"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/routes/login"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/routes/register"
@@ -30,8 +28,7 @@ func main() {
 	api.RouteGET(router, api.Public, "/", api.SuccessEndpoint)
 	api.RoutePOST(router, api.Public, "/api/v1/auth/login", login.Login)
 	api.RoutePOST(router, api.Public, "/api/v1/auth/register", register.Register)
-	api.RoutePOST(router, api.Public, "/api/v1/auth/register/easy", easyregister.EasyRegister)
-	api.RoutePOST(router, api.Public, "/api/v1/auth/discord_login", discord_login.DiscordUserLogin)
+	// api.RoutePOST(router, api.Public, "/api/v1/auth/discord_login", discord_login.DiscordUserLogin)
 	api.RoutePOST(router, api.Public, "/api/v1/auth/internal_login", internal_login.InternalLogin)
 
 	api.RouteGET(router, api.Internal, "/api/v1/auth/user/adminget/:uuid", user.AdminGetUser)

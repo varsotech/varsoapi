@@ -78,6 +78,8 @@ services:
     build:
       context: .
       dockerfile: ./src/services/nginx/Dockerfile
+      args:
+        SYSTEM_EXTERNAL_URL: ${SYSTEM_EXTERNAL_URL}
     volumes:
         - certbotdata:/var/www/certbot/:ro
         - letsencrypt:/etc/letsencrypt/:rw

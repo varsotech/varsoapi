@@ -29,7 +29,7 @@ services:
       - bridge_network
     restart: always
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5001/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5001/api/v1/app"]
       interval: 10s
       timeout: 5s
       retries: 3

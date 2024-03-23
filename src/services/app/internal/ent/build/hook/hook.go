@@ -9,28 +9,16 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build"
 )
 
-// The CommentFunc type is an adapter to allow the use of ordinary
-// function as Comment mutator.
-type CommentFunc func(context.Context, *build.CommentMutation) (build.Value, error)
+// The OrganizationFunc type is an adapter to allow the use of ordinary
+// function as Organization mutator.
+type OrganizationFunc func(context.Context, *build.OrganizationMutation) (build.Value, error)
 
 // Mutate calls f(ctx, m).
-func (f CommentFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
-	if mv, ok := m.(*build.CommentMutation); ok {
+func (f OrganizationFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.OrganizationMutation); ok {
 		return f(ctx, mv)
 	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.CommentMutation", m)
-}
-
-// The PostFunc type is an adapter to allow the use of ordinary
-// function as Post mutator.
-type PostFunc func(context.Context, *build.PostMutation) (build.Value, error)
-
-// Mutate calls f(ctx, m).
-func (f PostFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
-	if mv, ok := m.(*build.PostMutation); ok {
-		return f(ctx, mv)
-	}
-	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.PostMutation", m)
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.OrganizationMutation", m)
 }
 
 // Condition is a hook condition function.

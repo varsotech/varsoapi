@@ -1,41 +1,33 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Album, Post } from "./base";
+import { Organization, RSSFeed } from "./base";
 
 export const protobufPackage = "varso";
 
-export interface GetPostsResponse {
-  posts: Post[];
+export interface GetOrganizationsResponse {
+  organizations: Organization[];
 }
 
-export interface CreatePostRequest {
-  spotifyContentUuid: string;
+export interface GetNewsResponse {
+  feeds: RSSFeed[];
 }
 
-export interface CatalogSearchRequest {
-  query: string;
+function createBaseGetOrganizationsResponse(): GetOrganizationsResponse {
+  return { organizations: [] };
 }
 
-export interface CatalogSearchResponse {
-  albums: Album[];
-}
-
-function createBaseGetPostsResponse(): GetPostsResponse {
-  return { posts: [] };
-}
-
-export const GetPostsResponse = {
-  encode(message: GetPostsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.posts) {
-      Post.encode(v!, writer.uint32(10).fork()).ldelim();
+export const GetOrganizationsResponse = {
+  encode(message: GetOrganizationsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.organizations) {
+      Organization.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetPostsResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetOrganizationsResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetPostsResponse();
+    const message = createBaseGetOrganizationsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -44,7 +36,7 @@ export const GetPostsResponse = {
             break;
           }
 
-          message.posts.push(Post.decode(reader, reader.uint32()));
+          message.organizations.push(Organization.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -55,44 +47,48 @@ export const GetPostsResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetPostsResponse {
-    return { posts: Array.isArray(object?.posts) ? object.posts.map((e: any) => Post.fromJSON(e)) : [] };
+  fromJSON(object: any): GetOrganizationsResponse {
+    return {
+      organizations: Array.isArray(object?.organizations)
+        ? object.organizations.map((e: any) => Organization.fromJSON(e))
+        : [],
+    };
   },
 
-  toJSON(message: GetPostsResponse): unknown {
+  toJSON(message: GetOrganizationsResponse): unknown {
     const obj: any = {};
-    if (message.posts?.length) {
-      obj.posts = message.posts.map((e) => Post.toJSON(e));
+    if (message.organizations?.length) {
+      obj.organizations = message.organizations.map((e) => Organization.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetPostsResponse>, I>>(base?: I): GetPostsResponse {
-    return GetPostsResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetOrganizationsResponse>, I>>(base?: I): GetOrganizationsResponse {
+    return GetOrganizationsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetPostsResponse>, I>>(object: I): GetPostsResponse {
-    const message = createBaseGetPostsResponse();
-    message.posts = object.posts?.map((e) => Post.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<GetOrganizationsResponse>, I>>(object: I): GetOrganizationsResponse {
+    const message = createBaseGetOrganizationsResponse();
+    message.organizations = object.organizations?.map((e) => Organization.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseCreatePostRequest(): CreatePostRequest {
-  return { spotifyContentUuid: "" };
+function createBaseGetNewsResponse(): GetNewsResponse {
+  return { feeds: [] };
 }
 
-export const CreatePostRequest = {
-  encode(message: CreatePostRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.spotifyContentUuid !== "") {
-      writer.uint32(10).string(message.spotifyContentUuid);
+export const GetNewsResponse = {
+  encode(message: GetNewsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.feeds) {
+      RSSFeed.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreatePostRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetNewsResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreatePostRequest();
+    const message = createBaseGetNewsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -101,7 +97,7 @@ export const CreatePostRequest = {
             break;
           }
 
-          message.spotifyContentUuid = reader.string();
+          message.feeds.push(RSSFeed.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -112,138 +108,24 @@ export const CreatePostRequest = {
     return message;
   },
 
-  fromJSON(object: any): CreatePostRequest {
-    return { spotifyContentUuid: isSet(object.spotifyContentUuid) ? String(object.spotifyContentUuid) : "" };
+  fromJSON(object: any): GetNewsResponse {
+    return { feeds: Array.isArray(object?.feeds) ? object.feeds.map((e: any) => RSSFeed.fromJSON(e)) : [] };
   },
 
-  toJSON(message: CreatePostRequest): unknown {
+  toJSON(message: GetNewsResponse): unknown {
     const obj: any = {};
-    if (message.spotifyContentUuid !== "") {
-      obj.spotifyContentUuid = message.spotifyContentUuid;
+    if (message.feeds?.length) {
+      obj.feeds = message.feeds.map((e) => RSSFeed.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreatePostRequest>, I>>(base?: I): CreatePostRequest {
-    return CreatePostRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetNewsResponse>, I>>(base?: I): GetNewsResponse {
+    return GetNewsResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreatePostRequest>, I>>(object: I): CreatePostRequest {
-    const message = createBaseCreatePostRequest();
-    message.spotifyContentUuid = object.spotifyContentUuid ?? "";
-    return message;
-  },
-};
-
-function createBaseCatalogSearchRequest(): CatalogSearchRequest {
-  return { query: "" };
-}
-
-export const CatalogSearchRequest = {
-  encode(message: CatalogSearchRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.query !== "") {
-      writer.uint32(10).string(message.query);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): CatalogSearchRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCatalogSearchRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.query = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CatalogSearchRequest {
-    return { query: isSet(object.query) ? String(object.query) : "" };
-  },
-
-  toJSON(message: CatalogSearchRequest): unknown {
-    const obj: any = {};
-    if (message.query !== "") {
-      obj.query = message.query;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<CatalogSearchRequest>, I>>(base?: I): CatalogSearchRequest {
-    return CatalogSearchRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<CatalogSearchRequest>, I>>(object: I): CatalogSearchRequest {
-    const message = createBaseCatalogSearchRequest();
-    message.query = object.query ?? "";
-    return message;
-  },
-};
-
-function createBaseCatalogSearchResponse(): CatalogSearchResponse {
-  return { albums: [] };
-}
-
-export const CatalogSearchResponse = {
-  encode(message: CatalogSearchResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.albums) {
-      Album.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): CatalogSearchResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCatalogSearchResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.albums.push(Album.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CatalogSearchResponse {
-    return { albums: Array.isArray(object?.albums) ? object.albums.map((e: any) => Album.fromJSON(e)) : [] };
-  },
-
-  toJSON(message: CatalogSearchResponse): unknown {
-    const obj: any = {};
-    if (message.albums?.length) {
-      obj.albums = message.albums.map((e) => Album.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<CatalogSearchResponse>, I>>(base?: I): CatalogSearchResponse {
-    return CatalogSearchResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<CatalogSearchResponse>, I>>(object: I): CatalogSearchResponse {
-    const message = createBaseCatalogSearchResponse();
-    message.albums = object.albums?.map((e) => Album.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<GetNewsResponse>, I>>(object: I): GetNewsResponse {
+    const message = createBaseGetNewsResponse();
+    message.feeds = object.feeds?.map((e) => RSSFeed.fromPartial(e)) || [];
     return message;
   },
 };
@@ -258,7 +140,3 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function isSet(value: any): boolean {
-  return value !== null && value !== undefined;
-}

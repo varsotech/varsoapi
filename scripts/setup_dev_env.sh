@@ -1,5 +1,5 @@
 export APP_ENV="DEV"
-export SYSTEM_EXTERNAL_URL="http://localhost"
+export SYSTEM_EXTERNAL_URL="https://localhost"
 export JWT_SECRET="devsecret"
 export INTERNAL_AUTH_SECRET="devsecret"
 export FILESTORAGE_ACCESS_KEY="devsecret"
@@ -23,3 +23,4 @@ read npm_token
 export NPM_TOKEN=$npm_token 
 
 ./scripts/apply_env.sh .env
+./scripts/apply_env.sh ./src/services/www/src/config/config.ts

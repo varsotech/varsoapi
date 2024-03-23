@@ -5,18 +5,10 @@ import "base.proto";
 
 option go_package = "client/models";
 
-message GetPostsResponse {
-  repeated Post posts = 1;
+message GetOrganizationsResponse {
+  repeated Organization organizations = 1;
 }
 
-message CreatePostRequest {
-  string spotify_content_uuid = 1;
-}
-
-message CatalogSearchRequest {
-  string query = 1;
-}
-
-message CatalogSearchResponse {
-  repeated Album albums = 1;
+message GetNewsResponse {
+  repeated RSSFeed feeds = 1;
 }

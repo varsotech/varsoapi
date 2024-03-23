@@ -25,5 +25,3 @@ tmp
 *.pem
 *.pb.go
 node_modules/
-
-./src/packages/varsoapi/package.json.template

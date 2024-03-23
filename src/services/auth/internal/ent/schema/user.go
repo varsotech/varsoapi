@@ -36,7 +36,7 @@ func (User) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("uuid", uuid.New()).Default(uuid.New).Unique(),
 		field.String("email").MinLen(5).Optional(),
-		field.String("username").Match(regexp.MustCompile("[a-zA-Z_]+$")).MinLen(1).Optional(),
+		field.String("username").Match(regexp.MustCompile("[a-zA-Z_]+$")).MinLen(4).Optional(),
 		field.String("password").Optional(),
 		field.String("salt").Optional(),
 		field.String("discord_user_id").Optional(),

@@ -8,83 +8,38 @@ import (
 )
 
 var (
-	// CommentsColumns holds the columns for the "comments" table.
-	CommentsColumns = []*schema.Column{
+	// OrganizationsColumns holds the columns for the "organizations" table.
+	OrganizationsColumns = []*schema.Column{
 		{Name: "uuid", Type: field.TypeUUID, Unique: true},
-		{Name: "user_uuid", Type: field.TypeUUID},
-		{Name: "text", Type: field.TypeString},
-		{Name: "was_edited", Type: field.TypeBool, Default: false},
-		{Name: "total_votes", Type: field.TypeInt64},
-		{Name: "upvotes", Type: field.TypeInt64},
-		{Name: "downvotes", Type: field.TypeInt64},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "unique_name", Type: field.TypeString, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "website_url", Type: field.TypeString},
+		{Name: "rss_feed_url", Type: field.TypeString},
 	}
-	// CommentsTable holds the schema information for the "comments" table.
-	CommentsTable = &schema.Table{
-		Name:       "comments",
-		Columns:    CommentsColumns,
-		PrimaryKey: []*schema.Column{CommentsColumns[0]},
+	// OrganizationsTable holds the schema information for the "organizations" table.
+	OrganizationsTable = &schema.Table{
+		Name:       "organizations",
+		Columns:    OrganizationsColumns,
+		PrimaryKey: []*schema.Column{OrganizationsColumns[0]},
 		Indexes: []*schema.Index{
 			{
-				Name:    "comment_uuid",
+				Name:    "organization_uuid",
 				Unique:  true,
-				Columns: []*schema.Column{CommentsColumns[0]},
+				Columns: []*schema.Column{OrganizationsColumns[0]},
 			},
 			{
-				Name:    "comment_user_uuid",
-				Unique:  false,
-				Columns: []*schema.Column{CommentsColumns[1]},
-			},
-		},
-	}
-	// PostsColumns holds the columns for the "posts" table.
-	PostsColumns = []*schema.Column{
-		{Name: "uuid", Type: field.TypeUUID, Unique: true},
-		{Name: "author_user_uuid", Type: field.TypeUUID},
-		{Name: "title", Type: field.TypeString},
-		{Name: "cover_image", Type: field.TypeString},
-		{Name: "total_votes", Type: field.TypeInt64},
-		{Name: "upvotes", Type: field.TypeInt64},
-		{Name: "downvotes", Type: field.TypeInt64},
-		{Name: "post_comments", Type: field.TypeUUID, Nullable: true},
-	}
-	// PostsTable holds the schema information for the "posts" table.
-	PostsTable = &schema.Table{
-		Name:       "posts",
-		Columns:    PostsColumns,
-		PrimaryKey: []*schema.Column{PostsColumns[0]},
-		ForeignKeys: []*schema.ForeignKey{
-			{
-				Symbol:     "posts_comments_comments",
-				Columns:    []*schema.Column{PostsColumns[7]},
-				RefColumns: []*schema.Column{CommentsColumns[0]},
-				OnDelete:   schema.SetNull,
-			},
-		},
-		Indexes: []*schema.Index{
-			{
-				Name:    "post_uuid",
+				Name:    "organization_unique_name",
 				Unique:  true,
-				Columns: []*schema.Column{PostsColumns[0]},
-			},
-			{
-				Name:    "post_author_user_uuid",
-				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[1]},
-			},
-			{
-				Name:    "post_total_votes",
-				Unique:  false,
-				Columns: []*schema.Column{PostsColumns[4]},
+				Columns: []*schema.Column{OrganizationsColumns[2]},
 			},
 		},
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
-		CommentsTable,
-		PostsTable,
+		OrganizationsTable,
 	}
 )
 
 func init() {
-	PostsTable.ForeignKeys[0].RefTable = CommentsTable
 }

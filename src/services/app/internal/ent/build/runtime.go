@@ -3,9 +3,10 @@
 package build
 
 import (
+	"time"
+
 	"github.com/google/uuid"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/comment"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/post"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/schema"
 )
 
@@ -13,20 +14,35 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
-	commentFields := schema.Comment{}.Fields()
-	_ = commentFields
-	// commentDescWasEdited is the schema descriptor for was_edited field.
-	commentDescWasEdited := commentFields[3].Descriptor()
-	// comment.DefaultWasEdited holds the default value on creation for the was_edited field.
-	comment.DefaultWasEdited = commentDescWasEdited.Default.(bool)
-	// commentDescID is the schema descriptor for id field.
-	commentDescID := commentFields[0].Descriptor()
-	// comment.DefaultID holds the default value on creation for the id field.
-	comment.DefaultID = commentDescID.Default.(func() uuid.UUID)
-	postFields := schema.Post{}.Fields()
-	_ = postFields
-	// postDescID is the schema descriptor for id field.
-	postDescID := postFields[0].Descriptor()
-	// post.DefaultID holds the default value on creation for the id field.
-	post.DefaultID = postDescID.Default.(func() uuid.UUID)
+	organizationMixin := schema.Organization{}.Mixin()
+	organizationMixinFields0 := organizationMixin[0].Fields()
+	_ = organizationMixinFields0
+	organizationFields := schema.Organization{}.Fields()
+	_ = organizationFields
+	// organizationDescCreateTime is the schema descriptor for create_time field.
+	organizationDescCreateTime := organizationMixinFields0[0].Descriptor()
+	// organization.DefaultCreateTime holds the default value on creation for the create_time field.
+	organization.DefaultCreateTime = organizationDescCreateTime.Default.(func() time.Time)
+	// organizationDescUniqueName is the schema descriptor for unique_name field.
+	organizationDescUniqueName := organizationFields[1].Descriptor()
+	// organization.UniqueNameValidator is a validator for the "unique_name" field. It is called by the builders before save.
+	organization.UniqueNameValidator = func() func(string) error {
+		validators := organizationDescUniqueName.Validators
+		fns := [...]func(string) error{
+			validators[0].(func(string) error),
+			validators[1].(func(string) error),
+		}
+		return func(unique_name string) error {
+			for _, fn := range fns {
+				if err := fn(unique_name); err != nil {
+					return err
+				}
+			}
+			return nil
+		}
+	}()
+	// organizationDescID is the schema descriptor for id field.
+	organizationDescID := organizationFields[0].Descriptor()
+	// organization.DefaultID holds the default value on creation for the id field.
+	organization.DefaultID = organizationDescID.Default.(func() uuid.UUID)
 }
