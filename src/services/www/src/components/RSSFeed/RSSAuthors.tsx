@@ -16,7 +16,15 @@ function RSSAuthors({ authors, organizationName }: RSSAuthorsProps) {
       {organizationName ? (
         <span>
           <span style={{ color: "#5c5c5c" }}> from </span>
-          {organizationName || ""}
+          <span
+            style={{
+              fontSize: 17,
+              fontFamily: "Source Serif Pro",
+              fontWeight: 600,
+            }}
+          >
+            {organizationName}
+          </span>
         </span>
       ) : (
         ""
