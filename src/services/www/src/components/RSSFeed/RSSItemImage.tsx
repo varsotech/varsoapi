@@ -23,6 +23,7 @@ function RSSImage({ image, featured }: RSSImageProps) {
         src={image?.url}
         alt={image?.title}
         width={"100%"} // 100% ?
+        style={{ display: "block" }}
       />
       <div
         style={{
@@ -32,6 +33,7 @@ function RSSImage({ image, featured }: RSSImageProps) {
           height: "100%",
           width: "100%",
           backdropFilter: image.blur && !unblur ? "blur(20px)" : undefined,
+          transition: "backdrop-filter 0.3s",
         }}
       />
       <div
