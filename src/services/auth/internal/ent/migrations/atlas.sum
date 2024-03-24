@@ -1,4 +1,4 @@
-h1:G9ynpcu/rxZnFSc8F2/61e7ujKXLty1wtC+QNVcOnVE=
+h1:vWm212Aba1iQ56uaTzqrqbRpcnOTd6I4YMh+tQnK+Pw=
 20230317152820.down.sql h1:wBg/KefK8XagZv4gZqPXvSQ5D2nPGPAqbH8mmBjvHpw=
 20230317152820.up.sql h1:3584ZIx2dQYtOkKKY0FjP5iLmxpEBLZSOWduaQhQwIQ=
 20230317153034_initial.down.sql h1:lOWMPGjYwxZLiBU7RMAUXVexW54rtPnALgxovqM9Hkg=
@@ -11,3 +11,5 @@ h1:G9ynpcu/rxZnFSc8F2/61e7ujKXLty1wtC+QNVcOnVE=
 20230602190123_index_discord.up.sql h1:OocJ6aWC3+1v74nzDRgPCZQzm8pWpHsSpee/ah4susQ=
 20230912182003_add_name.down.sql h1:PnZx63DLMAx+ILQZEQmhndg98menkA0zBkPbmSJitfs=
 20230912182003_add_name.up.sql h1:26Ljnb5NiS4KPGrAT9GMv0Y9M8rJ6C+ntk4JmM5v9nM=
+20240324210850_fix_uuid.down.sql h1:klLg8dLs1N3qHOhPFHKL4IDy9g9XizFQoej5O2Jvg9o=
+20240324210850_fix_uuid.up.sql h1:2iencf7JdTWpAfI/ebHos3QEZkyDvYW3mE/++KrLkRM=

@@ -9,6 +9,7 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/role"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
 )
 
@@ -68,6 +69,33 @@ func (f TraverseFunc) Traverse(ctx context.Context, q build.Query) error {
 	return f(ctx, query)
 }
 
+// The RoleFunc type is an adapter to allow the use of ordinary function as a Querier.
+type RoleFunc func(context.Context, *build.RoleQuery) (build.Value, error)
+
+// Query calls f(ctx, q).
+func (f RoleFunc) Query(ctx context.Context, q build.Query) (build.Value, error) {
+	if q, ok := q.(*build.RoleQuery); ok {
+		return f(ctx, q)
+	}
+	return nil, fmt.Errorf("unexpected query type %T. expect *build.RoleQuery", q)
+}
+
+// The TraverseRole type is an adapter to allow the use of ordinary function as Traverser.
+type TraverseRole func(context.Context, *build.RoleQuery) error
+
+// Intercept is a dummy implementation of Intercept that returns the next Querier in the pipeline.
+func (f TraverseRole) Intercept(next build.Querier) build.Querier {
+	return next
+}
+
+// Traverse calls f(ctx, q).
+func (f TraverseRole) Traverse(ctx context.Context, q build.Query) error {
+	if q, ok := q.(*build.RoleQuery); ok {
+		return f(ctx, q)
+	}
+	return fmt.Errorf("unexpected query type %T. expect *build.RoleQuery", q)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary function as a Querier.
 type UserFunc func(context.Context, *build.UserQuery) (build.Value, error)
 
@@ -98,6 +126,8 @@ func (f TraverseUser) Traverse(ctx context.Context, q build.Query) error {
 // NewQuery returns the generic Query interface for the given typed query.
 func NewQuery(q build.Query) (Query, error) {
 	switch q := q.(type) {
+	case *build.RoleQuery:
+		return &query[*build.RoleQuery, predicate.Role, role.OrderOption]{typ: build.TypeRole, tq: q}, nil
 	case *build.UserQuery:
 		return &query[*build.UserQuery, predicate.User, user.OrderOption]{typ: build.TypeUser, tq: q}, nil
 	default:

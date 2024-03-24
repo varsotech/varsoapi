@@ -24,7 +24,7 @@ services:
         condition: on-failure   
         max_attempts: 5
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:5000/"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:5000/api/v1/auth"]
       interval: 10s
       timeout: 5s
       retries: 3

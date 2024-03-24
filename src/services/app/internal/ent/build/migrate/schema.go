@@ -24,6 +24,7 @@ var (
 		{Name: "image_url", Type: field.TypeString},
 		{Name: "image_title", Type: field.TypeString},
 		{Name: "categories", Type: field.TypeJSON},
+		{Name: "blur", Type: field.TypeBool, Default: false},
 		{Name: "news_item_feed", Type: field.TypeUUID, Nullable: true},
 	}
 	// NewsItemsTable holds the schema information for the "news_items" table.
@@ -34,7 +35,7 @@ var (
 		ForeignKeys: []*schema.ForeignKey{
 			{
 				Symbol:     "news_items_rss_feeds_feed",
-				Columns:    []*schema.Column{NewsItemsColumns[14]},
+				Columns:    []*schema.Column{NewsItemsColumns[15]},
 				RefColumns: []*schema.Column{RssFeedsColumns[0]},
 				OnDelete:   schema.SetNull,
 			},

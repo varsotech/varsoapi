@@ -29,6 +29,8 @@ env:
   CERTBOT_EMAIL: ${{ vars.CERTBOT_EMAIL }}
   NODE_VERSION: ${{ vars.NODE_VERSION }}
   USE_TEST_CERT: ${{ vars.USE_TEST_CERT }}
+  AUTH_ADMIN_EMAIL: ${{ secrets.AUTH_ADMIN_EMAIL }}
+  AUTH_ADMIN_PASSWORD: ${{ secrets.AUTH_ADMIN_PASSWORD }}
 
 jobs:
   gosec:

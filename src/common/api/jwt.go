@@ -14,15 +14,17 @@ import (
 type JWT struct {
 	UserUUID    *uuid.UUID
 	AccessLevel AccessLevel
+	Permissions map[string]bool
 }
 
-func MarshalJWT(userUuid string, accessLevel AccessLevel) (string, error) {
+func MarshalJWT(userUuid string, accessLevel AccessLevel, permissions map[string]bool) (string, error) {
 	// Create a JWT
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"sub":          userUuid,
 		"iat":          time.Now().Unix(),
 		"exp":          time.Now().Add(24 * time.Hour).Unix(),
 		"access_level": accessLevel,
+		"permissions":  permissions,
 	})
 
 	// Sign the JWT using the secret key
@@ -95,5 +97,6 @@ func UnmarshalJWT(jwtString string) (*JWT, error) {
 	return &JWT{
 		UserUUID:    userUUID,
 		AccessLevel: AccessLevel(claims["access_level"].(float64)),
+		Permissions: claims["permissions"].(map[string]bool),
 	}, nil
 }

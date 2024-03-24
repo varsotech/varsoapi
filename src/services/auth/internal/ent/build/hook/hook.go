@@ -9,6 +9,18 @@ import (
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build"
 )
 
+// The RoleFunc type is an adapter to allow the use of ordinary
+// function as Role mutator.
+type RoleFunc func(context.Context, *build.RoleMutation) (build.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RoleFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.RoleMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.RoleMutation", m)
+}
+
 // The UserFunc type is an adapter to allow the use of ordinary
 // function as User mutator.
 type UserFunc func(context.Context, *build.UserMutation) (build.Value, error)

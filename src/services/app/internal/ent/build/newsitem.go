@@ -46,6 +46,8 @@ type NewsItem struct {
 	ImageTitle string `json:"image_title,omitempty"`
 	// Categories holds the value of the "categories" field.
 	Categories []string `json:"categories,omitempty"`
+	// Blur holds the value of the "blur" field.
+	Blur bool `json:"blur,omitempty"`
 	// Edges holds the relations/edges for other nodes in the graph.
 	// The values are being populated by the NewsItemQuery when eager-loading is set.
 	Edges          NewsItemEdges `json:"edges"`
@@ -91,6 +93,8 @@ func (*NewsItem) scanValues(columns []string) ([]any, error) {
 		switch columns[i] {
 		case newsitem.FieldLinks, newsitem.FieldCategories:
 			values[i] = new([]byte)
+		case newsitem.FieldBlur:
+			values[i] = new(sql.NullBool)
 		case newsitem.FieldRssGUID, newsitem.FieldTitle, newsitem.FieldDescription, newsitem.FieldContent, newsitem.FieldLink, newsitem.FieldImageURL, newsitem.FieldImageTitle:
 			values[i] = new(sql.NullString)
 		case newsitem.FieldCreateTime, newsitem.FieldUpdateTime, newsitem.FieldItemPublishTime, newsitem.FieldItemUpdateTime:
@@ -202,6 +206,12 @@ func (ni *NewsItem) assignValues(columns []string, values []any) error {
 					return fmt.Errorf("unmarshal field categories: %w", err)
 				}
 			}
+		case newsitem.FieldBlur:
+			if value, ok := values[i].(*sql.NullBool); !ok {
+				return fmt.Errorf("unexpected type %T for field blur", values[i])
+			} else if value.Valid {
+				ni.Blur = value.Bool
+			}
 		case newsitem.ForeignKeys[0]:
 			if value, ok := values[i].(*sql.NullScanner); !ok {
 				return fmt.Errorf("unexpected type %T for field news_item_feed", values[i])
@@ -293,6 +303,9 @@ func (ni *NewsItem) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("categories=")
 	builder.WriteString(fmt.Sprintf("%v", ni.Categories))
+	builder.WriteString(", ")
+	builder.WriteString("blur=")
+	builder.WriteString(fmt.Sprintf("%v", ni.Blur))
 	builder.WriteByte(')')
 	return builder.String()
 }

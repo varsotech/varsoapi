@@ -41,6 +41,7 @@ func (NewsItem) Fields() []ent.Field {
 		field.String("image_url"),
 		field.String("image_title"),
 		field.Strings("categories"),
+		field.Bool("blur").Default(false),
 	}
 }
 

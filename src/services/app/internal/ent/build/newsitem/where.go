@@ -111,6 +111,11 @@ func ImageTitle(v string) predicate.NewsItem {
 	return predicate.NewsItem(sql.FieldEQ(FieldImageTitle, v))
 }
 
+// Blur applies equality check predicate on the "blur" field. It's identical to BlurEQ.
+func Blur(v bool) predicate.NewsItem {
+	return predicate.NewsItem(sql.FieldEQ(FieldBlur, v))
+}
+
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
 func CreateTimeEQ(v time.Time) predicate.NewsItem {
 	return predicate.NewsItem(sql.FieldEQ(FieldCreateTime, v))
@@ -744,6 +749,16 @@ func ImageTitleEqualFold(v string) predicate.NewsItem {
 // ImageTitleContainsFold applies the ContainsFold predicate on the "image_title" field.
 func ImageTitleContainsFold(v string) predicate.NewsItem {
 	return predicate.NewsItem(sql.FieldContainsFold(FieldImageTitle, v))
+}
+
+// BlurEQ applies the EQ predicate on the "blur" field.
+func BlurEQ(v bool) predicate.NewsItem {
+	return predicate.NewsItem(sql.FieldEQ(FieldBlur, v))
+}
+
+// BlurNEQ applies the NEQ predicate on the "blur" field.
+func BlurNEQ(v bool) predicate.NewsItem {
+	return predicate.NewsItem(sql.FieldNEQ(FieldBlur, v))
 }
 
 // HasAuthors applies the HasEdge predicate on the "authors" edge.

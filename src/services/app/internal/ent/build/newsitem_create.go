@@ -136,6 +136,20 @@ func (nic *NewsItemCreate) SetCategories(s []string) *NewsItemCreate {
 	return nic
 }
 
+// SetBlur sets the "blur" field.
+func (nic *NewsItemCreate) SetBlur(b bool) *NewsItemCreate {
+	nic.mutation.SetBlur(b)
+	return nic
+}
+
+// SetNillableBlur sets the "blur" field if the given value is not nil.
+func (nic *NewsItemCreate) SetNillableBlur(b *bool) *NewsItemCreate {
+	if b != nil {
+		nic.SetBlur(*b)
+	}
+	return nic
+}
+
 // SetID sets the "id" field.
 func (nic *NewsItemCreate) SetID(u uuid.UUID) *NewsItemCreate {
 	nic.mutation.SetID(u)
@@ -227,6 +241,10 @@ func (nic *NewsItemCreate) defaults() {
 		v := newsitem.DefaultUpdateTime()
 		nic.mutation.SetUpdateTime(v)
 	}
+	if _, ok := nic.mutation.Blur(); !ok {
+		v := newsitem.DefaultBlur
+		nic.mutation.SetBlur(v)
+	}
 	if _, ok := nic.mutation.ID(); !ok {
 		v := newsitem.DefaultID()
 		nic.mutation.SetID(v)
@@ -267,6 +285,9 @@ func (nic *NewsItemCreate) check() error {
 	}
 	if _, ok := nic.mutation.Categories(); !ok {
 		return &ValidationError{Name: "categories", err: errors.New(`build: missing required field "NewsItem.categories"`)}
+	}
+	if _, ok := nic.mutation.Blur(); !ok {
+		return &ValidationError{Name: "blur", err: errors.New(`build: missing required field "NewsItem.blur"`)}
 	}
 	return nil
 }
@@ -355,6 +376,10 @@ func (nic *NewsItemCreate) createSpec() (*NewsItem, *sqlgraph.CreateSpec) {
 	if value, ok := nic.mutation.Categories(); ok {
 		_spec.SetField(newsitem.FieldCategories, field.TypeJSON, value)
 		_node.Categories = value
+	}
+	if value, ok := nic.mutation.Blur(); ok {
+		_spec.SetField(newsitem.FieldBlur, field.TypeBool, value)
+		_node.Blur = value
 	}
 	if nodes := nic.mutation.AuthorsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
@@ -597,6 +622,18 @@ func (u *NewsItemUpsert) UpdateCategories() *NewsItemUpsert {
 	return u
 }
 
+// SetBlur sets the "blur" field.
+func (u *NewsItemUpsert) SetBlur(v bool) *NewsItemUpsert {
+	u.Set(newsitem.FieldBlur, v)
+	return u
+}
+
+// UpdateBlur sets the "blur" field to the value that was provided on create.
+func (u *NewsItemUpsert) UpdateBlur() *NewsItemUpsert {
+	u.SetExcluded(newsitem.FieldBlur)
+	return u
+}
+
 // UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
 // Using this option is equivalent to using:
 //
@@ -827,6 +864,20 @@ func (u *NewsItemUpsertOne) SetCategories(v []string) *NewsItemUpsertOne {
 func (u *NewsItemUpsertOne) UpdateCategories() *NewsItemUpsertOne {
 	return u.Update(func(s *NewsItemUpsert) {
 		s.UpdateCategories()
+	})
+}
+
+// SetBlur sets the "blur" field.
+func (u *NewsItemUpsertOne) SetBlur(v bool) *NewsItemUpsertOne {
+	return u.Update(func(s *NewsItemUpsert) {
+		s.SetBlur(v)
+	})
+}
+
+// UpdateBlur sets the "blur" field to the value that was provided on create.
+func (u *NewsItemUpsertOne) UpdateBlur() *NewsItemUpsertOne {
+	return u.Update(func(s *NewsItemUpsert) {
+		s.UpdateBlur()
 	})
 }
 
@@ -1227,6 +1278,20 @@ func (u *NewsItemUpsertBulk) SetCategories(v []string) *NewsItemUpsertBulk {
 func (u *NewsItemUpsertBulk) UpdateCategories() *NewsItemUpsertBulk {
 	return u.Update(func(s *NewsItemUpsert) {
 		s.UpdateCategories()
+	})
+}
+
+// SetBlur sets the "blur" field.
+func (u *NewsItemUpsertBulk) SetBlur(v bool) *NewsItemUpsertBulk {
+	return u.Update(func(s *NewsItemUpsert) {
+		s.SetBlur(v)
+	})
+}
+
+// UpdateBlur sets the "blur" field to the value that was provided on create.
+func (u *NewsItemUpsertBulk) UpdateBlur() *NewsItemUpsertBulk {
+	return u.Update(func(s *NewsItemUpsert) {
+		s.UpdateBlur()
 	})
 }
 

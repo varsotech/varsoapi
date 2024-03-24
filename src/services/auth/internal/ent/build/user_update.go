@@ -11,8 +11,8 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
-	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/role"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
 )
 
@@ -69,20 +69,6 @@ func (uu *UserUpdate) ClearBanTime() *UserUpdate {
 	return uu
 }
 
-// SetUUID sets the "uuid" field.
-func (uu *UserUpdate) SetUUID(u uuid.UUID) *UserUpdate {
-	uu.mutation.SetUUID(u)
-	return uu
-}
-
-// SetNillableUUID sets the "uuid" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableUUID(u *uuid.UUID) *UserUpdate {
-	if u != nil {
-		uu.SetUUID(*u)
-	}
-	return uu
-}
-
 // SetEmail sets the "email" field.
 func (uu *UserUpdate) SetEmail(s string) *UserUpdate {
 	uu.mutation.SetEmail(s)
@@ -94,32 +80,6 @@ func (uu *UserUpdate) SetNillableEmail(s *string) *UserUpdate {
 	if s != nil {
 		uu.SetEmail(*s)
 	}
-	return uu
-}
-
-// ClearEmail clears the value of the "email" field.
-func (uu *UserUpdate) ClearEmail() *UserUpdate {
-	uu.mutation.ClearEmail()
-	return uu
-}
-
-// SetUsername sets the "username" field.
-func (uu *UserUpdate) SetUsername(s string) *UserUpdate {
-	uu.mutation.SetUsername(s)
-	return uu
-}
-
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableUsername(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetUsername(*s)
-	}
-	return uu
-}
-
-// ClearUsername clears the value of the "username" field.
-func (uu *UserUpdate) ClearUsername() *UserUpdate {
-	uu.mutation.ClearUsername()
 	return uu
 }
 
@@ -137,12 +97,6 @@ func (uu *UserUpdate) SetNillablePassword(s *string) *UserUpdate {
 	return uu
 }
 
-// ClearPassword clears the value of the "password" field.
-func (uu *UserUpdate) ClearPassword() *UserUpdate {
-	uu.mutation.ClearPassword()
-	return uu
-}
-
 // SetSalt sets the "salt" field.
 func (uu *UserUpdate) SetSalt(s string) *UserUpdate {
 	uu.mutation.SetSalt(s)
@@ -157,55 +111,45 @@ func (uu *UserUpdate) SetNillableSalt(s *string) *UserUpdate {
 	return uu
 }
 
-// ClearSalt clears the value of the "salt" field.
-func (uu *UserUpdate) ClearSalt() *UserUpdate {
-	uu.mutation.ClearSalt()
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (uu *UserUpdate) AddRoleIDs(ids ...int) *UserUpdate {
+	uu.mutation.AddRoleIDs(ids...)
 	return uu
 }
 
-// SetDiscordUserID sets the "discord_user_id" field.
-func (uu *UserUpdate) SetDiscordUserID(s string) *UserUpdate {
-	uu.mutation.SetDiscordUserID(s)
-	return uu
-}
-
-// SetNillableDiscordUserID sets the "discord_user_id" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableDiscordUserID(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetDiscordUserID(*s)
+// AddRoles adds the "roles" edges to the Role entity.
+func (uu *UserUpdate) AddRoles(r ...*Role) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uu
-}
-
-// ClearDiscordUserID clears the value of the "discord_user_id" field.
-func (uu *UserUpdate) ClearDiscordUserID() *UserUpdate {
-	uu.mutation.ClearDiscordUserID()
-	return uu
-}
-
-// SetName sets the "name" field.
-func (uu *UserUpdate) SetName(s string) *UserUpdate {
-	uu.mutation.SetName(s)
-	return uu
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (uu *UserUpdate) SetNillableName(s *string) *UserUpdate {
-	if s != nil {
-		uu.SetName(*s)
-	}
-	return uu
-}
-
-// ClearName clears the value of the "name" field.
-func (uu *UserUpdate) ClearName() *UserUpdate {
-	uu.mutation.ClearName()
-	return uu
+	return uu.AddRoleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uu *UserUpdate) Mutation() *UserMutation {
 	return uu.mutation
+}
+
+// ClearRoles clears all "roles" edges to the Role entity.
+func (uu *UserUpdate) ClearRoles() *UserUpdate {
+	uu.mutation.ClearRoles()
+	return uu
+}
+
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (uu *UserUpdate) RemoveRoleIDs(ids ...int) *UserUpdate {
+	uu.mutation.RemoveRoleIDs(ids...)
+	return uu
+}
+
+// RemoveRoles removes "roles" edges to Role entities.
+func (uu *UserUpdate) RemoveRoles(r ...*Role) *UserUpdate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uu.RemoveRoleIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -242,11 +186,6 @@ func (uu *UserUpdate) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`build: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uu.mutation.Username(); ok {
-		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "username", err: fmt.Errorf(`build: validator failed for field "User.username": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -254,7 +193,7 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if err := uu.check(); err != nil {
 		return n, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	if ps := uu.mutation.predicates; len(ps) > 0 {
 		_spec.Predicate = func(selector *sql.Selector) {
 			for i := range ps {
@@ -274,44 +213,59 @@ func (uu *UserUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if uu.mutation.BanTimeCleared() {
 		_spec.ClearField(user.FieldBanTime, field.TypeTime)
 	}
-	if value, ok := uu.mutation.UUID(); ok {
-		_spec.SetField(user.FieldUUID, field.TypeUUID, value)
-	}
 	if value, ok := uu.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
-	}
-	if uu.mutation.EmailCleared() {
-		_spec.ClearField(user.FieldEmail, field.TypeString)
-	}
-	if value, ok := uu.mutation.Username(); ok {
-		_spec.SetField(user.FieldUsername, field.TypeString, value)
-	}
-	if uu.mutation.UsernameCleared() {
-		_spec.ClearField(user.FieldUsername, field.TypeString)
 	}
 	if value, ok := uu.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
-	if uu.mutation.PasswordCleared() {
-		_spec.ClearField(user.FieldPassword, field.TypeString)
-	}
 	if value, ok := uu.mutation.Salt(); ok {
 		_spec.SetField(user.FieldSalt, field.TypeString, value)
 	}
-	if uu.mutation.SaltCleared() {
-		_spec.ClearField(user.FieldSalt, field.TypeString)
+	if uu.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := uu.mutation.DiscordUserID(); ok {
-		_spec.SetField(user.FieldDiscordUserID, field.TypeString, value)
+	if nodes := uu.mutation.RemovedRolesIDs(); len(nodes) > 0 && !uu.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if uu.mutation.DiscordUserIDCleared() {
-		_spec.ClearField(user.FieldDiscordUserID, field.TypeString)
-	}
-	if value, ok := uu.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-	}
-	if uu.mutation.NameCleared() {
-		_spec.ClearField(user.FieldName, field.TypeString)
+	if nodes := uu.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, uu.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -373,20 +327,6 @@ func (uuo *UserUpdateOne) ClearBanTime() *UserUpdateOne {
 	return uuo
 }
 
-// SetUUID sets the "uuid" field.
-func (uuo *UserUpdateOne) SetUUID(u uuid.UUID) *UserUpdateOne {
-	uuo.mutation.SetUUID(u)
-	return uuo
-}
-
-// SetNillableUUID sets the "uuid" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableUUID(u *uuid.UUID) *UserUpdateOne {
-	if u != nil {
-		uuo.SetUUID(*u)
-	}
-	return uuo
-}
-
 // SetEmail sets the "email" field.
 func (uuo *UserUpdateOne) SetEmail(s string) *UserUpdateOne {
 	uuo.mutation.SetEmail(s)
@@ -398,32 +338,6 @@ func (uuo *UserUpdateOne) SetNillableEmail(s *string) *UserUpdateOne {
 	if s != nil {
 		uuo.SetEmail(*s)
 	}
-	return uuo
-}
-
-// ClearEmail clears the value of the "email" field.
-func (uuo *UserUpdateOne) ClearEmail() *UserUpdateOne {
-	uuo.mutation.ClearEmail()
-	return uuo
-}
-
-// SetUsername sets the "username" field.
-func (uuo *UserUpdateOne) SetUsername(s string) *UserUpdateOne {
-	uuo.mutation.SetUsername(s)
-	return uuo
-}
-
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableUsername(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetUsername(*s)
-	}
-	return uuo
-}
-
-// ClearUsername clears the value of the "username" field.
-func (uuo *UserUpdateOne) ClearUsername() *UserUpdateOne {
-	uuo.mutation.ClearUsername()
 	return uuo
 }
 
@@ -441,12 +355,6 @@ func (uuo *UserUpdateOne) SetNillablePassword(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// ClearPassword clears the value of the "password" field.
-func (uuo *UserUpdateOne) ClearPassword() *UserUpdateOne {
-	uuo.mutation.ClearPassword()
-	return uuo
-}
-
 // SetSalt sets the "salt" field.
 func (uuo *UserUpdateOne) SetSalt(s string) *UserUpdateOne {
 	uuo.mutation.SetSalt(s)
@@ -461,55 +369,45 @@ func (uuo *UserUpdateOne) SetNillableSalt(s *string) *UserUpdateOne {
 	return uuo
 }
 
-// ClearSalt clears the value of the "salt" field.
-func (uuo *UserUpdateOne) ClearSalt() *UserUpdateOne {
-	uuo.mutation.ClearSalt()
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (uuo *UserUpdateOne) AddRoleIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.AddRoleIDs(ids...)
 	return uuo
 }
 
-// SetDiscordUserID sets the "discord_user_id" field.
-func (uuo *UserUpdateOne) SetDiscordUserID(s string) *UserUpdateOne {
-	uuo.mutation.SetDiscordUserID(s)
-	return uuo
-}
-
-// SetNillableDiscordUserID sets the "discord_user_id" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableDiscordUserID(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetDiscordUserID(*s)
+// AddRoles adds the "roles" edges to the Role entity.
+func (uuo *UserUpdateOne) AddRoles(r ...*Role) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uuo
-}
-
-// ClearDiscordUserID clears the value of the "discord_user_id" field.
-func (uuo *UserUpdateOne) ClearDiscordUserID() *UserUpdateOne {
-	uuo.mutation.ClearDiscordUserID()
-	return uuo
-}
-
-// SetName sets the "name" field.
-func (uuo *UserUpdateOne) SetName(s string) *UserUpdateOne {
-	uuo.mutation.SetName(s)
-	return uuo
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (uuo *UserUpdateOne) SetNillableName(s *string) *UserUpdateOne {
-	if s != nil {
-		uuo.SetName(*s)
-	}
-	return uuo
-}
-
-// ClearName clears the value of the "name" field.
-func (uuo *UserUpdateOne) ClearName() *UserUpdateOne {
-	uuo.mutation.ClearName()
-	return uuo
+	return uuo.AddRoleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
 func (uuo *UserUpdateOne) Mutation() *UserMutation {
 	return uuo.mutation
+}
+
+// ClearRoles clears all "roles" edges to the Role entity.
+func (uuo *UserUpdateOne) ClearRoles() *UserUpdateOne {
+	uuo.mutation.ClearRoles()
+	return uuo
+}
+
+// RemoveRoleIDs removes the "roles" edge to Role entities by IDs.
+func (uuo *UserUpdateOne) RemoveRoleIDs(ids ...int) *UserUpdateOne {
+	uuo.mutation.RemoveRoleIDs(ids...)
+	return uuo
+}
+
+// RemoveRoles removes "roles" edges to Role entities.
+func (uuo *UserUpdateOne) RemoveRoles(r ...*Role) *UserUpdateOne {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return uuo.RemoveRoleIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -559,11 +457,6 @@ func (uuo *UserUpdateOne) check() error {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`build: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uuo.mutation.Username(); ok {
-		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "username", err: fmt.Errorf(`build: validator failed for field "User.username": %w`, err)}
-		}
-	}
 	return nil
 }
 
@@ -571,7 +464,7 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if err := uuo.check(); err != nil {
 		return _node, err
 	}
-	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+	_spec := sqlgraph.NewUpdateSpec(user.Table, user.Columns, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	id, ok := uuo.mutation.ID()
 	if !ok {
 		return nil, &ValidationError{Name: "id", err: errors.New(`build: missing "User.id" for update`)}
@@ -608,44 +501,59 @@ func (uuo *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) 
 	if uuo.mutation.BanTimeCleared() {
 		_spec.ClearField(user.FieldBanTime, field.TypeTime)
 	}
-	if value, ok := uuo.mutation.UUID(); ok {
-		_spec.SetField(user.FieldUUID, field.TypeUUID, value)
-	}
 	if value, ok := uuo.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
-	}
-	if uuo.mutation.EmailCleared() {
-		_spec.ClearField(user.FieldEmail, field.TypeString)
-	}
-	if value, ok := uuo.mutation.Username(); ok {
-		_spec.SetField(user.FieldUsername, field.TypeString, value)
-	}
-	if uuo.mutation.UsernameCleared() {
-		_spec.ClearField(user.FieldUsername, field.TypeString)
 	}
 	if value, ok := uuo.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 	}
-	if uuo.mutation.PasswordCleared() {
-		_spec.ClearField(user.FieldPassword, field.TypeString)
-	}
 	if value, ok := uuo.mutation.Salt(); ok {
 		_spec.SetField(user.FieldSalt, field.TypeString, value)
 	}
-	if uuo.mutation.SaltCleared() {
-		_spec.ClearField(user.FieldSalt, field.TypeString)
+	if uuo.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if value, ok := uuo.mutation.DiscordUserID(); ok {
-		_spec.SetField(user.FieldDiscordUserID, field.TypeString, value)
+	if nodes := uuo.mutation.RemovedRolesIDs(); len(nodes) > 0 && !uuo.mutation.RolesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if uuo.mutation.DiscordUserIDCleared() {
-		_spec.ClearField(user.FieldDiscordUserID, field.TypeString)
-	}
-	if value, ok := uuo.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-	}
-	if uuo.mutation.NameCleared() {
-		_spec.ClearField(user.FieldName, field.TypeString)
+	if nodes := uuo.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &User{config: uuo.config}
 	_spec.Assign = _node.assignValues

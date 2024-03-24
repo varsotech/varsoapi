@@ -41,9 +41,10 @@ func TranslateRSSItem(item *build.NewsItem, orgUUID uuid.UUID) *models.RSSItem {
 		PublishDate:      timestamppb.New(item.ItemPublishTime),
 		Authors:          TranslateRSSAuthors(item.Edges.Authors),
 		Guid:             item.RssGUID,
-		Image:            TranslateRSSImage(item.ImageURL, item.ImageTitle),
+		Image:            TranslateRSSImage(item.ImageURL, item.ImageTitle, item.Blur),
 		Categories:       item.Categories,
 		OrganizationUuid: orgUUID.String(),
+		Id:               item.ID.String(),
 	}
 }
 
@@ -66,9 +67,10 @@ func TranslateRSSAuthor(author *build.Person) *models.RSSAuthor {
 	}
 }
 
-func TranslateRSSImage(imageUrl, imageTitle string) *models.RSSImage {
+func TranslateRSSImage(imageUrl, imageTitle string, blur bool) *models.RSSImage {
 	return &models.RSSImage{
 		Url:   imageUrl,
 		Title: imageTitle,
+		Blur:  blur,
 	}
 }

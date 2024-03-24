@@ -55,6 +55,7 @@ type NewsItemMutation struct {
 	image_title       *string
 	categories        *[]string
 	appendcategories  []string
+	blur              *bool
 	clearedFields     map[string]struct{}
 	authors           map[uuid.UUID]struct{}
 	removedauthors    map[uuid.UUID]struct{}
@@ -694,6 +695,42 @@ func (m *NewsItemMutation) ResetCategories() {
 	m.appendcategories = nil
 }
 
+// SetBlur sets the "blur" field.
+func (m *NewsItemMutation) SetBlur(b bool) {
+	m.blur = &b
+}
+
+// Blur returns the value of the "blur" field in the mutation.
+func (m *NewsItemMutation) Blur() (r bool, exists bool) {
+	v := m.blur
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldBlur returns the old "blur" field's value of the NewsItem entity.
+// If the NewsItem object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *NewsItemMutation) OldBlur(ctx context.Context) (v bool, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldBlur is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldBlur requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBlur: %w", err)
+	}
+	return oldValue.Blur, nil
+}
+
+// ResetBlur resets all changes to the "blur" field.
+func (m *NewsItemMutation) ResetBlur() {
+	m.blur = nil
+}
+
 // AddAuthorIDs adds the "authors" edge to the Person entity by ids.
 func (m *NewsItemMutation) AddAuthorIDs(ids ...uuid.UUID) {
 	if m.authors == nil {
@@ -821,7 +858,7 @@ func (m *NewsItemMutation) Type() string {
 // order to get all numeric fields that were incremented/decremented, call
 // AddedFields().
 func (m *NewsItemMutation) Fields() []string {
-	fields := make([]string, 0, 13)
+	fields := make([]string, 0, 14)
 	if m.create_time != nil {
 		fields = append(fields, newsitem.FieldCreateTime)
 	}
@@ -861,6 +898,9 @@ func (m *NewsItemMutation) Fields() []string {
 	if m.categories != nil {
 		fields = append(fields, newsitem.FieldCategories)
 	}
+	if m.blur != nil {
+		fields = append(fields, newsitem.FieldBlur)
+	}
 	return fields
 }
 
@@ -895,6 +935,8 @@ func (m *NewsItemMutation) Field(name string) (ent.Value, bool) {
 		return m.ImageTitle()
 	case newsitem.FieldCategories:
 		return m.Categories()
+	case newsitem.FieldBlur:
+		return m.Blur()
 	}
 	return nil, false
 }
@@ -930,6 +972,8 @@ func (m *NewsItemMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldImageTitle(ctx)
 	case newsitem.FieldCategories:
 		return m.OldCategories(ctx)
+	case newsitem.FieldBlur:
+		return m.OldBlur(ctx)
 	}
 	return nil, fmt.Errorf("unknown NewsItem field %s", name)
 }
@@ -1029,6 +1073,13 @@ func (m *NewsItemMutation) SetField(name string, value ent.Value) error {
 			return fmt.Errorf("unexpected type %T for field %s", value, name)
 		}
 		m.SetCategories(v)
+		return nil
+	case newsitem.FieldBlur:
+		v, ok := value.(bool)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetBlur(v)
 		return nil
 	}
 	return fmt.Errorf("unknown NewsItem field %s", name)
@@ -1132,6 +1183,9 @@ func (m *NewsItemMutation) ResetField(name string) error {
 		return nil
 	case newsitem.FieldCategories:
 		m.ResetCategories()
+		return nil
+	case newsitem.FieldBlur:
+		m.ResetBlur()
 		return nil
 	}
 	return fmt.Errorf("unknown NewsItem field %s", name)

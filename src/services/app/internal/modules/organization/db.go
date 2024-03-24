@@ -41,7 +41,9 @@ func UpsertOrganization(ctx context.Context, orgUUID uuid.UUID, name, descriptio
 		SetDescription(description).
 		SetWebsiteURL(websiteUrl).
 		OnConflictColumns(organization.FieldID).
-		UpdateNewValues().
+		UpdateName().
+		UpdateDescription().
+		UpdateWebsiteURL().
 		Exec(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed upserting organization in db")

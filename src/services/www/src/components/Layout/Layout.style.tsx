@@ -7,9 +7,13 @@ export const Layout = styled.div`
 `;
 
 export const Navbar = styled.div`
+  display: flex;
   outline: 1px solid #f2f2f2;
   height: 55px;
   width: 100%;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
 `;
 
 export const PageWrapper = styled.div`
@@ -17,4 +21,5 @@ export const PageWrapper = styled.div`
   width: 100%;
   max-width: 1200px;
   flex-wrap: wrap;
+  margin-top: 20px;
 `;

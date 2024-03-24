@@ -14,7 +14,7 @@ func InternalLogin(_ *api.Writer, r *http.Request, _ httprouter.Params, _ *api.J
 		return nil, api.NewUnauthorizedError(nil, "bad internal auth secret")
 	}
 
-	token, err := api.MarshalJWT("", api.Internal.AccessLevel)
+	token, err := api.MarshalJWT("", api.Internal.AccessLevel, map[string]string{})
 	if err != nil {
 		return nil, api.NewInternalError(err, "failed creating JWT token")
 	}

@@ -200,6 +200,20 @@ func (niu *NewsItemUpdate) AppendCategories(s []string) *NewsItemUpdate {
 	return niu
 }
 
+// SetBlur sets the "blur" field.
+func (niu *NewsItemUpdate) SetBlur(b bool) *NewsItemUpdate {
+	niu.mutation.SetBlur(b)
+	return niu
+}
+
+// SetNillableBlur sets the "blur" field if the given value is not nil.
+func (niu *NewsItemUpdate) SetNillableBlur(b *bool) *NewsItemUpdate {
+	if b != nil {
+		niu.SetBlur(*b)
+	}
+	return niu
+}
+
 // AddAuthorIDs adds the "authors" edge to the Person entity by IDs.
 func (niu *NewsItemUpdate) AddAuthorIDs(ids ...uuid.UUID) *NewsItemUpdate {
 	niu.mutation.AddAuthorIDs(ids...)
@@ -362,6 +376,9 @@ func (niu *NewsItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, newsitem.FieldCategories, value)
 		})
+	}
+	if value, ok := niu.mutation.Blur(); ok {
+		_spec.SetField(newsitem.FieldBlur, field.TypeBool, value)
 	}
 	if niu.mutation.AuthorsCleared() {
 		edge := &sqlgraph.EdgeSpec{
@@ -625,6 +642,20 @@ func (niuo *NewsItemUpdateOne) AppendCategories(s []string) *NewsItemUpdateOne {
 	return niuo
 }
 
+// SetBlur sets the "blur" field.
+func (niuo *NewsItemUpdateOne) SetBlur(b bool) *NewsItemUpdateOne {
+	niuo.mutation.SetBlur(b)
+	return niuo
+}
+
+// SetNillableBlur sets the "blur" field if the given value is not nil.
+func (niuo *NewsItemUpdateOne) SetNillableBlur(b *bool) *NewsItemUpdateOne {
+	if b != nil {
+		niuo.SetBlur(*b)
+	}
+	return niuo
+}
+
 // AddAuthorIDs adds the "authors" edge to the Person entity by IDs.
 func (niuo *NewsItemUpdateOne) AddAuthorIDs(ids ...uuid.UUID) *NewsItemUpdateOne {
 	niuo.mutation.AddAuthorIDs(ids...)
@@ -817,6 +848,9 @@ func (niuo *NewsItemUpdateOne) sqlSave(ctx context.Context) (_node *NewsItem, er
 		_spec.AddModifier(func(u *sql.UpdateBuilder) {
 			sqljson.Append(u, newsitem.FieldCategories, value)
 		})
+	}
+	if value, ok := niuo.mutation.Blur(); ok {
+		_spec.SetField(newsitem.FieldBlur, field.TypeBool, value)
 	}
 	if niuo.mutation.AuthorsCleared() {
 		edge := &sqlgraph.EdgeSpec{

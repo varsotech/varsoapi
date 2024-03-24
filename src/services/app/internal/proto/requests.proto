@@ -14,3 +14,7 @@ message GetNewsResponse {
   RSSItem featured = 2;
   RSSFeed latest = 3;
 }
+
+message BlurToggleRequest {
+  string rss_item_id = 1;
+}

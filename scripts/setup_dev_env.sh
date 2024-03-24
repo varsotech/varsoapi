@@ -17,6 +17,8 @@ export CERTBOT_EMAIL="contact@varso.org"
 export CERTBOT_DOMAINS="varso.org"
 export USE_TEST_CERT="true"
 export NPM_REGISTRY_URL="ghcr.io"
+export AUTH_ADMIN_EMAIL="contact@varso.org"
+export AUTH_ADMIN_PASSWORD="devsecret"
 
 echo "NPM Token (optional, used for building www production image): "
 read npm_token

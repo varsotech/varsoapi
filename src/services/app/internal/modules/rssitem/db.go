@@ -10,6 +10,19 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 )
 
+func Get(ctx context.Context, itemUUID uuid.UUID) (*build.NewsItem, error) {
+	return ent.Database.NewsItem.Get(ctx, itemUUID)
+}
+
+func ToggleBlur(ctx context.Context, itemUUID uuid.UUID) error {
+	newsItem, err := Get(ctx, itemUUID)
+	if err != nil {
+		return err
+	}
+
+	return ent.Database.NewsItem.Update().Where(newsitem.ID(itemUUID)).SetBlur(!newsItem.Blur).Exec(ctx)
+}
+
 func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description, content, link string, links []string, publishTime, updateTime *time.Time, imageUrl, imageTitle string, categories []string, authors []*build.Person) error {
 	creator := ent.Database.NewsItem.
 		Create().
@@ -23,8 +36,7 @@ func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description
 		SetImageURL(imageUrl).
 		SetImageTitle(imageTitle).
 		SetCategories(categories).
-		AddAuthors(authors...).
-		OnConflictColumns(newsitem.FieldRssGUID)
+		AddAuthors(authors...) // TODO: Check that if the article already exists, it doesn't add authors again
 
 	if publishTime != nil {
 		creator.SetItemPublishTime(*publishTime)
@@ -34,5 +46,15 @@ func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description
 		creator.SetItemUpdateTime(*updateTime)
 	}
 
-	return creator.Exec(ctx)
+	// Don't override - blur
+	return creator.OnConflictColumns(newsitem.FieldRssGUID).
+		UpdateTitle().
+		UpdateDescription().
+		UpdateContent().
+		UpdateLink().
+		UpdateLinks().
+		UpdateImageURL().
+		UpdateImageTitle().
+		UpdateCategories().
+		Exec(ctx)
 }

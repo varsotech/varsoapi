@@ -12,6 +12,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/role"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
 )
 
@@ -73,6 +74,7 @@ var (
 func checkColumn(table, column string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			role.Table: role.ValidColumn,
 			user.Table: user.ValidColumn,
 		})
 	})

@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"net/http"
-	"strings"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
@@ -12,22 +11,17 @@ import (
 	"github.com/varsotech/varsoapi/src/services/auth/client"
 	"github.com/varsotech/varsoapi/src/services/auth/client/models"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/config"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/ent"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/mixins"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/modules/role"
+	usermodule "github.com/varsotech/varsoapi/src/services/auth/internal/modules/user"
 	"golang.org/x/crypto/pbkdf2"
 )
 
 func Login(_ *api.Writer, r *http.Request, _ httprouter.Params, _ *api.JWT, request models.LoginRequest) (*models.LoginResponse, *api.Error) {
 	// Determine if provided username or email for later querying
 	logrus.WithField("request.UsernameOrEmail", request.UsernameOrEmail).Info("Login request")
-	userPredicate := user.Username(request.UsernameOrEmail)
-	if strings.Contains(request.UsernameOrEmail, "@") {
-		userPredicate = user.Email(request.UsernameOrEmail)
-	}
 
-	user, err := ent.Database.User.Query().Where(userPredicate).Only(mixins.SkipBanFilter(r.Context()))
+	user, err := usermodule.GetIncludeBanned(r.Context(), request.UsernameOrEmail)
 	if err != nil {
 		if _, ok := err.(*build.NotFoundError); ok {
 			return nil, api.NewUnauthorizedError(err, "user not found")
@@ -49,10 +43,15 @@ func Login(_ *api.Writer, r *http.Request, _ httprouter.Params, _ *api.JWT, requ
 	}
 
 	if !user.BanTime.IsZero() {
-		return nil, api.NewUnauthorizedError(nil, "user is banned, can't login").WithCode(client.YouAreBanned)
+		return nil, api.NewUnauthorizedError(nil, "user is banned").WithCode(client.YouAreBanned)
 	}
 
-	token, err := api.MarshalJWT(user.UUID.String(), api.User.AccessLevel)
+	permissions, err := role.GetPermissions(r.Context(), user.ID)
+	if err != nil {
+		return nil, api.NewInternalError(err, "failed getting permissions during user login")
+	}
+
+	token, err := api.MarshalJWT(user.ID.String(), api.User.AccessLevel, permissions)
 	if err != nil {
 		return nil, api.NewInternalError(err, "failed creating JWT token")
 	}

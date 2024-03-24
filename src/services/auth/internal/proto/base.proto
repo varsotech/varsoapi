@@ -5,6 +5,11 @@ option go_package = "client/models";
 
 message User {
 	string uuid = 1;
-	string discord_user_id = 2;
-	bool banned = 3;
+	bool banned = 2;
+}
+
+message Role {
+	string uuid = 1;
+	string key = 2;
+	repeated string permissions = 3;
 }

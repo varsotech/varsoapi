@@ -1,4 +1,4 @@
-package translate
+package user
 
 import (
 	"github.com/varsotech/varsoapi/src/services/auth/client/models"
@@ -7,8 +7,7 @@ import (
 
 func TranslateUser(user *build.User) *models.User {
 	return &models.User{
-		Uuid:          user.UUID.String(),
-		DiscordUserId: user.DiscordUserID,
-		Banned:        !user.BanTime.IsZero(),
+		Uuid:   user.ID.String(),
+		Banned: !user.BanTime.IsZero(),
 	}
 }

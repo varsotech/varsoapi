@@ -8,9 +8,12 @@ import (
 	"fmt"
 	"time"
 
+	"entgo.io/ent/dialect"
+	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/role"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
 )
 
@@ -19,6 +22,7 @@ type UserCreate struct {
 	config
 	mutation *UserMutation
 	hooks    []Hook
+	conflict []sql.ConflictOption
 }
 
 // SetDeleteTime sets the "delete_time" field.
@@ -49,45 +53,9 @@ func (uc *UserCreate) SetNillableBanTime(t *time.Time) *UserCreate {
 	return uc
 }
 
-// SetUUID sets the "uuid" field.
-func (uc *UserCreate) SetUUID(u uuid.UUID) *UserCreate {
-	uc.mutation.SetUUID(u)
-	return uc
-}
-
-// SetNillableUUID sets the "uuid" field if the given value is not nil.
-func (uc *UserCreate) SetNillableUUID(u *uuid.UUID) *UserCreate {
-	if u != nil {
-		uc.SetUUID(*u)
-	}
-	return uc
-}
-
 // SetEmail sets the "email" field.
 func (uc *UserCreate) SetEmail(s string) *UserCreate {
 	uc.mutation.SetEmail(s)
-	return uc
-}
-
-// SetNillableEmail sets the "email" field if the given value is not nil.
-func (uc *UserCreate) SetNillableEmail(s *string) *UserCreate {
-	if s != nil {
-		uc.SetEmail(*s)
-	}
-	return uc
-}
-
-// SetUsername sets the "username" field.
-func (uc *UserCreate) SetUsername(s string) *UserCreate {
-	uc.mutation.SetUsername(s)
-	return uc
-}
-
-// SetNillableUsername sets the "username" field if the given value is not nil.
-func (uc *UserCreate) SetNillableUsername(s *string) *UserCreate {
-	if s != nil {
-		uc.SetUsername(*s)
-	}
 	return uc
 }
 
@@ -97,54 +65,39 @@ func (uc *UserCreate) SetPassword(s string) *UserCreate {
 	return uc
 }
 
-// SetNillablePassword sets the "password" field if the given value is not nil.
-func (uc *UserCreate) SetNillablePassword(s *string) *UserCreate {
-	if s != nil {
-		uc.SetPassword(*s)
-	}
-	return uc
-}
-
 // SetSalt sets the "salt" field.
 func (uc *UserCreate) SetSalt(s string) *UserCreate {
 	uc.mutation.SetSalt(s)
 	return uc
 }
 
-// SetNillableSalt sets the "salt" field if the given value is not nil.
-func (uc *UserCreate) SetNillableSalt(s *string) *UserCreate {
-	if s != nil {
-		uc.SetSalt(*s)
+// SetID sets the "id" field.
+func (uc *UserCreate) SetID(u uuid.UUID) *UserCreate {
+	uc.mutation.SetID(u)
+	return uc
+}
+
+// SetNillableID sets the "id" field if the given value is not nil.
+func (uc *UserCreate) SetNillableID(u *uuid.UUID) *UserCreate {
+	if u != nil {
+		uc.SetID(*u)
 	}
 	return uc
 }
 
-// SetDiscordUserID sets the "discord_user_id" field.
-func (uc *UserCreate) SetDiscordUserID(s string) *UserCreate {
-	uc.mutation.SetDiscordUserID(s)
+// AddRoleIDs adds the "roles" edge to the Role entity by IDs.
+func (uc *UserCreate) AddRoleIDs(ids ...int) *UserCreate {
+	uc.mutation.AddRoleIDs(ids...)
 	return uc
 }
 
-// SetNillableDiscordUserID sets the "discord_user_id" field if the given value is not nil.
-func (uc *UserCreate) SetNillableDiscordUserID(s *string) *UserCreate {
-	if s != nil {
-		uc.SetDiscordUserID(*s)
+// AddRoles adds the "roles" edges to the Role entity.
+func (uc *UserCreate) AddRoles(r ...*Role) *UserCreate {
+	ids := make([]int, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return uc
-}
-
-// SetName sets the "name" field.
-func (uc *UserCreate) SetName(s string) *UserCreate {
-	uc.mutation.SetName(s)
-	return uc
-}
-
-// SetNillableName sets the "name" field if the given value is not nil.
-func (uc *UserCreate) SetNillableName(s *string) *UserCreate {
-	if s != nil {
-		uc.SetName(*s)
-	}
-	return uc
+	return uc.AddRoleIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -184,30 +137,31 @@ func (uc *UserCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (uc *UserCreate) defaults() error {
-	if _, ok := uc.mutation.UUID(); !ok {
-		if user.DefaultUUID == nil {
-			return fmt.Errorf("build: uninitialized user.DefaultUUID (forgotten import build/runtime?)")
+	if _, ok := uc.mutation.ID(); !ok {
+		if user.DefaultID == nil {
+			return fmt.Errorf("build: uninitialized user.DefaultID (forgotten import build/runtime?)")
 		}
-		v := user.DefaultUUID()
-		uc.mutation.SetUUID(v)
+		v := user.DefaultID()
+		uc.mutation.SetID(v)
 	}
 	return nil
 }
 
 // check runs all checks and user-defined validators on the builder.
 func (uc *UserCreate) check() error {
-	if _, ok := uc.mutation.UUID(); !ok {
-		return &ValidationError{Name: "uuid", err: errors.New(`build: missing required field "User.uuid"`)}
+	if _, ok := uc.mutation.Email(); !ok {
+		return &ValidationError{Name: "email", err: errors.New(`build: missing required field "User.email"`)}
 	}
 	if v, ok := uc.mutation.Email(); ok {
 		if err := user.EmailValidator(v); err != nil {
 			return &ValidationError{Name: "email", err: fmt.Errorf(`build: validator failed for field "User.email": %w`, err)}
 		}
 	}
-	if v, ok := uc.mutation.Username(); ok {
-		if err := user.UsernameValidator(v); err != nil {
-			return &ValidationError{Name: "username", err: fmt.Errorf(`build: validator failed for field "User.username": %w`, err)}
-		}
+	if _, ok := uc.mutation.Password(); !ok {
+		return &ValidationError{Name: "password", err: errors.New(`build: missing required field "User.password"`)}
+	}
+	if _, ok := uc.mutation.Salt(); !ok {
+		return &ValidationError{Name: "salt", err: errors.New(`build: missing required field "User.salt"`)}
 	}
 	return nil
 }
@@ -223,8 +177,13 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 		}
 		return nil, err
 	}
-	id := _spec.ID.Value.(int64)
-	_node.ID = int(id)
+	if _spec.ID.Value != nil {
+		if id, ok := _spec.ID.Value.(*uuid.UUID); ok {
+			_node.ID = *id
+		} else if err := _node.ID.Scan(_spec.ID.Value); err != nil {
+			return nil, err
+		}
+	}
 	uc.mutation.id = &_node.ID
 	uc.mutation.done = true
 	return _node, nil
@@ -233,8 +192,13 @@ func (uc *UserCreate) sqlSave(ctx context.Context) (*User, error) {
 func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	var (
 		_node = &User{config: uc.config}
-		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeInt))
+		_spec = sqlgraph.NewCreateSpec(user.Table, sqlgraph.NewFieldSpec(user.FieldID, field.TypeUUID))
 	)
+	_spec.OnConflict = uc.conflict
+	if id, ok := uc.mutation.ID(); ok {
+		_node.ID = id
+		_spec.ID.Value = &id
+	}
 	if value, ok := uc.mutation.DeleteTime(); ok {
 		_spec.SetField(user.FieldDeleteTime, field.TypeTime, value)
 		_node.DeleteTime = value
@@ -243,17 +207,9 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldBanTime, field.TypeTime, value)
 		_node.BanTime = value
 	}
-	if value, ok := uc.mutation.UUID(); ok {
-		_spec.SetField(user.FieldUUID, field.TypeUUID, value)
-		_node.UUID = value
-	}
 	if value, ok := uc.mutation.Email(); ok {
 		_spec.SetField(user.FieldEmail, field.TypeString, value)
 		_node.Email = value
-	}
-	if value, ok := uc.mutation.Username(); ok {
-		_spec.SetField(user.FieldUsername, field.TypeString, value)
-		_node.Username = value
 	}
 	if value, ok := uc.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
@@ -263,15 +219,314 @@ func (uc *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		_spec.SetField(user.FieldSalt, field.TypeString, value)
 		_node.Salt = value
 	}
-	if value, ok := uc.mutation.DiscordUserID(); ok {
-		_spec.SetField(user.FieldDiscordUserID, field.TypeString, value)
-		_node.DiscordUserID = value
-	}
-	if value, ok := uc.mutation.Name(); ok {
-		_spec.SetField(user.FieldName, field.TypeString, value)
-		_node.Name = value
+	if nodes := uc.mutation.RolesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.RolesTable,
+			Columns: user.RolesPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(role.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.User.Create().
+//		SetDeleteTime(v).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserUpsert) {
+//			SetDeleteTime(v+v).
+//		}).
+//		Exec(ctx)
+func (uc *UserCreate) OnConflict(opts ...sql.ConflictOption) *UserUpsertOne {
+	uc.conflict = opts
+	return &UserUpsertOne{
+		create: uc,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (uc *UserCreate) OnConflictColumns(columns ...string) *UserUpsertOne {
+	uc.conflict = append(uc.conflict, sql.ConflictColumns(columns...))
+	return &UserUpsertOne{
+		create: uc,
+	}
+}
+
+type (
+	// UserUpsertOne is the builder for "upsert"-ing
+	//  one User node.
+	UserUpsertOne struct {
+		create *UserCreate
+	}
+
+	// UserUpsert is the "OnConflict" setter.
+	UserUpsert struct {
+		*sql.UpdateSet
+	}
+)
+
+// SetDeleteTime sets the "delete_time" field.
+func (u *UserUpsert) SetDeleteTime(v time.Time) *UserUpsert {
+	u.Set(user.FieldDeleteTime, v)
+	return u
+}
+
+// UpdateDeleteTime sets the "delete_time" field to the value that was provided on create.
+func (u *UserUpsert) UpdateDeleteTime() *UserUpsert {
+	u.SetExcluded(user.FieldDeleteTime)
+	return u
+}
+
+// ClearDeleteTime clears the value of the "delete_time" field.
+func (u *UserUpsert) ClearDeleteTime() *UserUpsert {
+	u.SetNull(user.FieldDeleteTime)
+	return u
+}
+
+// SetBanTime sets the "ban_time" field.
+func (u *UserUpsert) SetBanTime(v time.Time) *UserUpsert {
+	u.Set(user.FieldBanTime, v)
+	return u
+}
+
+// UpdateBanTime sets the "ban_time" field to the value that was provided on create.
+func (u *UserUpsert) UpdateBanTime() *UserUpsert {
+	u.SetExcluded(user.FieldBanTime)
+	return u
+}
+
+// ClearBanTime clears the value of the "ban_time" field.
+func (u *UserUpsert) ClearBanTime() *UserUpsert {
+	u.SetNull(user.FieldBanTime)
+	return u
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsert) SetEmail(v string) *UserUpsert {
+	u.Set(user.FieldEmail, v)
+	return u
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsert) UpdateEmail() *UserUpsert {
+	u.SetExcluded(user.FieldEmail)
+	return u
+}
+
+// SetPassword sets the "password" field.
+func (u *UserUpsert) SetPassword(v string) *UserUpsert {
+	u.Set(user.FieldPassword, v)
+	return u
+}
+
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsert) UpdatePassword() *UserUpsert {
+	u.SetExcluded(user.FieldPassword)
+	return u
+}
+
+// SetSalt sets the "salt" field.
+func (u *UserUpsert) SetSalt(v string) *UserUpsert {
+	u.Set(user.FieldSalt, v)
+	return u
+}
+
+// UpdateSalt sets the "salt" field to the value that was provided on create.
+func (u *UserUpsert) UpdateSalt() *UserUpsert {
+	u.SetExcluded(user.FieldSalt)
+	return u
+}
+
+// UpdateNewValues updates the mutable fields using the new values that were set on create except the ID field.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserUpsertOne) UpdateNewValues() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		if _, exists := u.create.mutation.ID(); exists {
+			s.SetIgnore(user.FieldID)
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//	    OnConflict(sql.ResolveWithIgnore()).
+//	    Exec(ctx)
+func (u *UserUpsertOne) Ignore() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserUpsertOne) DoNothing() *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCreate.OnConflict
+// documentation for more info.
+func (u *UserUpsertOne) Update(set func(*UserUpsert)) *UserUpsertOne {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetDeleteTime sets the "delete_time" field.
+func (u *UserUpsertOne) SetDeleteTime(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDeleteTime(v)
+	})
+}
+
+// UpdateDeleteTime sets the "delete_time" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateDeleteTime() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDeleteTime()
+	})
+}
+
+// ClearDeleteTime clears the value of the "delete_time" field.
+func (u *UserUpsertOne) ClearDeleteTime() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDeleteTime()
+	})
+}
+
+// SetBanTime sets the "ban_time" field.
+func (u *UserUpsertOne) SetBanTime(v time.Time) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetBanTime(v)
+	})
+}
+
+// UpdateBanTime sets the "ban_time" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateBanTime() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateBanTime()
+	})
+}
+
+// ClearBanTime clears the value of the "ban_time" field.
+func (u *UserUpsertOne) ClearBanTime() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearBanTime()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsertOne) SetEmail(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateEmail() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// SetPassword sets the "password" field.
+func (u *UserUpsertOne) SetPassword(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPassword(v)
+	})
+}
+
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdatePassword() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePassword()
+	})
+}
+
+// SetSalt sets the "salt" field.
+func (u *UserUpsertOne) SetSalt(v string) *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSalt(v)
+	})
+}
+
+// UpdateSalt sets the "salt" field to the value that was provided on create.
+func (u *UserUpsertOne) UpdateSalt() *UserUpsertOne {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSalt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserUpsertOne) Exec(ctx context.Context) error {
+	if len(u.create.conflict) == 0 {
+		return errors.New("build: missing options for UserCreate.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserUpsertOne) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// Exec executes the UPSERT query and returns the inserted/updated ID.
+func (u *UserUpsertOne) ID(ctx context.Context) (id uuid.UUID, err error) {
+	if u.create.driver.Dialect() == dialect.MySQL {
+		// In case of "ON CONFLICT", there is no way to get back non-numeric ID
+		// fields from the database since MySQL does not support the RETURNING clause.
+		return id, errors.New("build: UserUpsertOne.ID is not supported by MySQL driver. Use UserUpsertOne.Exec instead")
+	}
+	node, err := u.create.Save(ctx)
+	if err != nil {
+		return id, err
+	}
+	return node.ID, nil
+}
+
+// IDX is like ID, but panics if an error occurs.
+func (u *UserUpsertOne) IDX(ctx context.Context) uuid.UUID {
+	id, err := u.ID(ctx)
+	if err != nil {
+		panic(err)
+	}
+	return id
 }
 
 // UserCreateBulk is the builder for creating many User entities in bulk.
@@ -279,6 +534,7 @@ type UserCreateBulk struct {
 	config
 	err      error
 	builders []*UserCreate
+	conflict []sql.ConflictOption
 }
 
 // Save creates the User entities in the database.
@@ -308,6 +564,7 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					_, err = mutators[i+1].Mutate(root, ucb.builders[i+1].mutation)
 				} else {
 					spec := &sqlgraph.BatchCreateSpec{Nodes: specs}
+					spec.OnConflict = ucb.conflict
 					// Invoke the actual operation on the latest mutation in the chain.
 					if err = sqlgraph.BatchCreate(ctx, ucb.driver, spec); err != nil {
 						if sqlgraph.IsConstraintError(err) {
@@ -319,10 +576,6 @@ func (ucb *UserCreateBulk) Save(ctx context.Context) ([]*User, error) {
 					return nil, err
 				}
 				mutation.id = &nodes[i].ID
-				if specs[i].ID.Value != nil {
-					id := specs[i].ID.Value.(int64)
-					nodes[i].ID = int(id)
-				}
 				mutation.done = true
 				return nodes[i], nil
 			})
@@ -358,6 +611,204 @@ func (ucb *UserCreateBulk) Exec(ctx context.Context) error {
 // ExecX is like Exec, but panics if an error occurs.
 func (ucb *UserCreateBulk) ExecX(ctx context.Context) {
 	if err := ucb.Exec(ctx); err != nil {
+		panic(err)
+	}
+}
+
+// OnConflict allows configuring the `ON CONFLICT` / `ON DUPLICATE KEY` clause
+// of the `INSERT` statement. For example:
+//
+//	client.User.CreateBulk(builders...).
+//		OnConflict(
+//			// Update the row with the new values
+//			// the was proposed for insertion.
+//			sql.ResolveWithNewValues(),
+//		).
+//		// Override some of the fields with custom
+//		// update values.
+//		Update(func(u *ent.UserUpsert) {
+//			SetDeleteTime(v+v).
+//		}).
+//		Exec(ctx)
+func (ucb *UserCreateBulk) OnConflict(opts ...sql.ConflictOption) *UserUpsertBulk {
+	ucb.conflict = opts
+	return &UserUpsertBulk{
+		create: ucb,
+	}
+}
+
+// OnConflictColumns calls `OnConflict` and configures the columns
+// as conflict target. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ConflictColumns(columns...)).
+//		Exec(ctx)
+func (ucb *UserCreateBulk) OnConflictColumns(columns ...string) *UserUpsertBulk {
+	ucb.conflict = append(ucb.conflict, sql.ConflictColumns(columns...))
+	return &UserUpsertBulk{
+		create: ucb,
+	}
+}
+
+// UserUpsertBulk is the builder for "upsert"-ing
+// a bulk of User nodes.
+type UserUpsertBulk struct {
+	create *UserCreateBulk
+}
+
+// UpdateNewValues updates the mutable fields using the new values that
+// were set on create. Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(
+//			sql.ResolveWithNewValues(),
+//			sql.ResolveWith(func(u *sql.UpdateSet) {
+//				u.SetIgnore(user.FieldID)
+//			}),
+//		).
+//		Exec(ctx)
+func (u *UserUpsertBulk) UpdateNewValues() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithNewValues())
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(s *sql.UpdateSet) {
+		for _, b := range u.create.builders {
+			if _, exists := b.mutation.ID(); exists {
+				s.SetIgnore(user.FieldID)
+			}
+		}
+	}))
+	return u
+}
+
+// Ignore sets each column to itself in case of conflict.
+// Using this option is equivalent to using:
+//
+//	client.User.Create().
+//		OnConflict(sql.ResolveWithIgnore()).
+//		Exec(ctx)
+func (u *UserUpsertBulk) Ignore() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWithIgnore())
+	return u
+}
+
+// DoNothing configures the conflict_action to `DO NOTHING`.
+// Supported only by SQLite and PostgreSQL.
+func (u *UserUpsertBulk) DoNothing() *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.DoNothing())
+	return u
+}
+
+// Update allows overriding fields `UPDATE` values. See the UserCreateBulk.OnConflict
+// documentation for more info.
+func (u *UserUpsertBulk) Update(set func(*UserUpsert)) *UserUpsertBulk {
+	u.create.conflict = append(u.create.conflict, sql.ResolveWith(func(update *sql.UpdateSet) {
+		set(&UserUpsert{UpdateSet: update})
+	}))
+	return u
+}
+
+// SetDeleteTime sets the "delete_time" field.
+func (u *UserUpsertBulk) SetDeleteTime(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetDeleteTime(v)
+	})
+}
+
+// UpdateDeleteTime sets the "delete_time" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateDeleteTime() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateDeleteTime()
+	})
+}
+
+// ClearDeleteTime clears the value of the "delete_time" field.
+func (u *UserUpsertBulk) ClearDeleteTime() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearDeleteTime()
+	})
+}
+
+// SetBanTime sets the "ban_time" field.
+func (u *UserUpsertBulk) SetBanTime(v time.Time) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetBanTime(v)
+	})
+}
+
+// UpdateBanTime sets the "ban_time" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateBanTime() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateBanTime()
+	})
+}
+
+// ClearBanTime clears the value of the "ban_time" field.
+func (u *UserUpsertBulk) ClearBanTime() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.ClearBanTime()
+	})
+}
+
+// SetEmail sets the "email" field.
+func (u *UserUpsertBulk) SetEmail(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetEmail(v)
+	})
+}
+
+// UpdateEmail sets the "email" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateEmail() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateEmail()
+	})
+}
+
+// SetPassword sets the "password" field.
+func (u *UserUpsertBulk) SetPassword(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetPassword(v)
+	})
+}
+
+// UpdatePassword sets the "password" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdatePassword() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdatePassword()
+	})
+}
+
+// SetSalt sets the "salt" field.
+func (u *UserUpsertBulk) SetSalt(v string) *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.SetSalt(v)
+	})
+}
+
+// UpdateSalt sets the "salt" field to the value that was provided on create.
+func (u *UserUpsertBulk) UpdateSalt() *UserUpsertBulk {
+	return u.Update(func(s *UserUpsert) {
+		s.UpdateSalt()
+	})
+}
+
+// Exec executes the query.
+func (u *UserUpsertBulk) Exec(ctx context.Context) error {
+	if u.create.err != nil {
+		return u.create.err
+	}
+	for i, b := range u.create.builders {
+		if len(b.conflict) != 0 {
+			return fmt.Errorf("build: OnConflict was set for builder %d. Set it on the UserCreateBulk instead", i)
+		}
+	}
+	if len(u.create.conflict) == 0 {
+		return errors.New("build: missing options for UserCreateBulk.OnConflict")
+	}
+	return u.create.Exec(ctx)
+}
+
+// ExecX is like Exec, but panics if an error occurs.
+func (u *UserUpsertBulk) ExecX(ctx context.Context) {
+	if err := u.create.Exec(ctx); err != nil {
 		panic(err)
 	}
 }

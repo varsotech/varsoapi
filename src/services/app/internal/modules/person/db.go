@@ -14,7 +14,11 @@ func UpsertBulk(ctx context.Context, personEmailToName map[string]string) ([]*bu
 		creators = append(creators, ent.Database.Person.Create().SetEmail(email).SetName(name))
 	}
 
-	err := ent.Database.Person.CreateBulk(creators...).OnConflictColumns(person.FieldEmail).UpdateNewValues().Exec(ctx)
+	err := ent.Database.Person.CreateBulk(creators...).
+		OnConflictColumns(person.FieldEmail).
+		UpdateEmail().
+		UpdateName().
+		Exec(ctx)
 	if err != nil {
 		return nil, err
 	}

@@ -1,6 +1,6 @@
 import { AxiosResponse } from "axios";
-import { UseQueryOptions, useQuery } from "./reactquery";
-import { GetNewsResponse } from "@varsotech/varsoapi/src/app/requests";
+import { UseQueryOptions, useMutation, useQuery } from "./reactquery";
+import { BlurToggleRequest, GetNewsResponse } from "../proto/src/app/requests";
 import axios from "./axios";
 
 export function useNews(
@@ -12,5 +12,18 @@ export function useNews(
       queryKey: ["news"],
       ...options,
     }
+  );
+}
+
+export function useToggleBlur(newsItemId: string) {
+  return useMutation<unknown, AxiosResponse<any>>(
+    async () =>
+      await axios.post(
+        "/api/v1/app/news/item/blur/toggle",
+        BlurToggleRequest.create({
+          rssItemId: newsItemId,
+        })
+      ),
+    { mutationKey: ["news"] }
   );
 }

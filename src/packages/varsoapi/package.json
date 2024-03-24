@@ -11,5 +11,8 @@
   },
   "publishConfig": {
     "@varsotech:registry": "https://npm.pkg.github.com"
+  },
+  "dependencies": {
+    "protobufjs": "^7.2.6"
   }
 }

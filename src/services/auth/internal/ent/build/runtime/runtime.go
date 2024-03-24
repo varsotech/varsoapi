@@ -4,6 +4,7 @@ package runtime
 
 import (
 	"github.com/google/uuid"
+	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/role"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/build/user"
 	"github.com/varsotech/varsoapi/src/services/auth/internal/ent/schema"
 )
@@ -12,6 +13,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	roleFields := schema.Role{}.Fields()
+	_ = roleFields
+	// roleDescUUID is the schema descriptor for uuid field.
+	roleDescUUID := roleFields[0].Descriptor()
+	// role.DefaultUUID holds the default value on creation for the uuid field.
+	role.DefaultUUID = roleDescUUID.Default.(func() uuid.UUID)
 	userMixin := schema.User{}.Mixin()
 	userMixinHooks0 := userMixin[0].Hooks()
 	user.Hooks[0] = userMixinHooks0[0]
@@ -21,32 +28,28 @@ func init() {
 	user.Interceptors[1] = userMixinInters1[0]
 	userFields := schema.User{}.Fields()
 	_ = userFields
-	// userDescUUID is the schema descriptor for uuid field.
-	userDescUUID := userFields[0].Descriptor()
-	// user.DefaultUUID holds the default value on creation for the uuid field.
-	user.DefaultUUID = userDescUUID.Default.(func() uuid.UUID)
 	// userDescEmail is the schema descriptor for email field.
 	userDescEmail := userFields[1].Descriptor()
 	// user.EmailValidator is a validator for the "email" field. It is called by the builders before save.
-	user.EmailValidator = userDescEmail.Validators[0].(func(string) error)
-	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[2].Descriptor()
-	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
-	user.UsernameValidator = func() func(string) error {
-		validators := userDescUsername.Validators
+	user.EmailValidator = func() func(string) error {
+		validators := userDescEmail.Validators
 		fns := [...]func(string) error{
 			validators[0].(func(string) error),
 			validators[1].(func(string) error),
 		}
-		return func(username string) error {
+		return func(email string) error {
 			for _, fn := range fns {
-				if err := fn(username); err != nil {
+				if err := fn(email); err != nil {
 					return err
 				}
 			}
 			return nil
 		}
 	}()
+	// userDescID is the schema descriptor for id field.
+	userDescID := userFields[0].Descriptor()
+	// user.DefaultID holds the default value on creation for the id field.
+	user.DefaultID = userDescID.Default.(func() uuid.UUID)
 }
 
 const (

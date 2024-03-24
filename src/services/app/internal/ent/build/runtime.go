@@ -34,6 +34,10 @@ func init() {
 	newsitem.DefaultUpdateTime = newsitemDescUpdateTime.Default.(func() time.Time)
 	// newsitem.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
 	newsitem.UpdateDefaultUpdateTime = newsitemDescUpdateTime.UpdateDefault.(func() time.Time)
+	// newsitemDescBlur is the schema descriptor for blur field.
+	newsitemDescBlur := newsitemFields[12].Descriptor()
+	// newsitem.DefaultBlur holds the default value on creation for the blur field.
+	newsitem.DefaultBlur = newsitemDescBlur.Default.(bool)
 	// newsitemDescID is the schema descriptor for id field.
 	newsitemDescID := newsitemFields[0].Descriptor()
 	// newsitem.DefaultID holds the default value on creation for the id field.

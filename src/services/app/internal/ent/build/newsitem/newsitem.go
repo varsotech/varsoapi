@@ -41,6 +41,8 @@ const (
 	FieldImageTitle = "image_title"
 	// FieldCategories holds the string denoting the categories field in the database.
 	FieldCategories = "categories"
+	// FieldBlur holds the string denoting the blur field in the database.
+	FieldBlur = "blur"
 	// EdgeAuthors holds the string denoting the authors edge name in mutations.
 	EdgeAuthors = "authors"
 	// EdgeFeed holds the string denoting the feed edge name in mutations.
@@ -77,6 +79,7 @@ var Columns = []string{
 	FieldImageURL,
 	FieldImageTitle,
 	FieldCategories,
+	FieldBlur,
 }
 
 // ForeignKeys holds the SQL foreign-keys that are owned by the "news_items"
@@ -113,6 +116,8 @@ var (
 	DefaultUpdateTime func() time.Time
 	// UpdateDefaultUpdateTime holds the default value on update for the "update_time" field.
 	UpdateDefaultUpdateTime func() time.Time
+	// DefaultBlur holds the default value on creation for the "blur" field.
+	DefaultBlur bool
 	// DefaultID holds the default value on creation for the "id" field.
 	DefaultID func() uuid.UUID
 )
@@ -178,6 +183,11 @@ func ByImageURL(opts ...sql.OrderTermOption) OrderOption {
 // ByImageTitle orders the results by the image_title field.
 func ByImageTitle(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldImageTitle, opts...).ToFunc()
+}
+
+// ByBlur orders the results by the blur field.
+func ByBlur(opts ...sql.OrderTermOption) OrderOption {
+	return sql.OrderByField(FieldBlur, opts...).ToFunc()
 }
 
 // ByAuthorsCount orders the results by authors count.

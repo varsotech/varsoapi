@@ -30,6 +30,7 @@ message RSSItem {
 	RSSImage image = 10;
 	repeated string categories = 11;
 	string organization_uuid = 12;
+	string id = 13;
 }
 
 message RSSAuthor {
@@ -40,4 +41,5 @@ message RSSAuthor {
 message RSSImage {
 	string url = 1;
 	string title = 2;
+	bool blur = 3;
 }

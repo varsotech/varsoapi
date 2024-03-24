@@ -15,7 +15,7 @@ func Upsert(ctx context.Context, rssFeedUrl string, orgUuid uuid.UUID) error {
 		SetRssFeedURL(rssFeedUrl).
 		SetOrganizationID(orgUuid).
 		OnConflictColumns(rssfeed.FieldRssFeedURL).
-		UpdateNewValues().
+		Ignore(). // NOTE: When adding new fields, replace this with UpdateX() for the field
 		Exec(ctx)
 }
 
