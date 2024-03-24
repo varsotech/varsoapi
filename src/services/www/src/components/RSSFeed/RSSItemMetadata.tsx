@@ -26,12 +26,16 @@ function RSSItemMetadata({ item, organization }: RSSItemMetadataProps) {
       </span>
       {hasSetBlurPermission ? (
         <button
-          style={{ display: "inline-block", padding: 3, marginLeft: 10 }}
+          style={{
+            display: "inline-block",
+            padding: 3,
+            marginLeft: 10,
+          }}
           onClick={(e) => {
             toggleBlur(undefined);
           }}
         >
-          {isPending ? "🔜" : item.image?.blur ? "👁️" : "🫣"}
+          {isPending ? "🔜" : item.image?.blur ? "🫣" : "👁️"}
         </button>
       ) : null}
     </div>
