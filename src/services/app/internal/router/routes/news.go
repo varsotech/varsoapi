@@ -42,5 +42,10 @@ func GetNews(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT) (*
 		return 1
 	})
 
+	if len(response.Latest.Items) > 0 {
+		response.Featured = response.Latest.Items[0]
+		response.Latest.Items = response.Latest.Items[1:]
+	}
+
 	return &response, nil
 }
