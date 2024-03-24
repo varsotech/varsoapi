@@ -262,7 +262,7 @@ jobs:
     name: "Release"
     needs: [test-services-health]
     runs-on: "ubuntu-latest"
-    if: startsWith(github.ref, 'refs/tags/') && github.event_name == 'push'
+    if: startsWith(github.ref, 'refs/tags/') && !contains(github.ref, 'alpha') && github.event_name == 'push'
     strategy:
       matrix:
         tag: [true]
