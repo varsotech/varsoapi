@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
 )
@@ -78,11 +79,6 @@ func Description(v string) predicate.Organization {
 // WebsiteURL applies equality check predicate on the "website_url" field. It's identical to WebsiteURLEQ.
 func WebsiteURL(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEQ(FieldWebsiteURL, v))
-}
-
-// RssFeedURL applies equality check predicate on the "rss_feed_url" field. It's identical to RssFeedURLEQ.
-func RssFeedURL(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldEQ(FieldRssFeedURL, v))
 }
 
 // CreateTimeEQ applies the EQ predicate on the "create_time" field.
@@ -395,69 +391,27 @@ func WebsiteURLContainsFold(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldContainsFold(FieldWebsiteURL, v))
 }
 
-// RssFeedURLEQ applies the EQ predicate on the "rss_feed_url" field.
-func RssFeedURLEQ(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldEQ(FieldRssFeedURL, v))
+// HasFeeds applies the HasEdge predicate on the "feeds" edge.
+func HasFeeds() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, FeedsTable, FeedsColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
 }
 
-// RssFeedURLNEQ applies the NEQ predicate on the "rss_feed_url" field.
-func RssFeedURLNEQ(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldNEQ(FieldRssFeedURL, v))
-}
-
-// RssFeedURLIn applies the In predicate on the "rss_feed_url" field.
-func RssFeedURLIn(vs ...string) predicate.Organization {
-	return predicate.Organization(sql.FieldIn(FieldRssFeedURL, vs...))
-}
-
-// RssFeedURLNotIn applies the NotIn predicate on the "rss_feed_url" field.
-func RssFeedURLNotIn(vs ...string) predicate.Organization {
-	return predicate.Organization(sql.FieldNotIn(FieldRssFeedURL, vs...))
-}
-
-// RssFeedURLGT applies the GT predicate on the "rss_feed_url" field.
-func RssFeedURLGT(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldGT(FieldRssFeedURL, v))
-}
-
-// RssFeedURLGTE applies the GTE predicate on the "rss_feed_url" field.
-func RssFeedURLGTE(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldGTE(FieldRssFeedURL, v))
-}
-
-// RssFeedURLLT applies the LT predicate on the "rss_feed_url" field.
-func RssFeedURLLT(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldLT(FieldRssFeedURL, v))
-}
-
-// RssFeedURLLTE applies the LTE predicate on the "rss_feed_url" field.
-func RssFeedURLLTE(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldLTE(FieldRssFeedURL, v))
-}
-
-// RssFeedURLContains applies the Contains predicate on the "rss_feed_url" field.
-func RssFeedURLContains(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldContains(FieldRssFeedURL, v))
-}
-
-// RssFeedURLHasPrefix applies the HasPrefix predicate on the "rss_feed_url" field.
-func RssFeedURLHasPrefix(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldHasPrefix(FieldRssFeedURL, v))
-}
-
-// RssFeedURLHasSuffix applies the HasSuffix predicate on the "rss_feed_url" field.
-func RssFeedURLHasSuffix(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldHasSuffix(FieldRssFeedURL, v))
-}
-
-// RssFeedURLEqualFold applies the EqualFold predicate on the "rss_feed_url" field.
-func RssFeedURLEqualFold(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldEqualFold(FieldRssFeedURL, v))
-}
-
-// RssFeedURLContainsFold applies the ContainsFold predicate on the "rss_feed_url" field.
-func RssFeedURLContainsFold(v string) predicate.Organization {
-	return predicate.Organization(sql.FieldContainsFold(FieldRssFeedURL, v))
+// HasFeedsWith applies the HasEdge predicate on the "feeds" edge with a given conditions (other predicates).
+func HasFeedsWith(preds ...predicate.RSSFeed) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newFeedsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
 }
 
 // And groups predicates with the AND operator between them.

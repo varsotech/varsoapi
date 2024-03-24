@@ -4,11 +4,11 @@ import (
 	"context"
 
 	"github.com/sirupsen/logrus"
-	"github.com/varsotech/varsoapi/src/common/api"
 	common_config "github.com/varsotech/varsoapi/src/common/config"
+	"github.com/varsotech/varsoapi/src/common/maingroup"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent"
-	"github.com/varsotech/varsoapi/src/services/app/internal/modules/organization"
-	"github.com/varsotech/varsoapi/src/services/app/internal/routes"
+	"github.com/varsotech/varsoapi/src/services/app/internal/modules/news"
+	"github.com/varsotech/varsoapi/src/services/app/internal/router"
 )
 
 func main() {
@@ -22,17 +22,15 @@ func main() {
 		logrus.WithError(err).Panicf("failed connecting to database")
 	}
 
-	err = organization.Initialize(ctx)
+	err = news.Initialize(ctx)
 	if err != nil {
 		logrus.WithError(err).Panicf("failed initializing organization module")
 	}
 
-	router := api.NewRouter()
+	mainGroup := maingroup.New(ctx)
 
-	// Register routes
-	api.RouteGET(router, api.Public, "/api/v1/app", api.SuccessEndpoint)
-	api.RouteGET(router, api.Public, "/api/v1/app/organization", routes.GetOrganizations)
-	api.RouteGET(router, api.Public, "/api/v1/app/news", routes.GetNews)
+	mainGroup.Go(router.ListenAndServe)
+	mainGroup.Go(news.SyncRSSFeeds)
 
-	logrus.Fatal(router.ListenAndServe(":5001"))
+	logrus.Panic(mainGroup.Wait())
 }

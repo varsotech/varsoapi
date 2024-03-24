@@ -4,6 +4,7 @@ package build
 
 import (
 	"context"
+	"database/sql/driver"
 	"fmt"
 	"math"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
 // OrganizationQuery is the builder for querying Organization entities.
@@ -23,6 +25,7 @@ type OrganizationQuery struct {
 	order      []organization.OrderOption
 	inters     []Interceptor
 	predicates []predicate.Organization
+	withFeeds  *RSSFeedQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -58,6 +61,28 @@ func (oq *OrganizationQuery) Unique(unique bool) *OrganizationQuery {
 func (oq *OrganizationQuery) Order(o ...organization.OrderOption) *OrganizationQuery {
 	oq.order = append(oq.order, o...)
 	return oq
+}
+
+// QueryFeeds chains the current query on the "feeds" edge.
+func (oq *OrganizationQuery) QueryFeeds() *RSSFeedQuery {
+	query := (&RSSFeedClient{config: oq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(rssfeed.Table, rssfeed.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeedsTable, organization.FeedsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
 }
 
 // First returns the first Organization entity from the query.
@@ -252,10 +277,22 @@ func (oq *OrganizationQuery) Clone() *OrganizationQuery {
 		order:      append([]organization.OrderOption{}, oq.order...),
 		inters:     append([]Interceptor{}, oq.inters...),
 		predicates: append([]predicate.Organization{}, oq.predicates...),
+		withFeeds:  oq.withFeeds.Clone(),
 		// clone intermediate query.
 		sql:  oq.sql.Clone(),
 		path: oq.path,
 	}
+}
+
+// WithFeeds tells the query-builder to eager-load the nodes that are connected to
+// the "feeds" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrganizationQuery) WithFeeds(opts ...func(*RSSFeedQuery)) *OrganizationQuery {
+	query := (&RSSFeedClient{config: oq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withFeeds = query
+	return oq
 }
 
 // GroupBy is used to group vertices by one or more fields/columns.
@@ -334,8 +371,11 @@ func (oq *OrganizationQuery) prepareQuery(ctx context.Context) error {
 
 func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Organization, error) {
 	var (
-		nodes = []*Organization{}
-		_spec = oq.querySpec()
+		nodes       = []*Organization{}
+		_spec       = oq.querySpec()
+		loadedTypes = [1]bool{
+			oq.withFeeds != nil,
+		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
 		return (*Organization).scanValues(nil, columns)
@@ -343,6 +383,7 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	_spec.Assign = func(columns []string, values []any) error {
 		node := &Organization{config: oq.config}
 		nodes = append(nodes, node)
+		node.Edges.loadedTypes = loadedTypes
 		return node.assignValues(columns, values)
 	}
 	if len(oq.modifiers) > 0 {
@@ -357,7 +398,46 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	if len(nodes) == 0 {
 		return nodes, nil
 	}
+	if query := oq.withFeeds; query != nil {
+		if err := oq.loadFeeds(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Feeds = []*RSSFeed{} },
+			func(n *Organization, e *RSSFeed) { n.Edges.Feeds = append(n.Edges.Feeds, e) }); err != nil {
+			return nil, err
+		}
+	}
 	return nodes, nil
+}
+
+func (oq *OrganizationQuery) loadFeeds(ctx context.Context, query *RSSFeedQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RSSFeed)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.RSSFeed(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.FeedsColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.organization_feeds
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "organization_feeds" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_feeds" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
 }
 
 func (oq *OrganizationQuery) sqlCount(ctx context.Context) (int, error) {

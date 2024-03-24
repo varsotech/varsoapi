@@ -15,7 +15,11 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect"
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 
 	stdsql "database/sql"
 )
@@ -25,8 +29,14 @@ type Client struct {
 	config
 	// Schema is the client for creating, migrating and dropping schema.
 	Schema *migrate.Schema
+	// NewsItem is the client for interacting with the NewsItem builders.
+	NewsItem *NewsItemClient
 	// Organization is the client for interacting with the Organization builders.
 	Organization *OrganizationClient
+	// Person is the client for interacting with the Person builders.
+	Person *PersonClient
+	// RSSFeed is the client for interacting with the RSSFeed builders.
+	RSSFeed *RSSFeedClient
 }
 
 // NewClient creates a new client configured with the given options.
@@ -38,7 +48,10 @@ func NewClient(opts ...Option) *Client {
 
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
+	c.NewsItem = NewNewsItemClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
+	c.Person = NewPersonClient(c.config)
+	c.RSSFeed = NewRSSFeedClient(c.config)
 }
 
 type (
@@ -131,7 +144,10 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		NewsItem:     NewNewsItemClient(cfg),
 		Organization: NewOrganizationClient(cfg),
+		Person:       NewPersonClient(cfg),
+		RSSFeed:      NewRSSFeedClient(cfg),
 	}, nil
 }
 
@@ -151,14 +167,17 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 	return &Tx{
 		ctx:          ctx,
 		config:       cfg,
+		NewsItem:     NewNewsItemClient(cfg),
 		Organization: NewOrganizationClient(cfg),
+		Person:       NewPersonClient(cfg),
+		RSSFeed:      NewRSSFeedClient(cfg),
 	}, nil
 }
 
 // Debug returns a new debug-client. It's used to get verbose logging on specific operations.
 //
 //	client.Debug().
-//		Organization.
+//		NewsItem.
 //		Query().
 //		Count(ctx)
 func (c *Client) Debug() *Client {
@@ -180,22 +199,199 @@ func (c *Client) Close() error {
 // Use adds the mutation hooks to all the entity clients.
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
+	c.NewsItem.Use(hooks...)
 	c.Organization.Use(hooks...)
+	c.Person.Use(hooks...)
+	c.RSSFeed.Use(hooks...)
 }
 
 // Intercept adds the query interceptors to all the entity clients.
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
+	c.NewsItem.Intercept(interceptors...)
 	c.Organization.Intercept(interceptors...)
+	c.Person.Intercept(interceptors...)
+	c.RSSFeed.Intercept(interceptors...)
 }
 
 // Mutate implements the ent.Mutator interface.
 func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
+	case *NewsItemMutation:
+		return c.NewsItem.mutate(ctx, m)
 	case *OrganizationMutation:
 		return c.Organization.mutate(ctx, m)
+	case *PersonMutation:
+		return c.Person.mutate(ctx, m)
+	case *RSSFeedMutation:
+		return c.RSSFeed.mutate(ctx, m)
 	default:
 		return nil, fmt.Errorf("build: unknown mutation type %T", m)
+	}
+}
+
+// NewsItemClient is a client for the NewsItem schema.
+type NewsItemClient struct {
+	config
+}
+
+// NewNewsItemClient returns a client for the NewsItem from the given config.
+func NewNewsItemClient(c config) *NewsItemClient {
+	return &NewsItemClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `newsitem.Hooks(f(g(h())))`.
+func (c *NewsItemClient) Use(hooks ...Hook) {
+	c.hooks.NewsItem = append(c.hooks.NewsItem, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `newsitem.Intercept(f(g(h())))`.
+func (c *NewsItemClient) Intercept(interceptors ...Interceptor) {
+	c.inters.NewsItem = append(c.inters.NewsItem, interceptors...)
+}
+
+// Create returns a builder for creating a NewsItem entity.
+func (c *NewsItemClient) Create() *NewsItemCreate {
+	mutation := newNewsItemMutation(c.config, OpCreate)
+	return &NewsItemCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of NewsItem entities.
+func (c *NewsItemClient) CreateBulk(builders ...*NewsItemCreate) *NewsItemCreateBulk {
+	return &NewsItemCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *NewsItemClient) MapCreateBulk(slice any, setFunc func(*NewsItemCreate, int)) *NewsItemCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &NewsItemCreateBulk{err: fmt.Errorf("calling to NewsItemClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*NewsItemCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &NewsItemCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for NewsItem.
+func (c *NewsItemClient) Update() *NewsItemUpdate {
+	mutation := newNewsItemMutation(c.config, OpUpdate)
+	return &NewsItemUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *NewsItemClient) UpdateOne(ni *NewsItem) *NewsItemUpdateOne {
+	mutation := newNewsItemMutation(c.config, OpUpdateOne, withNewsItem(ni))
+	return &NewsItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *NewsItemClient) UpdateOneID(id uuid.UUID) *NewsItemUpdateOne {
+	mutation := newNewsItemMutation(c.config, OpUpdateOne, withNewsItemID(id))
+	return &NewsItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for NewsItem.
+func (c *NewsItemClient) Delete() *NewsItemDelete {
+	mutation := newNewsItemMutation(c.config, OpDelete)
+	return &NewsItemDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *NewsItemClient) DeleteOne(ni *NewsItem) *NewsItemDeleteOne {
+	return c.DeleteOneID(ni.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *NewsItemClient) DeleteOneID(id uuid.UUID) *NewsItemDeleteOne {
+	builder := c.Delete().Where(newsitem.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &NewsItemDeleteOne{builder}
+}
+
+// Query returns a query builder for NewsItem.
+func (c *NewsItemClient) Query() *NewsItemQuery {
+	return &NewsItemQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeNewsItem},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a NewsItem entity by its id.
+func (c *NewsItemClient) Get(ctx context.Context, id uuid.UUID) (*NewsItem, error) {
+	return c.Query().Where(newsitem.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *NewsItemClient) GetX(ctx context.Context, id uuid.UUID) *NewsItem {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryAuthors queries the authors edge of a NewsItem.
+func (c *NewsItemClient) QueryAuthors(ni *NewsItem) *PersonQuery {
+	query := (&PersonClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(newsitem.Table, newsitem.FieldID, id),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, newsitem.AuthorsTable, newsitem.AuthorsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryFeed queries the feed edge of a NewsItem.
+func (c *NewsItemClient) QueryFeed(ni *NewsItem) *RSSFeedQuery {
+	query := (&RSSFeedClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ni.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(newsitem.Table, newsitem.FieldID, id),
+			sqlgraph.To(rssfeed.Table, rssfeed.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, newsitem.FeedTable, newsitem.FeedColumn),
+		)
+		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *NewsItemClient) Hooks() []Hook {
+	return c.hooks.NewsItem
+}
+
+// Interceptors returns the client interceptors.
+func (c *NewsItemClient) Interceptors() []Interceptor {
+	return c.inters.NewsItem
+}
+
+func (c *NewsItemClient) mutate(ctx context.Context, m *NewsItemMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&NewsItemCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&NewsItemUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&NewsItemUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&NewsItemDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("build: unknown NewsItem mutation op: %q", m.Op())
 	}
 }
 
@@ -307,6 +503,22 @@ func (c *OrganizationClient) GetX(ctx context.Context, id uuid.UUID) *Organizati
 	return obj
 }
 
+// QueryFeeds queries the feeds edge of a Organization.
+func (c *OrganizationClient) QueryFeeds(o *Organization) *RSSFeedQuery {
+	query := (&RSSFeedClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(rssfeed.Table, rssfeed.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeedsTable, organization.FeedsColumn),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	return c.hooks.Organization
@@ -332,13 +544,327 @@ func (c *OrganizationClient) mutate(ctx context.Context, m *OrganizationMutation
 	}
 }
 
+// PersonClient is a client for the Person schema.
+type PersonClient struct {
+	config
+}
+
+// NewPersonClient returns a client for the Person from the given config.
+func NewPersonClient(c config) *PersonClient {
+	return &PersonClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `person.Hooks(f(g(h())))`.
+func (c *PersonClient) Use(hooks ...Hook) {
+	c.hooks.Person = append(c.hooks.Person, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `person.Intercept(f(g(h())))`.
+func (c *PersonClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Person = append(c.inters.Person, interceptors...)
+}
+
+// Create returns a builder for creating a Person entity.
+func (c *PersonClient) Create() *PersonCreate {
+	mutation := newPersonMutation(c.config, OpCreate)
+	return &PersonCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Person entities.
+func (c *PersonClient) CreateBulk(builders ...*PersonCreate) *PersonCreateBulk {
+	return &PersonCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *PersonClient) MapCreateBulk(slice any, setFunc func(*PersonCreate, int)) *PersonCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &PersonCreateBulk{err: fmt.Errorf("calling to PersonClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*PersonCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &PersonCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Person.
+func (c *PersonClient) Update() *PersonUpdate {
+	mutation := newPersonMutation(c.config, OpUpdate)
+	return &PersonUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *PersonClient) UpdateOne(pe *Person) *PersonUpdateOne {
+	mutation := newPersonMutation(c.config, OpUpdateOne, withPerson(pe))
+	return &PersonUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *PersonClient) UpdateOneID(id uuid.UUID) *PersonUpdateOne {
+	mutation := newPersonMutation(c.config, OpUpdateOne, withPersonID(id))
+	return &PersonUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Person.
+func (c *PersonClient) Delete() *PersonDelete {
+	mutation := newPersonMutation(c.config, OpDelete)
+	return &PersonDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *PersonClient) DeleteOne(pe *Person) *PersonDeleteOne {
+	return c.DeleteOneID(pe.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *PersonClient) DeleteOneID(id uuid.UUID) *PersonDeleteOne {
+	builder := c.Delete().Where(person.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &PersonDeleteOne{builder}
+}
+
+// Query returns a query builder for Person.
+func (c *PersonClient) Query() *PersonQuery {
+	return &PersonQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypePerson},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Person entity by its id.
+func (c *PersonClient) Get(ctx context.Context, id uuid.UUID) (*Person, error) {
+	return c.Query().Where(person.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *PersonClient) GetX(ctx context.Context, id uuid.UUID) *Person {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryItem queries the item edge of a Person.
+func (c *PersonClient) QueryItem(pe *Person) *NewsItemQuery {
+	query := (&NewsItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := pe.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(person.Table, person.FieldID, id),
+			sqlgraph.To(newsitem.Table, newsitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, person.ItemTable, person.ItemPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *PersonClient) Hooks() []Hook {
+	return c.hooks.Person
+}
+
+// Interceptors returns the client interceptors.
+func (c *PersonClient) Interceptors() []Interceptor {
+	return c.inters.Person
+}
+
+func (c *PersonClient) mutate(ctx context.Context, m *PersonMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&PersonCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&PersonUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&PersonUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&PersonDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("build: unknown Person mutation op: %q", m.Op())
+	}
+}
+
+// RSSFeedClient is a client for the RSSFeed schema.
+type RSSFeedClient struct {
+	config
+}
+
+// NewRSSFeedClient returns a client for the RSSFeed from the given config.
+func NewRSSFeedClient(c config) *RSSFeedClient {
+	return &RSSFeedClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rssfeed.Hooks(f(g(h())))`.
+func (c *RSSFeedClient) Use(hooks ...Hook) {
+	c.hooks.RSSFeed = append(c.hooks.RSSFeed, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rssfeed.Intercept(f(g(h())))`.
+func (c *RSSFeedClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RSSFeed = append(c.inters.RSSFeed, interceptors...)
+}
+
+// Create returns a builder for creating a RSSFeed entity.
+func (c *RSSFeedClient) Create() *RSSFeedCreate {
+	mutation := newRSSFeedMutation(c.config, OpCreate)
+	return &RSSFeedCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RSSFeed entities.
+func (c *RSSFeedClient) CreateBulk(builders ...*RSSFeedCreate) *RSSFeedCreateBulk {
+	return &RSSFeedCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RSSFeedClient) MapCreateBulk(slice any, setFunc func(*RSSFeedCreate, int)) *RSSFeedCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RSSFeedCreateBulk{err: fmt.Errorf("calling to RSSFeedClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RSSFeedCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RSSFeedCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RSSFeed.
+func (c *RSSFeedClient) Update() *RSSFeedUpdate {
+	mutation := newRSSFeedMutation(c.config, OpUpdate)
+	return &RSSFeedUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RSSFeedClient) UpdateOne(rf *RSSFeed) *RSSFeedUpdateOne {
+	mutation := newRSSFeedMutation(c.config, OpUpdateOne, withRSSFeed(rf))
+	return &RSSFeedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RSSFeedClient) UpdateOneID(id uuid.UUID) *RSSFeedUpdateOne {
+	mutation := newRSSFeedMutation(c.config, OpUpdateOne, withRSSFeedID(id))
+	return &RSSFeedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RSSFeed.
+func (c *RSSFeedClient) Delete() *RSSFeedDelete {
+	mutation := newRSSFeedMutation(c.config, OpDelete)
+	return &RSSFeedDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RSSFeedClient) DeleteOne(rf *RSSFeed) *RSSFeedDeleteOne {
+	return c.DeleteOneID(rf.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RSSFeedClient) DeleteOneID(id uuid.UUID) *RSSFeedDeleteOne {
+	builder := c.Delete().Where(rssfeed.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RSSFeedDeleteOne{builder}
+}
+
+// Query returns a query builder for RSSFeed.
+func (c *RSSFeedClient) Query() *RSSFeedQuery {
+	return &RSSFeedQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRSSFeed},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RSSFeed entity by its id.
+func (c *RSSFeedClient) Get(ctx context.Context, id uuid.UUID) (*RSSFeed, error) {
+	return c.Query().Where(rssfeed.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RSSFeedClient) GetX(ctx context.Context, id uuid.UUID) *RSSFeed {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryItems queries the items edge of a RSSFeed.
+func (c *RSSFeedClient) QueryItems(rf *RSSFeed) *NewsItemQuery {
+	query := (&NewsItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rssfeed.Table, rssfeed.FieldID, id),
+			sqlgraph.To(newsitem.Table, newsitem.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, rssfeed.ItemsTable, rssfeed.ItemsColumn),
+		)
+		fromV = sqlgraph.Neighbors(rf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrganization queries the organization edge of a RSSFeed.
+func (c *RSSFeedClient) QueryOrganization(rf *RSSFeed) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := rf.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rssfeed.Table, rssfeed.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, true, rssfeed.OrganizationTable, rssfeed.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(rf.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RSSFeedClient) Hooks() []Hook {
+	return c.hooks.RSSFeed
+}
+
+// Interceptors returns the client interceptors.
+func (c *RSSFeedClient) Interceptors() []Interceptor {
+	return c.inters.RSSFeed
+}
+
+func (c *RSSFeedClient) mutate(ctx context.Context, m *RSSFeedMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RSSFeedCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RSSFeedUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RSSFeedUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RSSFeedDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("build: unknown RSSFeed mutation op: %q", m.Op())
+	}
+}
+
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		Organization []ent.Hook
+		NewsItem, Organization, Person, RSSFeed []ent.Hook
 	}
 	inters struct {
-		Organization []ent.Interceptor
+		NewsItem, Organization, Person, RSSFeed []ent.Interceptor
 	}
 )
 

@@ -6,5 +6,14 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// NewsItem is the predicate function for newsitem builders.
+type NewsItem func(*sql.Selector)
+
 // Organization is the predicate function for organization builders.
 type Organization func(*sql.Selector)
+
+// Person is the predicate function for person builders.
+type Person func(*sql.Selector)
+
+// RSSFeed is the predicate function for rssfeed builders.
+type RSSFeed func(*sql.Selector)

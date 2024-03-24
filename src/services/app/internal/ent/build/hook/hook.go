@@ -9,6 +9,18 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build"
 )
 
+// The NewsItemFunc type is an adapter to allow the use of ordinary
+// function as NewsItem mutator.
+type NewsItemFunc func(context.Context, *build.NewsItemMutation) (build.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f NewsItemFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.NewsItemMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.NewsItemMutation", m)
+}
+
 // The OrganizationFunc type is an adapter to allow the use of ordinary
 // function as Organization mutator.
 type OrganizationFunc func(context.Context, *build.OrganizationMutation) (build.Value, error)
@@ -19,6 +31,30 @@ func (f OrganizationFunc) Mutate(ctx context.Context, m build.Mutation) (build.V
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.OrganizationMutation", m)
+}
+
+// The PersonFunc type is an adapter to allow the use of ordinary
+// function as Person mutator.
+type PersonFunc func(context.Context, *build.PersonMutation) (build.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f PersonFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.PersonMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.PersonMutation", m)
+}
+
+// The RSSFeedFunc type is an adapter to allow the use of ordinary
+// function as RSSFeed mutator.
+type RSSFeedFunc func(context.Context, *build.RSSFeedMutation) (build.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RSSFeedFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.RSSFeedMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.RSSFeedMutation", m)
 }
 
 // Condition is a hook condition function.

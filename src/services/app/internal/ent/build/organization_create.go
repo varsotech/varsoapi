@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
 // OrganizationCreate is the builder for creating a Organization entity.
@@ -70,12 +71,6 @@ func (oc *OrganizationCreate) SetWebsiteURL(s string) *OrganizationCreate {
 	return oc
 }
 
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (oc *OrganizationCreate) SetRssFeedURL(s string) *OrganizationCreate {
-	oc.mutation.SetRssFeedURL(s)
-	return oc
-}
-
 // SetID sets the "id" field.
 func (oc *OrganizationCreate) SetID(u uuid.UUID) *OrganizationCreate {
 	oc.mutation.SetID(u)
@@ -88,6 +83,21 @@ func (oc *OrganizationCreate) SetNillableID(u *uuid.UUID) *OrganizationCreate {
 		oc.SetID(*u)
 	}
 	return oc
+}
+
+// AddFeedIDs adds the "feeds" edge to the RSSFeed entity by IDs.
+func (oc *OrganizationCreate) AddFeedIDs(ids ...uuid.UUID) *OrganizationCreate {
+	oc.mutation.AddFeedIDs(ids...)
+	return oc
+}
+
+// AddFeeds adds the "feeds" edges to the RSSFeed entity.
+func (oc *OrganizationCreate) AddFeeds(r ...*RSSFeed) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return oc.AddFeedIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -154,9 +164,6 @@ func (oc *OrganizationCreate) check() error {
 	if _, ok := oc.mutation.WebsiteURL(); !ok {
 		return &ValidationError{Name: "website_url", err: errors.New(`build: missing required field "Organization.website_url"`)}
 	}
-	if _, ok := oc.mutation.RssFeedURL(); !ok {
-		return &ValidationError{Name: "rss_feed_url", err: errors.New(`build: missing required field "Organization.rss_feed_url"`)}
-	}
 	return nil
 }
 
@@ -213,9 +220,21 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)
 		_node.WebsiteURL = value
 	}
-	if value, ok := oc.mutation.RssFeedURL(); ok {
-		_spec.SetField(organization.FieldRssFeedURL, field.TypeString, value)
-		_node.RssFeedURL = value
+	if nodes := oc.mutation.FeedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
 	}
 	return _node, _spec
 }
@@ -320,18 +339,6 @@ func (u *OrganizationUpsert) SetWebsiteURL(v string) *OrganizationUpsert {
 // UpdateWebsiteURL sets the "website_url" field to the value that was provided on create.
 func (u *OrganizationUpsert) UpdateWebsiteURL() *OrganizationUpsert {
 	u.SetExcluded(organization.FieldWebsiteURL)
-	return u
-}
-
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (u *OrganizationUpsert) SetRssFeedURL(v string) *OrganizationUpsert {
-	u.Set(organization.FieldRssFeedURL, v)
-	return u
-}
-
-// UpdateRssFeedURL sets the "rss_feed_url" field to the value that was provided on create.
-func (u *OrganizationUpsert) UpdateRssFeedURL() *OrganizationUpsert {
-	u.SetExcluded(organization.FieldRssFeedURL)
 	return u
 }
 
@@ -446,20 +453,6 @@ func (u *OrganizationUpsertOne) SetWebsiteURL(v string) *OrganizationUpsertOne {
 func (u *OrganizationUpsertOne) UpdateWebsiteURL() *OrganizationUpsertOne {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateWebsiteURL()
-	})
-}
-
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (u *OrganizationUpsertOne) SetRssFeedURL(v string) *OrganizationUpsertOne {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.SetRssFeedURL(v)
-	})
-}
-
-// UpdateRssFeedURL sets the "rss_feed_url" field to the value that was provided on create.
-func (u *OrganizationUpsertOne) UpdateRssFeedURL() *OrganizationUpsertOne {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.UpdateRssFeedURL()
 	})
 }
 
@@ -741,20 +734,6 @@ func (u *OrganizationUpsertBulk) SetWebsiteURL(v string) *OrganizationUpsertBulk
 func (u *OrganizationUpsertBulk) UpdateWebsiteURL() *OrganizationUpsertBulk {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateWebsiteURL()
-	})
-}
-
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (u *OrganizationUpsertBulk) SetRssFeedURL(v string) *OrganizationUpsertBulk {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.SetRssFeedURL(v)
-	})
-}
-
-// UpdateRssFeedURL sets the "rss_feed_url" field to the value that was provided on create.
-func (u *OrganizationUpsertBulk) UpdateRssFeedURL() *OrganizationUpsertBulk {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.UpdateRssFeedURL()
 	})
 }
 

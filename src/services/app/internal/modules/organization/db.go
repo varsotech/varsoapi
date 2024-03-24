@@ -19,13 +19,27 @@ func GetOrganizations(ctx context.Context) ([]*build.Organization, error) {
 	return posts, nil
 }
 
-func UpsertOrganization(ctx context.Context, orgUUID uuid.UUID, name, description, websiteUrl, rssFeedUrl string) error {
+func GetOrganizationsWithFeedItems(ctx context.Context) ([]*build.Organization, error) {
+	posts, err := ent.Database.Organization.Query().
+		WithFeeds(func(rq *build.RSSFeedQuery) {
+			rq.WithItems(func(niq *build.NewsItemQuery) {
+				niq.WithAuthors()
+			})
+		}).
+		All(ctx)
+	if err != nil {
+		return nil, errors.Wrapf(err, "failed getting orgs from db")
+	}
+
+	return posts, nil
+}
+
+func UpsertOrganization(ctx context.Context, orgUUID uuid.UUID, name, description, websiteUrl string) error {
 	err := ent.Database.Organization.Create().
 		SetID(orgUUID).
 		SetName(name).
 		SetDescription(description).
 		SetWebsiteURL(websiteUrl).
-		SetRssFeedURL(rssFeedUrl).
 		OnConflictColumns(organization.FieldID).
 		UpdateNewValues().
 		Exec(ctx)

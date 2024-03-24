@@ -49,7 +49,7 @@ func CreateMigration(serviceDirName, databaseName, migrationName string, connect
 		schema.WithDropIndex(true),
 	}
 	if len(os.Args) != 2 {
-		return fmt.Errorf("migration name is required. Use: 'go run -mod=mod ./src/services/auth/ent/migrate/main.go <name>'")
+		return fmt.Errorf("migration name is required. Use: 'go run -mod=mod ./src/services/<service_name>/ent/migrate/main.go <name>'")
 	}
 
 	//#nosec

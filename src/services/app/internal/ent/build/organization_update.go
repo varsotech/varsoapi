@@ -10,8 +10,10 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
+	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
 // OrganizationUpdate is the builder for updating Organization entities.
@@ -89,23 +91,45 @@ func (ou *OrganizationUpdate) SetNillableWebsiteURL(s *string) *OrganizationUpda
 	return ou
 }
 
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (ou *OrganizationUpdate) SetRssFeedURL(s string) *OrganizationUpdate {
-	ou.mutation.SetRssFeedURL(s)
+// AddFeedIDs adds the "feeds" edge to the RSSFeed entity by IDs.
+func (ou *OrganizationUpdate) AddFeedIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	ou.mutation.AddFeedIDs(ids...)
 	return ou
 }
 
-// SetNillableRssFeedURL sets the "rss_feed_url" field if the given value is not nil.
-func (ou *OrganizationUpdate) SetNillableRssFeedURL(s *string) *OrganizationUpdate {
-	if s != nil {
-		ou.SetRssFeedURL(*s)
+// AddFeeds adds the "feeds" edges to the RSSFeed entity.
+func (ou *OrganizationUpdate) AddFeeds(r ...*RSSFeed) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return ou
+	return ou.AddFeedIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
 func (ou *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return ou.mutation
+}
+
+// ClearFeeds clears all "feeds" edges to the RSSFeed entity.
+func (ou *OrganizationUpdate) ClearFeeds() *OrganizationUpdate {
+	ou.mutation.ClearFeeds()
+	return ou
+}
+
+// RemoveFeedIDs removes the "feeds" edge to RSSFeed entities by IDs.
+func (ou *OrganizationUpdate) RemoveFeedIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	ou.mutation.RemoveFeedIDs(ids...)
+	return ou
+}
+
+// RemoveFeeds removes "feeds" edges to RSSFeed entities.
+func (ou *OrganizationUpdate) RemoveFeeds(r ...*RSSFeed) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ou.RemoveFeedIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -172,8 +196,50 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := ou.mutation.WebsiteURL(); ok {
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)
 	}
-	if value, ok := ou.mutation.RssFeedURL(); ok {
-		_spec.SetField(organization.FieldRssFeedURL, field.TypeString, value)
+	if ou.mutation.FeedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.RemovedFeedsIDs(); len(nodes) > 0 && !ou.mutation.FeedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.FeedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
@@ -257,23 +323,45 @@ func (ouo *OrganizationUpdateOne) SetNillableWebsiteURL(s *string) *Organization
 	return ouo
 }
 
-// SetRssFeedURL sets the "rss_feed_url" field.
-func (ouo *OrganizationUpdateOne) SetRssFeedURL(s string) *OrganizationUpdateOne {
-	ouo.mutation.SetRssFeedURL(s)
+// AddFeedIDs adds the "feeds" edge to the RSSFeed entity by IDs.
+func (ouo *OrganizationUpdateOne) AddFeedIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	ouo.mutation.AddFeedIDs(ids...)
 	return ouo
 }
 
-// SetNillableRssFeedURL sets the "rss_feed_url" field if the given value is not nil.
-func (ouo *OrganizationUpdateOne) SetNillableRssFeedURL(s *string) *OrganizationUpdateOne {
-	if s != nil {
-		ouo.SetRssFeedURL(*s)
+// AddFeeds adds the "feeds" edges to the RSSFeed entity.
+func (ouo *OrganizationUpdateOne) AddFeeds(r ...*RSSFeed) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return ouo
+	return ouo.AddFeedIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
 func (ouo *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return ouo.mutation
+}
+
+// ClearFeeds clears all "feeds" edges to the RSSFeed entity.
+func (ouo *OrganizationUpdateOne) ClearFeeds() *OrganizationUpdateOne {
+	ouo.mutation.ClearFeeds()
+	return ouo
+}
+
+// RemoveFeedIDs removes the "feeds" edge to RSSFeed entities by IDs.
+func (ouo *OrganizationUpdateOne) RemoveFeedIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	ouo.mutation.RemoveFeedIDs(ids...)
+	return ouo
+}
+
+// RemoveFeeds removes "feeds" edges to RSSFeed entities.
+func (ouo *OrganizationUpdateOne) RemoveFeeds(r ...*RSSFeed) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ouo.RemoveFeedIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -370,8 +458,50 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 	if value, ok := ouo.mutation.WebsiteURL(); ok {
 		_spec.SetField(organization.FieldWebsiteURL, field.TypeString, value)
 	}
-	if value, ok := ouo.mutation.RssFeedURL(); ok {
-		_spec.SetField(organization.FieldRssFeedURL, field.TypeString, value)
+	if ouo.mutation.FeedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.RemovedFeedsIDs(); len(nodes) > 0 && !ouo.mutation.FeedsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.FeedsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.FeedsTable,
+			Columns: []string{organization.FeedsColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
 	_node = &Organization{config: ouo.config}
 	_spec.Assign = _node.assignValues

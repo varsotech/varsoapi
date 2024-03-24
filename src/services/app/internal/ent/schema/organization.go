@@ -4,6 +4,7 @@ import (
 	"regexp"
 
 	"entgo.io/ent"
+	"entgo.io/ent/schema/edge"
 	"entgo.io/ent/schema/field"
 	"entgo.io/ent/schema/index"
 	"entgo.io/ent/schema/mixin"
@@ -34,10 +35,11 @@ func (Organization) Fields() []ent.Field {
 		field.String("name"),
 		field.String("description"),
 		field.String("website_url"),
-		field.String("rss_feed_url"),
 	}
 }
 
 func (Organization) Edges() []ent.Edge {
-	return []ent.Edge{}
+	return []ent.Edge{
+		edge.To("feeds", RSSFeed.Type),
+	}
 }

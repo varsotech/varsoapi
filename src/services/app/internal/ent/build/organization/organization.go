@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"entgo.io/ent/dialect/sql"
+	"entgo.io/ent/dialect/sql/sqlgraph"
 	"github.com/google/uuid"
 )
 
@@ -24,10 +25,17 @@ const (
 	FieldDescription = "description"
 	// FieldWebsiteURL holds the string denoting the website_url field in the database.
 	FieldWebsiteURL = "website_url"
-	// FieldRssFeedURL holds the string denoting the rss_feed_url field in the database.
-	FieldRssFeedURL = "rss_feed_url"
+	// EdgeFeeds holds the string denoting the feeds edge name in mutations.
+	EdgeFeeds = "feeds"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
+	// FeedsTable is the table that holds the feeds relation/edge.
+	FeedsTable = "rss_feeds"
+	// FeedsInverseTable is the table name for the RSSFeed entity.
+	// It exists in this package in order to avoid circular dependency with the "rssfeed" package.
+	FeedsInverseTable = "rss_feeds"
+	// FeedsColumn is the table column denoting the feeds relation/edge.
+	FeedsColumn = "organization_feeds"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -38,7 +46,6 @@ var Columns = []string{
 	FieldName,
 	FieldDescription,
 	FieldWebsiteURL,
-	FieldRssFeedURL,
 }
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -93,7 +100,23 @@ func ByWebsiteURL(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldWebsiteURL, opts...).ToFunc()
 }
 
-// ByRssFeedURL orders the results by the rss_feed_url field.
-func ByRssFeedURL(opts ...sql.OrderTermOption) OrderOption {
-	return sql.OrderByField(FieldRssFeedURL, opts...).ToFunc()
+// ByFeedsCount orders the results by feeds count.
+func ByFeedsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newFeedsStep(), opts...)
+	}
+}
+
+// ByFeeds orders the results by feeds terms.
+func ByFeeds(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newFeedsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+func newFeedsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(FeedsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, FeedsTable, FeedsColumn),
+	)
 }

@@ -12,7 +12,7 @@ function RSSAuthors({ authors, organization }: RSSAuthorsProps) {
   return (
     <span>
       {authors
-        .map((author: RSSAuthorModel) => {
+        ?.map((author: RSSAuthorModel) => {
           return author.name;
         })
         .join(", ")}

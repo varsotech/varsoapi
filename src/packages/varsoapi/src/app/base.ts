@@ -10,7 +10,6 @@ export interface Organization {
   name: string;
   description: string;
   websiteUrl: string;
-  rssFeedUrl: string;
 }
 
 export interface RSSFeed {
@@ -26,7 +25,7 @@ export interface RSSItem {
   updateDate: Date | undefined;
   publishDate: Date | undefined;
   authors: RSSAuthor[];
-  uuid: string;
+  guid: string;
   image: RSSImage | undefined;
   categories: string[];
   organizationUuid: string;
@@ -43,7 +42,7 @@ export interface RSSImage {
 }
 
 function createBaseOrganization(): Organization {
-  return { uuid: "", uniqueName: "", name: "", description: "", websiteUrl: "", rssFeedUrl: "" };
+  return { uuid: "", uniqueName: "", name: "", description: "", websiteUrl: "" };
 }
 
 export const Organization = {
@@ -62,9 +61,6 @@ export const Organization = {
     }
     if (message.websiteUrl !== "") {
       writer.uint32(42).string(message.websiteUrl);
-    }
-    if (message.rssFeedUrl !== "") {
-      writer.uint32(50).string(message.rssFeedUrl);
     }
     return writer;
   },
@@ -111,13 +107,6 @@ export const Organization = {
 
           message.websiteUrl = reader.string();
           continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.rssFeedUrl = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -134,7 +123,6 @@ export const Organization = {
       name: isSet(object.name) ? String(object.name) : "",
       description: isSet(object.description) ? String(object.description) : "",
       websiteUrl: isSet(object.websiteUrl) ? String(object.websiteUrl) : "",
-      rssFeedUrl: isSet(object.rssFeedUrl) ? String(object.rssFeedUrl) : "",
     };
   },
 
@@ -155,9 +143,6 @@ export const Organization = {
     if (message.websiteUrl !== "") {
       obj.websiteUrl = message.websiteUrl;
     }
-    if (message.rssFeedUrl !== "") {
-      obj.rssFeedUrl = message.rssFeedUrl;
-    }
     return obj;
   },
 
@@ -171,7 +156,6 @@ export const Organization = {
     message.name = object.name ?? "";
     message.description = object.description ?? "";
     message.websiteUrl = object.websiteUrl ?? "";
-    message.rssFeedUrl = object.rssFeedUrl ?? "";
     return message;
   },
 };
@@ -243,7 +227,7 @@ function createBaseRSSItem(): RSSItem {
     updateDate: undefined,
     publishDate: undefined,
     authors: [],
-    uuid: "",
+    guid: "",
     image: undefined,
     categories: [],
     organizationUuid: "",
@@ -276,8 +260,8 @@ export const RSSItem = {
     for (const v of message.authors) {
       RSSAuthor.encode(v!, writer.uint32(66).fork()).ldelim();
     }
-    if (message.uuid !== "") {
-      writer.uint32(74).string(message.uuid);
+    if (message.guid !== "") {
+      writer.uint32(74).string(message.guid);
     }
     if (message.image !== undefined) {
       RSSImage.encode(message.image, writer.uint32(82).fork()).ldelim();
@@ -359,7 +343,7 @@ export const RSSItem = {
             break;
           }
 
-          message.uuid = reader.string();
+          message.guid = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
@@ -401,7 +385,7 @@ export const RSSItem = {
       updateDate: isSet(object.updateDate) ? fromJsonTimestamp(object.updateDate) : undefined,
       publishDate: isSet(object.publishDate) ? fromJsonTimestamp(object.publishDate) : undefined,
       authors: Array.isArray(object?.authors) ? object.authors.map((e: any) => RSSAuthor.fromJSON(e)) : [],
-      uuid: isSet(object.uuid) ? String(object.uuid) : "",
+      guid: isSet(object.guid) ? String(object.guid) : "",
       image: isSet(object.image) ? RSSImage.fromJSON(object.image) : undefined,
       categories: Array.isArray(object?.categories) ? object.categories.map((e: any) => String(e)) : [],
       organizationUuid: isSet(object.organizationUuid) ? String(object.organizationUuid) : "",
@@ -434,8 +418,8 @@ export const RSSItem = {
     if (message.authors?.length) {
       obj.authors = message.authors.map((e) => RSSAuthor.toJSON(e));
     }
-    if (message.uuid !== "") {
-      obj.uuid = message.uuid;
+    if (message.guid !== "") {
+      obj.guid = message.guid;
     }
     if (message.image !== undefined) {
       obj.image = RSSImage.toJSON(message.image);
@@ -462,7 +446,7 @@ export const RSSItem = {
     message.updateDate = object.updateDate ?? undefined;
     message.publishDate = object.publishDate ?? undefined;
     message.authors = object.authors?.map((e) => RSSAuthor.fromPartial(e)) || [];
-    message.uuid = object.uuid ?? "";
+    message.guid = object.guid ?? "";
     message.image = (object.image !== undefined && object.image !== null)
       ? RSSImage.fromPartial(object.image)
       : undefined;

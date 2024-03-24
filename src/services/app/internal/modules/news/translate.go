@@ -5,14 +5,14 @@ import (
 	"regexp"
 
 	"github.com/google/uuid"
-	"github.com/mmcdole/gofeed"
 	"github.com/varsotech/varsoapi/src/services/app/client/models"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
 var htmlTagRegex = regexp.MustCompile("<[^>]*>")
 
-func TranslateRSSItems(items []*gofeed.Item, orgUUID uuid.UUID) []*models.RSSItem {
+func TranslateRSSItems(items []*build.NewsItem, orgUUID uuid.UUID) []*models.RSSItem {
 	var translated []*models.RSSItem
 	for _, item := range items {
 		translated = append(translated, TranslateRSSItem(item, orgUUID))
@@ -26,19 +26,9 @@ func translateHTML(htmlText string) string {
 	return htmlText
 }
 
-func TranslateRSSItem(item *gofeed.Item, orgUUID uuid.UUID) *models.RSSItem {
+func TranslateRSSItem(item *build.NewsItem, orgUUID uuid.UUID) *models.RSSItem {
 	if item == nil {
 		return &models.RSSItem{}
-	}
-
-	var updateDate *timestamppb.Timestamp
-	if item.UpdatedParsed != nil {
-		updateDate = timestamppb.New(*item.UpdatedParsed)
-	}
-
-	var publishDate *timestamppb.Timestamp
-	if item.PublishedParsed != nil {
-		publishDate = timestamppb.New(*item.PublishedParsed)
 	}
 
 	return &models.RSSItem{
@@ -47,17 +37,17 @@ func TranslateRSSItem(item *gofeed.Item, orgUUID uuid.UUID) *models.RSSItem {
 		Content:          translateHTML(item.Content),
 		Link:             item.Link,
 		Links:            item.Links,
-		UpdateDate:       updateDate,
-		PublishDate:      publishDate,
-		Authors:          TranslateRSSAuthors(item.Authors),
-		Uuid:             item.GUID,
-		Image:            TranslateRSSImage(item.Image),
+		UpdateDate:       timestamppb.New(item.ItemUpdateTime),
+		PublishDate:      timestamppb.New(item.ItemPublishTime),
+		Authors:          TranslateRSSAuthors(item.Edges.Authors),
+		Guid:             item.RssGUID,
+		Image:            TranslateRSSImage(item.ImageURL, item.ImageTitle),
 		Categories:       item.Categories,
 		OrganizationUuid: orgUUID.String(),
 	}
 }
 
-func TranslateRSSAuthors(authors []*gofeed.Person) []*models.RSSAuthor {
+func TranslateRSSAuthors(authors []*build.Person) []*models.RSSAuthor {
 	var translated []*models.RSSAuthor
 	for _, author := range authors {
 		translated = append(translated, TranslateRSSAuthor(author))
@@ -65,7 +55,7 @@ func TranslateRSSAuthors(authors []*gofeed.Person) []*models.RSSAuthor {
 	return translated
 }
 
-func TranslateRSSAuthor(author *gofeed.Person) *models.RSSAuthor {
+func TranslateRSSAuthor(author *build.Person) *models.RSSAuthor {
 	if author == nil {
 		return &models.RSSAuthor{}
 	}
@@ -76,13 +66,9 @@ func TranslateRSSAuthor(author *gofeed.Person) *models.RSSAuthor {
 	}
 }
 
-func TranslateRSSImage(image *gofeed.Image) *models.RSSImage {
-	if image == nil {
-		return &models.RSSImage{}
-	}
-
+func TranslateRSSImage(imageUrl, imageTitle string) *models.RSSImage {
 	return &models.RSSImage{
-		Url:   image.URL,
-		Title: image.Title,
+		Url:   imageUrl,
+		Title: imageTitle,
 	}
 }

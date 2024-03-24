@@ -22,6 +22,5 @@ func TranslateOrganization(org *build.Organization) *models.Organization {
 		Description: org.Description,
 		Name:        org.Name,
 		WebsiteUrl:  org.WebsiteURL,
-		RssFeedUrl:  org.RssFeedURL,
 	}
 }

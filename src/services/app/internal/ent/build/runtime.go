@@ -6,7 +6,10 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/schema"
 )
 
@@ -14,6 +17,27 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	newsitemMixin := schema.NewsItem{}.Mixin()
+	newsitemMixinFields0 := newsitemMixin[0].Fields()
+	_ = newsitemMixinFields0
+	newsitemMixinFields1 := newsitemMixin[1].Fields()
+	_ = newsitemMixinFields1
+	newsitemFields := schema.NewsItem{}.Fields()
+	_ = newsitemFields
+	// newsitemDescCreateTime is the schema descriptor for create_time field.
+	newsitemDescCreateTime := newsitemMixinFields0[0].Descriptor()
+	// newsitem.DefaultCreateTime holds the default value on creation for the create_time field.
+	newsitem.DefaultCreateTime = newsitemDescCreateTime.Default.(func() time.Time)
+	// newsitemDescUpdateTime is the schema descriptor for update_time field.
+	newsitemDescUpdateTime := newsitemMixinFields1[0].Descriptor()
+	// newsitem.DefaultUpdateTime holds the default value on creation for the update_time field.
+	newsitem.DefaultUpdateTime = newsitemDescUpdateTime.Default.(func() time.Time)
+	// newsitem.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	newsitem.UpdateDefaultUpdateTime = newsitemDescUpdateTime.UpdateDefault.(func() time.Time)
+	// newsitemDescID is the schema descriptor for id field.
+	newsitemDescID := newsitemFields[0].Descriptor()
+	// newsitem.DefaultID holds the default value on creation for the id field.
+	newsitem.DefaultID = newsitemDescID.Default.(func() uuid.UUID)
 	organizationMixin := schema.Organization{}.Mixin()
 	organizationMixinFields0 := organizationMixin[0].Fields()
 	_ = organizationMixinFields0
@@ -45,4 +69,46 @@ func init() {
 	organizationDescID := organizationFields[0].Descriptor()
 	// organization.DefaultID holds the default value on creation for the id field.
 	organization.DefaultID = organizationDescID.Default.(func() uuid.UUID)
+	personMixin := schema.Person{}.Mixin()
+	personMixinFields0 := personMixin[0].Fields()
+	_ = personMixinFields0
+	personMixinFields1 := personMixin[1].Fields()
+	_ = personMixinFields1
+	personFields := schema.Person{}.Fields()
+	_ = personFields
+	// personDescCreateTime is the schema descriptor for create_time field.
+	personDescCreateTime := personMixinFields0[0].Descriptor()
+	// person.DefaultCreateTime holds the default value on creation for the create_time field.
+	person.DefaultCreateTime = personDescCreateTime.Default.(func() time.Time)
+	// personDescUpdateTime is the schema descriptor for update_time field.
+	personDescUpdateTime := personMixinFields1[0].Descriptor()
+	// person.DefaultUpdateTime holds the default value on creation for the update_time field.
+	person.DefaultUpdateTime = personDescUpdateTime.Default.(func() time.Time)
+	// person.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	person.UpdateDefaultUpdateTime = personDescUpdateTime.UpdateDefault.(func() time.Time)
+	// personDescID is the schema descriptor for id field.
+	personDescID := personFields[0].Descriptor()
+	// person.DefaultID holds the default value on creation for the id field.
+	person.DefaultID = personDescID.Default.(func() uuid.UUID)
+	rssfeedMixin := schema.RSSFeed{}.Mixin()
+	rssfeedMixinFields0 := rssfeedMixin[0].Fields()
+	_ = rssfeedMixinFields0
+	rssfeedMixinFields1 := rssfeedMixin[1].Fields()
+	_ = rssfeedMixinFields1
+	rssfeedFields := schema.RSSFeed{}.Fields()
+	_ = rssfeedFields
+	// rssfeedDescCreateTime is the schema descriptor for create_time field.
+	rssfeedDescCreateTime := rssfeedMixinFields0[0].Descriptor()
+	// rssfeed.DefaultCreateTime holds the default value on creation for the create_time field.
+	rssfeed.DefaultCreateTime = rssfeedDescCreateTime.Default.(func() time.Time)
+	// rssfeedDescUpdateTime is the schema descriptor for update_time field.
+	rssfeedDescUpdateTime := rssfeedMixinFields1[0].Descriptor()
+	// rssfeed.DefaultUpdateTime holds the default value on creation for the update_time field.
+	rssfeed.DefaultUpdateTime = rssfeedDescUpdateTime.Default.(func() time.Time)
+	// rssfeed.UpdateDefaultUpdateTime holds the default value on update for the update_time field.
+	rssfeed.UpdateDefaultUpdateTime = rssfeedDescUpdateTime.UpdateDefault.(func() time.Time)
+	// rssfeedDescID is the schema descriptor for id field.
+	rssfeedDescID := rssfeedFields[0].Descriptor()
+	// rssfeed.DefaultID holds the default value on creation for the id field.
+	rssfeed.DefaultID = rssfeedDescID.Default.(func() uuid.UUID)
 }

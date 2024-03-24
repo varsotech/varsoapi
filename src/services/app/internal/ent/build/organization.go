@@ -28,9 +28,28 @@ type Organization struct {
 	Description string `json:"description,omitempty"`
 	// WebsiteURL holds the value of the "website_url" field.
 	WebsiteURL string `json:"website_url,omitempty"`
-	// RssFeedURL holds the value of the "rss_feed_url" field.
-	RssFeedURL   string `json:"rss_feed_url,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the OrganizationQuery when eager-loading is set.
+	Edges        OrganizationEdges `json:"edges"`
 	selectValues sql.SelectValues
+}
+
+// OrganizationEdges holds the relations/edges for other nodes in the graph.
+type OrganizationEdges struct {
+	// Feeds holds the value of the feeds edge.
+	Feeds []*RSSFeed `json:"feeds,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+}
+
+// FeedsOrErr returns the Feeds value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) FeedsOrErr() ([]*RSSFeed, error) {
+	if e.loadedTypes[0] {
+		return e.Feeds, nil
+	}
+	return nil, &NotLoadedError{edge: "feeds"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -38,7 +57,7 @@ func (*Organization) scanValues(columns []string) ([]any, error) {
 	values := make([]any, len(columns))
 	for i := range columns {
 		switch columns[i] {
-		case organization.FieldUniqueName, organization.FieldName, organization.FieldDescription, organization.FieldWebsiteURL, organization.FieldRssFeedURL:
+		case organization.FieldUniqueName, organization.FieldName, organization.FieldDescription, organization.FieldWebsiteURL:
 			values[i] = new(sql.NullString)
 		case organization.FieldCreateTime:
 			values[i] = new(sql.NullTime)
@@ -95,12 +114,6 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 			} else if value.Valid {
 				o.WebsiteURL = value.String
 			}
-		case organization.FieldRssFeedURL:
-			if value, ok := values[i].(*sql.NullString); !ok {
-				return fmt.Errorf("unexpected type %T for field rss_feed_url", values[i])
-			} else if value.Valid {
-				o.RssFeedURL = value.String
-			}
 		default:
 			o.selectValues.Set(columns[i], values[i])
 		}
@@ -112,6 +125,11 @@ func (o *Organization) assignValues(columns []string, values []any) error {
 // This includes values selected through modifiers, order, etc.
 func (o *Organization) Value(name string) (ent.Value, error) {
 	return o.selectValues.Get(name)
+}
+
+// QueryFeeds queries the "feeds" edge of the Organization entity.
+func (o *Organization) QueryFeeds() *RSSFeedQuery {
+	return NewOrganizationClient(o.config).QueryFeeds(o)
 }
 
 // Update returns a builder for updating this Organization.
@@ -151,9 +169,6 @@ func (o *Organization) String() string {
 	builder.WriteString(", ")
 	builder.WriteString("website_url=")
 	builder.WriteString(o.WebsiteURL)
-	builder.WriteString(", ")
-	builder.WriteString("rss_feed_url=")
-	builder.WriteString(o.RssFeedURL)
 	builder.WriteByte(')')
 	return builder.String()
 }

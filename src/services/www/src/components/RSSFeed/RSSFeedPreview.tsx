@@ -26,7 +26,7 @@ function RSSFeedPreview({ feed, organizations, featured }: RSSFeedProps) {
 
           return (
             <RSSItemPreview
-              key={item.uuid}
+              key={item.guid}
               item={item}
               organization={organizations[item.organizationUuid]}
               featured={featured}
