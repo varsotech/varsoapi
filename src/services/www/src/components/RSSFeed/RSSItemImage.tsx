@@ -1,5 +1,6 @@
 import { RSSImage as RSSImageModel } from "@varsotech/varsoapi/src/app/base";
 import { useState } from "react";
+import * as Styled from "./RSSItemImage.style";
 
 type RSSImageProps = {
   image: RSSImageModel | undefined;
@@ -15,7 +16,7 @@ function RSSImage({ image, featured }: RSSImageProps) {
     <div
       style={{
         position: "relative",
-        flex: featured ? 2 : 0.5,
+        flex: featured ? 3 : 1,
         maxWidth: 700,
       }}
     >
@@ -23,19 +24,9 @@ function RSSImage({ image, featured }: RSSImageProps) {
         src={image?.url}
         alt={image?.title}
         width={"100%"} // 100% ?
-        style={{ display: "block" }}
+        style={{ display: "block", minWidth: 250 }}
       />
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          height: "100%",
-          width: "100%",
-          backdropFilter: image.blur && !unblur ? "blur(20px)" : undefined,
-          transition: "backdrop-filter 0.3s",
-        }}
-      />
+      <Styled.BlurStretch blur={image.blur} unblur={unblur} />
       <div
         style={{
           position: "absolute",
@@ -52,17 +43,8 @@ function RSSImage({ image, featured }: RSSImageProps) {
         }}
       >
         {image.blur && !unblur && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              alignItems: "center",
-              color: "white",
-              gap: 10,
-              fontSize: 14,
-            }}
-          >
-            <span style={{ cursor: "default" }}>
+          <Styled.BlurWarning>
+            <span style={{ cursor: "default", padding: 5 }}>
               This image was marked as sensitive.
             </span>
             <button
@@ -80,7 +62,7 @@ function RSSImage({ image, featured }: RSSImageProps) {
             >
               View Anyway
             </button>
-          </div>
+          </Styled.BlurWarning>
         )}
       </div>
     </div>

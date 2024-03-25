@@ -18,7 +18,7 @@ function RSSItemPreview({ item, organization, featured }: RSSItemPreviewProps) {
       <div
         style={{
           display: "flex",
-          flex: 1,
+          flex: 2,
           flexDirection: "column",
           minWidth: 300,
         }}

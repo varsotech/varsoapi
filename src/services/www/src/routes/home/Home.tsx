@@ -18,7 +18,7 @@ function Home() {
           featured
         />
       </div>
-      <div style={{ display: "flex" }}>
+      <div style={{ display: "flex", maxWidth: 900 }}>
         <div
           style={{
             display: "flex",
@@ -35,13 +35,13 @@ function Home() {
             />
           </div>
         </div>
-        <div
+        {/* <div
           style={{
             display: "flex",
             padding: 30,
             flex: 1,
           }}
-        ></div>
+        ></div> */}
       </div>
     </Layout>
   );
