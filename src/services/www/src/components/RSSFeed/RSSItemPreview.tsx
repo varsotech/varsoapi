@@ -31,7 +31,7 @@ function RSSItemPreview({ item, organization, featured }: RSSItemPreviewProps) {
           </Styled.RSSItemDescription>
         </Styled.RSSItemContentContainer>
       </div>
-      <RSSImage image={item.image} featured={featured} />
+      <RSSImage href={item.link} image={item.image} featured={featured} />
     </Styled.RSSItemPreview>
   );
 }

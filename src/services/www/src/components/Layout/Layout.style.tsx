@@ -8,7 +8,7 @@ export const Layout = styled.div`
 
 export const Navbar = styled.div`
   display: flex;
-  outline: 1px solid #f2f2f2;
+  outline: 1px solid #eaeaea;
   height: 55px;
   width: 100%;
   align-items: center;

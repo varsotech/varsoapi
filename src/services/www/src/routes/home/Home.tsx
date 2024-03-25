@@ -6,7 +6,7 @@ function Home() {
   const { data, isLoading } = useNews();
 
   if (isLoading) {
-    return <Layout>Loading..</Layout>;
+    return <Layout>...</Layout>;
   }
 
   return (
@@ -24,7 +24,7 @@ function Home() {
             display: "flex",
             padding: 40,
             flexDirection: "column",
-            borderRight: "1px solid #f2f2f2",
+            borderRight: "1px solid #eaeaea",
             flex: 2,
           }}
         >
