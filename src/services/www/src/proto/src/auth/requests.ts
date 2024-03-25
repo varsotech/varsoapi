@@ -2,7 +2,7 @@
 import * as _m0 from "protobufjs/minimal";
 import { User } from "./base";
 
-export const protobufPackage = "varso";
+export const protobufPackage = "varso_auth";
 
 export interface BanUserRequest {
 }

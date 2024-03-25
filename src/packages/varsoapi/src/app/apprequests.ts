@@ -1,6 +1,6 @@
 /* eslint-disable */
 import _m0 from "protobufjs/minimal";
-import { Organization, RSSFeed, RSSItem } from "./base";
+import { Organization, RSSFeed, RSSItem } from "./appbase";
 
 export const protobufPackage = "varso_app";
 

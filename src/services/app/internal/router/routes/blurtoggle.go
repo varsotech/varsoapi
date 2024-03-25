@@ -8,11 +8,11 @@ import (
 	"github.com/varsotech/varsoapi/src/common/api"
 	"github.com/varsotech/varsoapi/src/services/app/client/models"
 	"github.com/varsotech/varsoapi/src/services/app/internal/modules/rssitem"
-	"github.com/varsotech/varsoapi/src/services/auth/internal/modules/permission"
+	"github.com/varsotech/varsoapi/src/services/auth/client"
 )
 
 func BlurToggle(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT, request models.BlurToggleRequest) (*any, *api.Error) {
-	if !j.Permissions[permission.KeyNewsItemImageBlur] {
+	if !j.Permissions[client.KeyNewsItemImageBlur] {
 		return nil, api.NewUnauthorizedError(nil, "no permission to toggle blur")
 	}
 

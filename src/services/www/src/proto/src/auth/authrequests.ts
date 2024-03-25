@@ -1,6 +1,6 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
-import { User } from "./base";
+import { User } from "./authbase";
 
 export const protobufPackage = "varso_auth";
 

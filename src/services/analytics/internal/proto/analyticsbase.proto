@@ -1,5 +1,5 @@
 syntax = "proto3";
-package varso;
+package varso_analytics;
 
 option go_package = "client/models";
 

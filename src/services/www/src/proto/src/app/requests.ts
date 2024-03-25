@@ -2,7 +2,7 @@
 import _m0 from "protobufjs/minimal";
 import { Organization, RSSFeed, RSSItem } from "./base";
 
-export const protobufPackage = "varso";
+export const protobufPackage = "varso_app";
 
 export interface GetOrganizationsResponse {
   organizations: Organization[];

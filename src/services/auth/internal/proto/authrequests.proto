@@ -1,7 +1,7 @@
 syntax = "proto3";
-package varso;
+package varso_auth;
 
-import "base.proto";
+import "authbase.proto";
 
 option go_package = "client/models";
 

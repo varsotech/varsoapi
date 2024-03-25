@@ -1,7 +1,7 @@
 /* eslint-disable */
 import * as _m0 from "protobufjs/minimal";
 
-export const protobufPackage = "varso";
+export const protobufPackage = "varso_auth";
 
 export interface User {
   uuid: string;

@@ -2,7 +2,7 @@
 import _m0 from "protobufjs/minimal";
 import { Timestamp } from "./google/protobuf/timestamp";
 
-export const protobufPackage = "varso";
+export const protobufPackage = "varso_app";
 
 export interface Organization {
   uuid: string;
