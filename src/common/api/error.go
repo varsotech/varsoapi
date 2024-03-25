@@ -65,11 +65,19 @@ func NewInternalError(err error, internalMessage string) *Error {
 	return newError(err, internalMessage, http.StatusInternalServerError)
 }
 
+// NewUnauthorizedError will log the user out upon receiving it
 func NewUnauthorizedError(err error, internalMessage string) *Error {
 	if err == nil {
 		err = fmt.Errorf("api error")
 	}
 	return newError(err, internalMessage, http.StatusUnauthorized)
+}
+
+func NewForbiddenError(err error, internalMessage string) *Error {
+	if err == nil {
+		err = fmt.Errorf("api error")
+	}
+	return newError(err, internalMessage, http.StatusForbidden)
 }
 
 func NewBadRequestError(err error, internalMessage string) *Error {

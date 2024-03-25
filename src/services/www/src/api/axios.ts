@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { AxiosError, AxiosInstance } from "axios";
 import config from "../config/config";
 
 const axiosInstance: AxiosInstance = fetchClient();
@@ -19,7 +19,7 @@ export function setAxiosToken(token: string, deleteTokenFn: () => void) {
   // Add an interceptor to handle 401 responses
   axiosInstance.interceptors.response.use(
     (response) => response,
-    (error) => {
+    (error: AxiosError<{ code: string }>) => {
       if (error.response && error.response.status === 401) {
         deleteTokenFn();
       }

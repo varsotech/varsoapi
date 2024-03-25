@@ -88,13 +88,16 @@ export function useToken(): {
   const [state, dispatch] = useAuth();
 
   function setToken(token: string) {
-    console.log("saved token");
-    localStorage.setItem("token", token);
+    if (token == null || token === "") {
+      localStorage.removeItem("token");
+    } else {
+      localStorage.setItem("token", token);
+    }
     dispatch({ type: "setToken", token: token });
   }
 
   var claims: JWTClaims | undefined = undefined;
-  if (state.token != null) {
+  if (state.token != null && state.token !== "") {
     claims = parseJwt(state.token);
   }
 

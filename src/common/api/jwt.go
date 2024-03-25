@@ -14,7 +14,7 @@ import (
 type JWT struct {
 	UserUUID    *uuid.UUID
 	AccessLevel AccessLevel
-	Permissions map[string]bool
+	Permissions map[string]interface{}
 }
 
 func MarshalJWT(userUuid string, accessLevel AccessLevel, permissions map[string]bool) (string, error) {
@@ -97,6 +97,6 @@ func UnmarshalJWT(jwtString string) (*JWT, error) {
 	return &JWT{
 		UserUUID:    userUUID,
 		AccessLevel: AccessLevel(claims["access_level"].(float64)),
-		Permissions: claims["permissions"].(map[string]bool),
+		Permissions: claims["permissions"].(map[string]interface{}),
 	}, nil
 }

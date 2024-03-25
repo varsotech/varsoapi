@@ -35,7 +35,7 @@ func (a *Authorization) Protect(r *http.Request) (jwt *JWT, aErr *Error) {
 		}
 
 		// Take first valid JWT
-		if jwt != nil {
+		if jwt == nil {
 			jwt = tempJWT
 		}
 	}

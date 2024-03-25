@@ -12,8 +12,8 @@ import (
 )
 
 func BlurToggle(w *api.Writer, r *http.Request, p httprouter.Params, j *api.JWT, request models.BlurToggleRequest) (*any, *api.Error) {
-	if !j.Permissions[client.KeyNewsItemImageBlur] {
-		return nil, api.NewUnauthorizedError(nil, "no permission to toggle blur")
+	if _, ok := j.Permissions[client.KeyNewsItemImageBlur]; !ok {
+		return nil, api.NewForbiddenError(nil, "no permission to toggle blur")
 	}
 
 	err := rssitem.ToggleBlur(r.Context(), uuid.MustParse(request.RssItemId))
