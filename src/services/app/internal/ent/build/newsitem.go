@@ -58,7 +58,7 @@ type NewsItem struct {
 // NewsItemEdges holds the relations/edges for other nodes in the graph.
 type NewsItemEdges struct {
 	// Authors holds the value of the authors edge.
-	Authors []*Person `json:"authors,omitempty"`
+	Authors []*RSSAuthor `json:"authors,omitempty"`
 	// Feed holds the value of the feed edge.
 	Feed *RSSFeed `json:"feed,omitempty"`
 	// loadedTypes holds the information for reporting if a
@@ -68,7 +68,7 @@ type NewsItemEdges struct {
 
 // AuthorsOrErr returns the Authors value or an error if the edge
 // was not loaded in eager-loading.
-func (e NewsItemEdges) AuthorsOrErr() ([]*Person, error) {
+func (e NewsItemEdges) AuthorsOrErr() ([]*RSSAuthor, error) {
 	if e.loadedTypes[0] {
 		return e.Authors, nil
 	}
@@ -233,7 +233,7 @@ func (ni *NewsItem) Value(name string) (ent.Value, error) {
 }
 
 // QueryAuthors queries the "authors" edge of the NewsItem entity.
-func (ni *NewsItem) QueryAuthors() *PersonQuery {
+func (ni *NewsItem) QueryAuthors() *RSSAuthorQuery {
 	return NewNewsItemClient(ni.config).QueryAuthors(ni)
 }
 

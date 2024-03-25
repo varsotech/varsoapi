@@ -14,8 +14,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -26,7 +26,7 @@ type NewsItemQuery struct {
 	order       []newsitem.OrderOption
 	inters      []Interceptor
 	predicates  []predicate.NewsItem
-	withAuthors *PersonQuery
+	withAuthors *RSSAuthorQuery
 	withFeed    *RSSFeedQuery
 	withFKs     bool
 	modifiers   []func(*sql.Selector)
@@ -67,8 +67,8 @@ func (niq *NewsItemQuery) Order(o ...newsitem.OrderOption) *NewsItemQuery {
 }
 
 // QueryAuthors chains the current query on the "authors" edge.
-func (niq *NewsItemQuery) QueryAuthors() *PersonQuery {
-	query := (&PersonClient{config: niq.config}).Query()
+func (niq *NewsItemQuery) QueryAuthors() *RSSAuthorQuery {
+	query := (&RSSAuthorClient{config: niq.config}).Query()
 	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
 		if err := niq.prepareQuery(ctx); err != nil {
 			return nil, err
@@ -79,7 +79,7 @@ func (niq *NewsItemQuery) QueryAuthors() *PersonQuery {
 		}
 		step := sqlgraph.NewStep(
 			sqlgraph.From(newsitem.Table, newsitem.FieldID, selector),
-			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.To(rssauthor.Table, rssauthor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, newsitem.AuthorsTable, newsitem.AuthorsPrimaryKey...),
 		)
 		fromU = sqlgraph.SetNeighbors(niq.driver.Dialect(), step)
@@ -312,8 +312,8 @@ func (niq *NewsItemQuery) Clone() *NewsItemQuery {
 
 // WithAuthors tells the query-builder to eager-load the nodes that are connected to
 // the "authors" edge. The optional arguments are used to configure the query builder of the edge.
-func (niq *NewsItemQuery) WithAuthors(opts ...func(*PersonQuery)) *NewsItemQuery {
-	query := (&PersonClient{config: niq.config}).Query()
+func (niq *NewsItemQuery) WithAuthors(opts ...func(*RSSAuthorQuery)) *NewsItemQuery {
+	query := (&RSSAuthorClient{config: niq.config}).Query()
 	for _, opt := range opts {
 		opt(query)
 	}
@@ -445,8 +445,8 @@ func (niq *NewsItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ne
 	}
 	if query := niq.withAuthors; query != nil {
 		if err := niq.loadAuthors(ctx, query, nodes,
-			func(n *NewsItem) { n.Edges.Authors = []*Person{} },
-			func(n *NewsItem, e *Person) { n.Edges.Authors = append(n.Edges.Authors, e) }); err != nil {
+			func(n *NewsItem) { n.Edges.Authors = []*RSSAuthor{} },
+			func(n *NewsItem, e *RSSAuthor) { n.Edges.Authors = append(n.Edges.Authors, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -459,7 +459,7 @@ func (niq *NewsItemQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*Ne
 	return nodes, nil
 }
 
-func (niq *NewsItemQuery) loadAuthors(ctx context.Context, query *PersonQuery, nodes []*NewsItem, init func(*NewsItem), assign func(*NewsItem, *Person)) error {
+func (niq *NewsItemQuery) loadAuthors(ctx context.Context, query *RSSAuthorQuery, nodes []*NewsItem, init func(*NewsItem), assign func(*NewsItem, *RSSAuthor)) error {
 	edgeIDs := make([]driver.Value, len(nodes))
 	byID := make(map[uuid.UUID]*NewsItem)
 	nids := make(map[uuid.UUID]map[*NewsItem]struct{})
@@ -472,7 +472,7 @@ func (niq *NewsItemQuery) loadAuthors(ctx context.Context, query *PersonQuery, n
 	}
 	query.Where(func(s *sql.Selector) {
 		joinT := sql.Table(newsitem.AuthorsTable)
-		s.Join(joinT).On(s.C(person.FieldID), joinT.C(newsitem.AuthorsPrimaryKey[1]))
+		s.Join(joinT).On(s.C(rssauthor.FieldID), joinT.C(newsitem.AuthorsPrimaryKey[1]))
 		s.Where(sql.InValues(joinT.C(newsitem.AuthorsPrimaryKey[0]), edgeIDs...))
 		columns := s.SelectedColumns()
 		s.Select(joinT.C(newsitem.AuthorsPrimaryKey[0]))
@@ -505,7 +505,7 @@ func (niq *NewsItemQuery) loadAuthors(ctx context.Context, query *PersonQuery, n
 			}
 		})
 	})
-	neighbors, err := withInterceptors[[]*Person](ctx, query, qr, query.inters)
+	neighbors, err := withInterceptors[[]*RSSAuthor](ctx, query, qr, query.inters)
 	if err != nil {
 		return err
 	}

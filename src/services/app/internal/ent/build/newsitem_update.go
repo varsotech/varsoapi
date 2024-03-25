@@ -14,8 +14,8 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -214,17 +214,17 @@ func (niu *NewsItemUpdate) SetNillableBlur(b *bool) *NewsItemUpdate {
 	return niu
 }
 
-// AddAuthorIDs adds the "authors" edge to the Person entity by IDs.
+// AddAuthorIDs adds the "authors" edge to the RSSAuthor entity by IDs.
 func (niu *NewsItemUpdate) AddAuthorIDs(ids ...uuid.UUID) *NewsItemUpdate {
 	niu.mutation.AddAuthorIDs(ids...)
 	return niu
 }
 
-// AddAuthors adds the "authors" edges to the Person entity.
-func (niu *NewsItemUpdate) AddAuthors(p ...*Person) *NewsItemUpdate {
-	ids := make([]uuid.UUID, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddAuthors adds the "authors" edges to the RSSAuthor entity.
+func (niu *NewsItemUpdate) AddAuthors(r ...*RSSAuthor) *NewsItemUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
 	return niu.AddAuthorIDs(ids...)
 }
@@ -253,23 +253,23 @@ func (niu *NewsItemUpdate) Mutation() *NewsItemMutation {
 	return niu.mutation
 }
 
-// ClearAuthors clears all "authors" edges to the Person entity.
+// ClearAuthors clears all "authors" edges to the RSSAuthor entity.
 func (niu *NewsItemUpdate) ClearAuthors() *NewsItemUpdate {
 	niu.mutation.ClearAuthors()
 	return niu
 }
 
-// RemoveAuthorIDs removes the "authors" edge to Person entities by IDs.
+// RemoveAuthorIDs removes the "authors" edge to RSSAuthor entities by IDs.
 func (niu *NewsItemUpdate) RemoveAuthorIDs(ids ...uuid.UUID) *NewsItemUpdate {
 	niu.mutation.RemoveAuthorIDs(ids...)
 	return niu
 }
 
-// RemoveAuthors removes "authors" edges to Person entities.
-func (niu *NewsItemUpdate) RemoveAuthors(p ...*Person) *NewsItemUpdate {
-	ids := make([]uuid.UUID, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// RemoveAuthors removes "authors" edges to RSSAuthor entities.
+func (niu *NewsItemUpdate) RemoveAuthors(r ...*RSSAuthor) *NewsItemUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
 	return niu.RemoveAuthorIDs(ids...)
 }
@@ -388,7 +388,7 @@ func (niu *NewsItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -401,7 +401,7 @@ func (niu *NewsItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -417,7 +417,7 @@ func (niu *NewsItemUpdate) sqlSave(ctx context.Context) (n int, err error) {
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -656,17 +656,17 @@ func (niuo *NewsItemUpdateOne) SetNillableBlur(b *bool) *NewsItemUpdateOne {
 	return niuo
 }
 
-// AddAuthorIDs adds the "authors" edge to the Person entity by IDs.
+// AddAuthorIDs adds the "authors" edge to the RSSAuthor entity by IDs.
 func (niuo *NewsItemUpdateOne) AddAuthorIDs(ids ...uuid.UUID) *NewsItemUpdateOne {
 	niuo.mutation.AddAuthorIDs(ids...)
 	return niuo
 }
 
-// AddAuthors adds the "authors" edges to the Person entity.
-func (niuo *NewsItemUpdateOne) AddAuthors(p ...*Person) *NewsItemUpdateOne {
-	ids := make([]uuid.UUID, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddAuthors adds the "authors" edges to the RSSAuthor entity.
+func (niuo *NewsItemUpdateOne) AddAuthors(r ...*RSSAuthor) *NewsItemUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
 	return niuo.AddAuthorIDs(ids...)
 }
@@ -695,23 +695,23 @@ func (niuo *NewsItemUpdateOne) Mutation() *NewsItemMutation {
 	return niuo.mutation
 }
 
-// ClearAuthors clears all "authors" edges to the Person entity.
+// ClearAuthors clears all "authors" edges to the RSSAuthor entity.
 func (niuo *NewsItemUpdateOne) ClearAuthors() *NewsItemUpdateOne {
 	niuo.mutation.ClearAuthors()
 	return niuo
 }
 
-// RemoveAuthorIDs removes the "authors" edge to Person entities by IDs.
+// RemoveAuthorIDs removes the "authors" edge to RSSAuthor entities by IDs.
 func (niuo *NewsItemUpdateOne) RemoveAuthorIDs(ids ...uuid.UUID) *NewsItemUpdateOne {
 	niuo.mutation.RemoveAuthorIDs(ids...)
 	return niuo
 }
 
-// RemoveAuthors removes "authors" edges to Person entities.
-func (niuo *NewsItemUpdateOne) RemoveAuthors(p ...*Person) *NewsItemUpdateOne {
-	ids := make([]uuid.UUID, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// RemoveAuthors removes "authors" edges to RSSAuthor entities.
+func (niuo *NewsItemUpdateOne) RemoveAuthors(r ...*RSSAuthor) *NewsItemUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
 	return niuo.RemoveAuthorIDs(ids...)
 }
@@ -860,7 +860,7 @@ func (niuo *NewsItemUpdateOne) sqlSave(ctx context.Context) (_node *NewsItem, er
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
@@ -873,7 +873,7 @@ func (niuo *NewsItemUpdateOne) sqlSave(ctx context.Context) (_node *NewsItem, er
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -889,7 +889,7 @@ func (niuo *NewsItemUpdateOne) sqlSave(ctx context.Context) (_node *NewsItem, er
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

@@ -46,13 +46,24 @@ var orgs = []struct {
 		},
 		RssFeedUrl: "https://mondoweiss.net/rss",
 	},
+
+	{
+		Organization: &models.Organization{
+			Uuid:        "3b613eb0-2d13-4a74-bd94-4acb57c8fef9",
+			UniqueName:  "bds",
+			Name:        "BDS",
+			Description: "Boycott, Divestment, Sanctions (BDS) is a Palestinian-led movement for freedom, justice and equality.",
+			WebsiteUrl:  "https://bdsmovement.net",
+		},
+		RssFeedUrl: "https://bdsmovement.net/rss-feed.xml",
+	},
 }
 
 func Initialize(ctx context.Context) error {
 	for _, org := range orgs {
 		orgUuid := uuid.MustParse(org.Uuid)
 
-		err := organization.UpsertOrganization(ctx, orgUuid, org.Name, org.Description, org.WebsiteUrl)
+		err := organization.UpsertOrganization(ctx, orgUuid, org.UniqueName, org.Name, org.Description, org.WebsiteUrl)
 		if err != nil {
 			return errors.Wrapf(err, "failed upserting org with uuid '%s'", org.Uuid)
 		}

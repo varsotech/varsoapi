@@ -16,6 +16,7 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -31,6 +32,7 @@ const (
 	TypeNewsItem     = "NewsItem"
 	TypeOrganization = "Organization"
 	TypePerson       = "Person"
+	TypeRSSAuthor    = "RSSAuthor"
 	TypeRSSFeed      = "RSSFeed"
 )
 
@@ -731,7 +733,7 @@ func (m *NewsItemMutation) ResetBlur() {
 	m.blur = nil
 }
 
-// AddAuthorIDs adds the "authors" edge to the Person entity by ids.
+// AddAuthorIDs adds the "authors" edge to the RSSAuthor entity by ids.
 func (m *NewsItemMutation) AddAuthorIDs(ids ...uuid.UUID) {
 	if m.authors == nil {
 		m.authors = make(map[uuid.UUID]struct{})
@@ -741,17 +743,17 @@ func (m *NewsItemMutation) AddAuthorIDs(ids ...uuid.UUID) {
 	}
 }
 
-// ClearAuthors clears the "authors" edge to the Person entity.
+// ClearAuthors clears the "authors" edge to the RSSAuthor entity.
 func (m *NewsItemMutation) ClearAuthors() {
 	m.clearedauthors = true
 }
 
-// AuthorsCleared reports if the "authors" edge to the Person entity was cleared.
+// AuthorsCleared reports if the "authors" edge to the RSSAuthor entity was cleared.
 func (m *NewsItemMutation) AuthorsCleared() bool {
 	return m.clearedauthors
 }
 
-// RemoveAuthorIDs removes the "authors" edge to the Person entity by IDs.
+// RemoveAuthorIDs removes the "authors" edge to the RSSAuthor entity by IDs.
 func (m *NewsItemMutation) RemoveAuthorIDs(ids ...uuid.UUID) {
 	if m.removedauthors == nil {
 		m.removedauthors = make(map[uuid.UUID]struct{})
@@ -762,7 +764,7 @@ func (m *NewsItemMutation) RemoveAuthorIDs(ids ...uuid.UUID) {
 	}
 }
 
-// RemovedAuthors returns the removed IDs of the "authors" edge to the Person entity.
+// RemovedAuthors returns the removed IDs of the "authors" edge to the RSSAuthor entity.
 func (m *NewsItemMutation) RemovedAuthorsIDs() (ids []uuid.UUID) {
 	for id := range m.removedauthors {
 		ids = append(ids, id)
@@ -1308,6 +1310,9 @@ type OrganizationMutation struct {
 	feeds         map[uuid.UUID]struct{}
 	removedfeeds  map[uuid.UUID]struct{}
 	clearedfeeds  bool
+	author        map[uuid.UUID]struct{}
+	removedauthor map[uuid.UUID]struct{}
+	clearedauthor bool
 	done          bool
 	oldValue      func(context.Context) (*Organization, error)
 	predicates    []predicate.Organization
@@ -1484,22 +1489,9 @@ func (m *OrganizationMutation) OldUniqueName(ctx context.Context) (v string, err
 	return oldValue.UniqueName, nil
 }
 
-// ClearUniqueName clears the value of the "unique_name" field.
-func (m *OrganizationMutation) ClearUniqueName() {
-	m.unique_name = nil
-	m.clearedFields[organization.FieldUniqueName] = struct{}{}
-}
-
-// UniqueNameCleared returns if the "unique_name" field was cleared in this mutation.
-func (m *OrganizationMutation) UniqueNameCleared() bool {
-	_, ok := m.clearedFields[organization.FieldUniqueName]
-	return ok
-}
-
 // ResetUniqueName resets all changes to the "unique_name" field.
 func (m *OrganizationMutation) ResetUniqueName() {
 	m.unique_name = nil
-	delete(m.clearedFields, organization.FieldUniqueName)
 }
 
 // SetName sets the "name" field.
@@ -1664,6 +1656,60 @@ func (m *OrganizationMutation) ResetFeeds() {
 	m.removedfeeds = nil
 }
 
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by ids.
+func (m *OrganizationMutation) AddAuthorIDs(ids ...uuid.UUID) {
+	if m.author == nil {
+		m.author = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.author[ids[i]] = struct{}{}
+	}
+}
+
+// ClearAuthor clears the "author" edge to the RSSAuthor entity.
+func (m *OrganizationMutation) ClearAuthor() {
+	m.clearedauthor = true
+}
+
+// AuthorCleared reports if the "author" edge to the RSSAuthor entity was cleared.
+func (m *OrganizationMutation) AuthorCleared() bool {
+	return m.clearedauthor
+}
+
+// RemoveAuthorIDs removes the "author" edge to the RSSAuthor entity by IDs.
+func (m *OrganizationMutation) RemoveAuthorIDs(ids ...uuid.UUID) {
+	if m.removedauthor == nil {
+		m.removedauthor = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.author, ids[i])
+		m.removedauthor[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedAuthor returns the removed IDs of the "author" edge to the RSSAuthor entity.
+func (m *OrganizationMutation) RemovedAuthorIDs() (ids []uuid.UUID) {
+	for id := range m.removedauthor {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// AuthorIDs returns the "author" edge IDs in the mutation.
+func (m *OrganizationMutation) AuthorIDs() (ids []uuid.UUID) {
+	for id := range m.author {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetAuthor resets all changes to the "author" edge.
+func (m *OrganizationMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+	m.removedauthor = nil
+}
+
 // Where appends a list predicates to the OrganizationMutation builder.
 func (m *OrganizationMutation) Where(ps ...predicate.Organization) {
 	m.predicates = append(m.predicates, ps...)
@@ -1824,11 +1870,7 @@ func (m *OrganizationMutation) AddField(name string, value ent.Value) error {
 // ClearedFields returns all nullable fields that were cleared during this
 // mutation.
 func (m *OrganizationMutation) ClearedFields() []string {
-	var fields []string
-	if m.FieldCleared(organization.FieldUniqueName) {
-		fields = append(fields, organization.FieldUniqueName)
-	}
-	return fields
+	return nil
 }
 
 // FieldCleared returns a boolean indicating if a field with the given name was
@@ -1841,11 +1883,6 @@ func (m *OrganizationMutation) FieldCleared(name string) bool {
 // ClearField clears the value of the field with the given name. It returns an
 // error if the field is not defined in the schema.
 func (m *OrganizationMutation) ClearField(name string) error {
-	switch name {
-	case organization.FieldUniqueName:
-		m.ClearUniqueName()
-		return nil
-	}
 	return fmt.Errorf("unknown Organization nullable field %s", name)
 }
 
@@ -1874,9 +1911,12 @@ func (m *OrganizationMutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *OrganizationMutation) AddedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.feeds != nil {
 		edges = append(edges, organization.EdgeFeeds)
+	}
+	if m.author != nil {
+		edges = append(edges, organization.EdgeAuthor)
 	}
 	return edges
 }
@@ -1891,15 +1931,24 @@ func (m *OrganizationMutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeAuthor:
+		ids := make([]ent.Value, 0, len(m.author))
+		for id := range m.author {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *OrganizationMutation) RemovedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.removedfeeds != nil {
 		edges = append(edges, organization.EdgeFeeds)
+	}
+	if m.removedauthor != nil {
+		edges = append(edges, organization.EdgeAuthor)
 	}
 	return edges
 }
@@ -1914,15 +1963,24 @@ func (m *OrganizationMutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case organization.EdgeAuthor:
+		ids := make([]ent.Value, 0, len(m.removedauthor))
+		for id := range m.removedauthor {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *OrganizationMutation) ClearedEdges() []string {
-	edges := make([]string, 0, 1)
+	edges := make([]string, 0, 2)
 	if m.clearedfeeds {
 		edges = append(edges, organization.EdgeFeeds)
+	}
+	if m.clearedauthor {
+		edges = append(edges, organization.EdgeAuthor)
 	}
 	return edges
 }
@@ -1933,6 +1991,8 @@ func (m *OrganizationMutation) EdgeCleared(name string) bool {
 	switch name {
 	case organization.EdgeFeeds:
 		return m.clearedfeeds
+	case organization.EdgeAuthor:
+		return m.clearedauthor
 	}
 	return false
 }
@@ -1952,6 +2012,9 @@ func (m *OrganizationMutation) ResetEdge(name string) error {
 	case organization.EdgeFeeds:
 		m.ResetFeeds()
 		return nil
+	case organization.EdgeAuthor:
+		m.ResetAuthor()
+		return nil
 	}
 	return fmt.Errorf("unknown Organization edge %s", name)
 }
@@ -1967,9 +2030,9 @@ type PersonMutation struct {
 	email         *string
 	name          *string
 	clearedFields map[string]struct{}
-	item          map[uuid.UUID]struct{}
-	removeditem   map[uuid.UUID]struct{}
-	cleareditem   bool
+	author        map[uuid.UUID]struct{}
+	removedauthor map[uuid.UUID]struct{}
+	clearedauthor bool
 	done          bool
 	oldValue      func(context.Context) (*Person, error)
 	predicates    []predicate.Person
@@ -2223,58 +2286,58 @@ func (m *PersonMutation) ResetName() {
 	m.name = nil
 }
 
-// AddItemIDs adds the "item" edge to the NewsItem entity by ids.
-func (m *PersonMutation) AddItemIDs(ids ...uuid.UUID) {
-	if m.item == nil {
-		m.item = make(map[uuid.UUID]struct{})
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by ids.
+func (m *PersonMutation) AddAuthorIDs(ids ...uuid.UUID) {
+	if m.author == nil {
+		m.author = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		m.item[ids[i]] = struct{}{}
+		m.author[ids[i]] = struct{}{}
 	}
 }
 
-// ClearItem clears the "item" edge to the NewsItem entity.
-func (m *PersonMutation) ClearItem() {
-	m.cleareditem = true
+// ClearAuthor clears the "author" edge to the RSSAuthor entity.
+func (m *PersonMutation) ClearAuthor() {
+	m.clearedauthor = true
 }
 
-// ItemCleared reports if the "item" edge to the NewsItem entity was cleared.
-func (m *PersonMutation) ItemCleared() bool {
-	return m.cleareditem
+// AuthorCleared reports if the "author" edge to the RSSAuthor entity was cleared.
+func (m *PersonMutation) AuthorCleared() bool {
+	return m.clearedauthor
 }
 
-// RemoveItemIDs removes the "item" edge to the NewsItem entity by IDs.
-func (m *PersonMutation) RemoveItemIDs(ids ...uuid.UUID) {
-	if m.removeditem == nil {
-		m.removeditem = make(map[uuid.UUID]struct{})
+// RemoveAuthorIDs removes the "author" edge to the RSSAuthor entity by IDs.
+func (m *PersonMutation) RemoveAuthorIDs(ids ...uuid.UUID) {
+	if m.removedauthor == nil {
+		m.removedauthor = make(map[uuid.UUID]struct{})
 	}
 	for i := range ids {
-		delete(m.item, ids[i])
-		m.removeditem[ids[i]] = struct{}{}
+		delete(m.author, ids[i])
+		m.removedauthor[ids[i]] = struct{}{}
 	}
 }
 
-// RemovedItem returns the removed IDs of the "item" edge to the NewsItem entity.
-func (m *PersonMutation) RemovedItemIDs() (ids []uuid.UUID) {
-	for id := range m.removeditem {
+// RemovedAuthor returns the removed IDs of the "author" edge to the RSSAuthor entity.
+func (m *PersonMutation) RemovedAuthorIDs() (ids []uuid.UUID) {
+	for id := range m.removedauthor {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ItemIDs returns the "item" edge IDs in the mutation.
-func (m *PersonMutation) ItemIDs() (ids []uuid.UUID) {
-	for id := range m.item {
+// AuthorIDs returns the "author" edge IDs in the mutation.
+func (m *PersonMutation) AuthorIDs() (ids []uuid.UUID) {
+	for id := range m.author {
 		ids = append(ids, id)
 	}
 	return
 }
 
-// ResetItem resets all changes to the "item" edge.
-func (m *PersonMutation) ResetItem() {
-	m.item = nil
-	m.cleareditem = false
-	m.removeditem = nil
+// ResetAuthor resets all changes to the "author" edge.
+func (m *PersonMutation) ResetAuthor() {
+	m.author = nil
+	m.clearedauthor = false
+	m.removedauthor = nil
 }
 
 // Where appends a list predicates to the PersonMutation builder.
@@ -2462,8 +2525,8 @@ func (m *PersonMutation) ResetField(name string) error {
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *PersonMutation) AddedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.item != nil {
-		edges = append(edges, person.EdgeItem)
+	if m.author != nil {
+		edges = append(edges, person.EdgeAuthor)
 	}
 	return edges
 }
@@ -2472,9 +2535,9 @@ func (m *PersonMutation) AddedEdges() []string {
 // name in this mutation.
 func (m *PersonMutation) AddedIDs(name string) []ent.Value {
 	switch name {
-	case person.EdgeItem:
-		ids := make([]ent.Value, 0, len(m.item))
-		for id := range m.item {
+	case person.EdgeAuthor:
+		ids := make([]ent.Value, 0, len(m.author))
+		for id := range m.author {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2485,8 +2548,8 @@ func (m *PersonMutation) AddedIDs(name string) []ent.Value {
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *PersonMutation) RemovedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.removeditem != nil {
-		edges = append(edges, person.EdgeItem)
+	if m.removedauthor != nil {
+		edges = append(edges, person.EdgeAuthor)
 	}
 	return edges
 }
@@ -2495,9 +2558,9 @@ func (m *PersonMutation) RemovedEdges() []string {
 // the given name in this mutation.
 func (m *PersonMutation) RemovedIDs(name string) []ent.Value {
 	switch name {
-	case person.EdgeItem:
-		ids := make([]ent.Value, 0, len(m.removeditem))
-		for id := range m.removeditem {
+	case person.EdgeAuthor:
+		ids := make([]ent.Value, 0, len(m.removedauthor))
+		for id := range m.removedauthor {
 			ids = append(ids, id)
 		}
 		return ids
@@ -2508,8 +2571,8 @@ func (m *PersonMutation) RemovedIDs(name string) []ent.Value {
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *PersonMutation) ClearedEdges() []string {
 	edges := make([]string, 0, 1)
-	if m.cleareditem {
-		edges = append(edges, person.EdgeItem)
+	if m.clearedauthor {
+		edges = append(edges, person.EdgeAuthor)
 	}
 	return edges
 }
@@ -2518,8 +2581,8 @@ func (m *PersonMutation) ClearedEdges() []string {
 // was cleared in this mutation.
 func (m *PersonMutation) EdgeCleared(name string) bool {
 	switch name {
-	case person.EdgeItem:
-		return m.cleareditem
+	case person.EdgeAuthor:
+		return m.clearedauthor
 	}
 	return false
 }
@@ -2536,11 +2599,684 @@ func (m *PersonMutation) ClearEdge(name string) error {
 // It returns an error if the edge is not defined in the schema.
 func (m *PersonMutation) ResetEdge(name string) error {
 	switch name {
-	case person.EdgeItem:
-		m.ResetItem()
+	case person.EdgeAuthor:
+		m.ResetAuthor()
 		return nil
 	}
 	return fmt.Errorf("unknown Person edge %s", name)
+}
+
+// RSSAuthorMutation represents an operation that mutates the RSSAuthor nodes in the graph.
+type RSSAuthorMutation struct {
+	config
+	op                  Op
+	typ                 string
+	id                  *uuid.UUID
+	create_time         *time.Time
+	email               *string
+	name                *string
+	clearedFields       map[string]struct{}
+	person              *uuid.UUID
+	clearedperson       bool
+	organization        *uuid.UUID
+	clearedorganization bool
+	newsitem            map[uuid.UUID]struct{}
+	removednewsitem     map[uuid.UUID]struct{}
+	clearednewsitem     bool
+	done                bool
+	oldValue            func(context.Context) (*RSSAuthor, error)
+	predicates          []predicate.RSSAuthor
+}
+
+var _ ent.Mutation = (*RSSAuthorMutation)(nil)
+
+// rssauthorOption allows management of the mutation configuration using functional options.
+type rssauthorOption func(*RSSAuthorMutation)
+
+// newRSSAuthorMutation creates new mutation for the RSSAuthor entity.
+func newRSSAuthorMutation(c config, op Op, opts ...rssauthorOption) *RSSAuthorMutation {
+	m := &RSSAuthorMutation{
+		config:        c,
+		op:            op,
+		typ:           TypeRSSAuthor,
+		clearedFields: make(map[string]struct{}),
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// withRSSAuthorID sets the ID field of the mutation.
+func withRSSAuthorID(id uuid.UUID) rssauthorOption {
+	return func(m *RSSAuthorMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *RSSAuthor
+		)
+		m.oldValue = func(ctx context.Context) (*RSSAuthor, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().RSSAuthor.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withRSSAuthor sets the old RSSAuthor of the mutation.
+func withRSSAuthor(node *RSSAuthor) rssauthorOption {
+	return func(m *RSSAuthorMutation) {
+		m.oldValue = func(context.Context) (*RSSAuthor, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m RSSAuthorMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m RSSAuthorMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("build: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// SetID sets the value of the id field. Note that this
+// operation is only accepted on creation of RSSAuthor entities.
+func (m *RSSAuthorMutation) SetID(id uuid.UUID) {
+	m.id = &id
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *RSSAuthorMutation) ID() (id uuid.UUID, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *RSSAuthorMutation) IDs(ctx context.Context) ([]uuid.UUID, error) {
+	switch {
+	case m.op.Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []uuid.UUID{id}, nil
+		}
+		fallthrough
+	case m.op.Is(OpUpdate | OpDelete):
+		return m.Client().RSSAuthor.Query().Where(m.predicates...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.op)
+	}
+}
+
+// SetCreateTime sets the "create_time" field.
+func (m *RSSAuthorMutation) SetCreateTime(t time.Time) {
+	m.create_time = &t
+}
+
+// CreateTime returns the value of the "create_time" field in the mutation.
+func (m *RSSAuthorMutation) CreateTime() (r time.Time, exists bool) {
+	v := m.create_time
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldCreateTime returns the old "create_time" field's value of the RSSAuthor entity.
+// If the RSSAuthor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RSSAuthorMutation) OldCreateTime(ctx context.Context) (v time.Time, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldCreateTime is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldCreateTime requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldCreateTime: %w", err)
+	}
+	return oldValue.CreateTime, nil
+}
+
+// ResetCreateTime resets all changes to the "create_time" field.
+func (m *RSSAuthorMutation) ResetCreateTime() {
+	m.create_time = nil
+}
+
+// SetEmail sets the "email" field.
+func (m *RSSAuthorMutation) SetEmail(s string) {
+	m.email = &s
+}
+
+// Email returns the value of the "email" field in the mutation.
+func (m *RSSAuthorMutation) Email() (r string, exists bool) {
+	v := m.email
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldEmail returns the old "email" field's value of the RSSAuthor entity.
+// If the RSSAuthor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RSSAuthorMutation) OldEmail(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldEmail is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldEmail requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldEmail: %w", err)
+	}
+	return oldValue.Email, nil
+}
+
+// ClearEmail clears the value of the "email" field.
+func (m *RSSAuthorMutation) ClearEmail() {
+	m.email = nil
+	m.clearedFields[rssauthor.FieldEmail] = struct{}{}
+}
+
+// EmailCleared returns if the "email" field was cleared in this mutation.
+func (m *RSSAuthorMutation) EmailCleared() bool {
+	_, ok := m.clearedFields[rssauthor.FieldEmail]
+	return ok
+}
+
+// ResetEmail resets all changes to the "email" field.
+func (m *RSSAuthorMutation) ResetEmail() {
+	m.email = nil
+	delete(m.clearedFields, rssauthor.FieldEmail)
+}
+
+// SetName sets the "name" field.
+func (m *RSSAuthorMutation) SetName(s string) {
+	m.name = &s
+}
+
+// Name returns the value of the "name" field in the mutation.
+func (m *RSSAuthorMutation) Name() (r string, exists bool) {
+	v := m.name
+	if v == nil {
+		return
+	}
+	return *v, true
+}
+
+// OldName returns the old "name" field's value of the RSSAuthor entity.
+// If the RSSAuthor object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *RSSAuthorMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.op.Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if m.id == nil || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// ResetName resets all changes to the "name" field.
+func (m *RSSAuthorMutation) ResetName() {
+	m.name = nil
+}
+
+// SetPersonID sets the "person" edge to the Person entity by id.
+func (m *RSSAuthorMutation) SetPersonID(id uuid.UUID) {
+	m.person = &id
+}
+
+// ClearPerson clears the "person" edge to the Person entity.
+func (m *RSSAuthorMutation) ClearPerson() {
+	m.clearedperson = true
+}
+
+// PersonCleared reports if the "person" edge to the Person entity was cleared.
+func (m *RSSAuthorMutation) PersonCleared() bool {
+	return m.clearedperson
+}
+
+// PersonID returns the "person" edge ID in the mutation.
+func (m *RSSAuthorMutation) PersonID() (id uuid.UUID, exists bool) {
+	if m.person != nil {
+		return *m.person, true
+	}
+	return
+}
+
+// PersonIDs returns the "person" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// PersonID instead. It exists only for internal usage by the builders.
+func (m *RSSAuthorMutation) PersonIDs() (ids []uuid.UUID) {
+	if id := m.person; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetPerson resets all changes to the "person" edge.
+func (m *RSSAuthorMutation) ResetPerson() {
+	m.person = nil
+	m.clearedperson = false
+}
+
+// SetOrganizationID sets the "organization" edge to the Organization entity by id.
+func (m *RSSAuthorMutation) SetOrganizationID(id uuid.UUID) {
+	m.organization = &id
+}
+
+// ClearOrganization clears the "organization" edge to the Organization entity.
+func (m *RSSAuthorMutation) ClearOrganization() {
+	m.clearedorganization = true
+}
+
+// OrganizationCleared reports if the "organization" edge to the Organization entity was cleared.
+func (m *RSSAuthorMutation) OrganizationCleared() bool {
+	return m.clearedorganization
+}
+
+// OrganizationID returns the "organization" edge ID in the mutation.
+func (m *RSSAuthorMutation) OrganizationID() (id uuid.UUID, exists bool) {
+	if m.organization != nil {
+		return *m.organization, true
+	}
+	return
+}
+
+// OrganizationIDs returns the "organization" edge IDs in the mutation.
+// Note that IDs always returns len(IDs) <= 1 for unique edges, and you should use
+// OrganizationID instead. It exists only for internal usage by the builders.
+func (m *RSSAuthorMutation) OrganizationIDs() (ids []uuid.UUID) {
+	if id := m.organization; id != nil {
+		ids = append(ids, *id)
+	}
+	return
+}
+
+// ResetOrganization resets all changes to the "organization" edge.
+func (m *RSSAuthorMutation) ResetOrganization() {
+	m.organization = nil
+	m.clearedorganization = false
+}
+
+// AddNewsitemIDs adds the "newsitem" edge to the NewsItem entity by ids.
+func (m *RSSAuthorMutation) AddNewsitemIDs(ids ...uuid.UUID) {
+	if m.newsitem == nil {
+		m.newsitem = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		m.newsitem[ids[i]] = struct{}{}
+	}
+}
+
+// ClearNewsitem clears the "newsitem" edge to the NewsItem entity.
+func (m *RSSAuthorMutation) ClearNewsitem() {
+	m.clearednewsitem = true
+}
+
+// NewsitemCleared reports if the "newsitem" edge to the NewsItem entity was cleared.
+func (m *RSSAuthorMutation) NewsitemCleared() bool {
+	return m.clearednewsitem
+}
+
+// RemoveNewsitemIDs removes the "newsitem" edge to the NewsItem entity by IDs.
+func (m *RSSAuthorMutation) RemoveNewsitemIDs(ids ...uuid.UUID) {
+	if m.removednewsitem == nil {
+		m.removednewsitem = make(map[uuid.UUID]struct{})
+	}
+	for i := range ids {
+		delete(m.newsitem, ids[i])
+		m.removednewsitem[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedNewsitem returns the removed IDs of the "newsitem" edge to the NewsItem entity.
+func (m *RSSAuthorMutation) RemovedNewsitemIDs() (ids []uuid.UUID) {
+	for id := range m.removednewsitem {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// NewsitemIDs returns the "newsitem" edge IDs in the mutation.
+func (m *RSSAuthorMutation) NewsitemIDs() (ids []uuid.UUID) {
+	for id := range m.newsitem {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetNewsitem resets all changes to the "newsitem" edge.
+func (m *RSSAuthorMutation) ResetNewsitem() {
+	m.newsitem = nil
+	m.clearednewsitem = false
+	m.removednewsitem = nil
+}
+
+// Where appends a list predicates to the RSSAuthorMutation builder.
+func (m *RSSAuthorMutation) Where(ps ...predicate.RSSAuthor) {
+	m.predicates = append(m.predicates, ps...)
+}
+
+// WhereP appends storage-level predicates to the RSSAuthorMutation builder. Using this method,
+// users can use type-assertion to append predicates that do not depend on any generated package.
+func (m *RSSAuthorMutation) WhereP(ps ...func(*sql.Selector)) {
+	p := make([]predicate.RSSAuthor, len(ps))
+	for i := range ps {
+		p[i] = ps[i]
+	}
+	m.Where(p...)
+}
+
+// Op returns the operation name.
+func (m *RSSAuthorMutation) Op() Op {
+	return m.op
+}
+
+// SetOp allows setting the mutation operation.
+func (m *RSSAuthorMutation) SetOp(op Op) {
+	m.op = op
+}
+
+// Type returns the node type of this mutation (RSSAuthor).
+func (m *RSSAuthorMutation) Type() string {
+	return m.typ
+}
+
+// Fields returns all fields that were changed during this mutation. Note that in
+// order to get all numeric fields that were incremented/decremented, call
+// AddedFields().
+func (m *RSSAuthorMutation) Fields() []string {
+	fields := make([]string, 0, 3)
+	if m.create_time != nil {
+		fields = append(fields, rssauthor.FieldCreateTime)
+	}
+	if m.email != nil {
+		fields = append(fields, rssauthor.FieldEmail)
+	}
+	if m.name != nil {
+		fields = append(fields, rssauthor.FieldName)
+	}
+	return fields
+}
+
+// Field returns the value of a field with the given name. The second boolean
+// return value indicates that this field was not set, or was not defined in the
+// schema.
+func (m *RSSAuthorMutation) Field(name string) (ent.Value, bool) {
+	switch name {
+	case rssauthor.FieldCreateTime:
+		return m.CreateTime()
+	case rssauthor.FieldEmail:
+		return m.Email()
+	case rssauthor.FieldName:
+		return m.Name()
+	}
+	return nil, false
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *RSSAuthorMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case rssauthor.FieldCreateTime:
+		return m.OldCreateTime(ctx)
+	case rssauthor.FieldEmail:
+		return m.OldEmail(ctx)
+	case rssauthor.FieldName:
+		return m.OldName(ctx)
+	}
+	return nil, fmt.Errorf("unknown RSSAuthor field %s", name)
+}
+
+// SetField sets the value of a field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RSSAuthorMutation) SetField(name string, value ent.Value) error {
+	switch name {
+	case rssauthor.FieldCreateTime:
+		v, ok := value.(time.Time)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetCreateTime(v)
+		return nil
+	case rssauthor.FieldEmail:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetEmail(v)
+		return nil
+	case rssauthor.FieldName:
+		v, ok := value.(string)
+		if !ok {
+			return fmt.Errorf("unexpected type %T for field %s", value, name)
+		}
+		m.SetName(v)
+		return nil
+	}
+	return fmt.Errorf("unknown RSSAuthor field %s", name)
+}
+
+// AddedFields returns all numeric fields that were incremented/decremented during
+// this mutation.
+func (m *RSSAuthorMutation) AddedFields() []string {
+	return nil
+}
+
+// AddedField returns the numeric value that was incremented/decremented on a field
+// with the given name. The second boolean return value indicates that this field
+// was not set, or was not defined in the schema.
+func (m *RSSAuthorMutation) AddedField(name string) (ent.Value, bool) {
+	return nil, false
+}
+
+// AddField adds the value to the field with the given name. It returns an error if
+// the field is not defined in the schema, or if the type mismatched the field
+// type.
+func (m *RSSAuthorMutation) AddField(name string, value ent.Value) error {
+	switch name {
+	}
+	return fmt.Errorf("unknown RSSAuthor numeric field %s", name)
+}
+
+// ClearedFields returns all nullable fields that were cleared during this
+// mutation.
+func (m *RSSAuthorMutation) ClearedFields() []string {
+	var fields []string
+	if m.FieldCleared(rssauthor.FieldEmail) {
+		fields = append(fields, rssauthor.FieldEmail)
+	}
+	return fields
+}
+
+// FieldCleared returns a boolean indicating if a field with the given name was
+// cleared in this mutation.
+func (m *RSSAuthorMutation) FieldCleared(name string) bool {
+	_, ok := m.clearedFields[name]
+	return ok
+}
+
+// ClearField clears the value of the field with the given name. It returns an
+// error if the field is not defined in the schema.
+func (m *RSSAuthorMutation) ClearField(name string) error {
+	switch name {
+	case rssauthor.FieldEmail:
+		m.ClearEmail()
+		return nil
+	}
+	return fmt.Errorf("unknown RSSAuthor nullable field %s", name)
+}
+
+// ResetField resets all changes in the mutation for the field with the given name.
+// It returns an error if the field is not defined in the schema.
+func (m *RSSAuthorMutation) ResetField(name string) error {
+	switch name {
+	case rssauthor.FieldCreateTime:
+		m.ResetCreateTime()
+		return nil
+	case rssauthor.FieldEmail:
+		m.ResetEmail()
+		return nil
+	case rssauthor.FieldName:
+		m.ResetName()
+		return nil
+	}
+	return fmt.Errorf("unknown RSSAuthor field %s", name)
+}
+
+// AddedEdges returns all edge names that were set/added in this mutation.
+func (m *RSSAuthorMutation) AddedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.person != nil {
+		edges = append(edges, rssauthor.EdgePerson)
+	}
+	if m.organization != nil {
+		edges = append(edges, rssauthor.EdgeOrganization)
+	}
+	if m.newsitem != nil {
+		edges = append(edges, rssauthor.EdgeNewsitem)
+	}
+	return edges
+}
+
+// AddedIDs returns all IDs (to other nodes) that were added for the given edge
+// name in this mutation.
+func (m *RSSAuthorMutation) AddedIDs(name string) []ent.Value {
+	switch name {
+	case rssauthor.EdgePerson:
+		if id := m.person; id != nil {
+			return []ent.Value{*id}
+		}
+	case rssauthor.EdgeOrganization:
+		if id := m.organization; id != nil {
+			return []ent.Value{*id}
+		}
+	case rssauthor.EdgeNewsitem:
+		ids := make([]ent.Value, 0, len(m.newsitem))
+		for id := range m.newsitem {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// RemovedEdges returns all edge names that were removed in this mutation.
+func (m *RSSAuthorMutation) RemovedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.removednewsitem != nil {
+		edges = append(edges, rssauthor.EdgeNewsitem)
+	}
+	return edges
+}
+
+// RemovedIDs returns all IDs (to other nodes) that were removed for the edge with
+// the given name in this mutation.
+func (m *RSSAuthorMutation) RemovedIDs(name string) []ent.Value {
+	switch name {
+	case rssauthor.EdgeNewsitem:
+		ids := make([]ent.Value, 0, len(m.removednewsitem))
+		for id := range m.removednewsitem {
+			ids = append(ids, id)
+		}
+		return ids
+	}
+	return nil
+}
+
+// ClearedEdges returns all edge names that were cleared in this mutation.
+func (m *RSSAuthorMutation) ClearedEdges() []string {
+	edges := make([]string, 0, 3)
+	if m.clearedperson {
+		edges = append(edges, rssauthor.EdgePerson)
+	}
+	if m.clearedorganization {
+		edges = append(edges, rssauthor.EdgeOrganization)
+	}
+	if m.clearednewsitem {
+		edges = append(edges, rssauthor.EdgeNewsitem)
+	}
+	return edges
+}
+
+// EdgeCleared returns a boolean which indicates if the edge with the given name
+// was cleared in this mutation.
+func (m *RSSAuthorMutation) EdgeCleared(name string) bool {
+	switch name {
+	case rssauthor.EdgePerson:
+		return m.clearedperson
+	case rssauthor.EdgeOrganization:
+		return m.clearedorganization
+	case rssauthor.EdgeNewsitem:
+		return m.clearednewsitem
+	}
+	return false
+}
+
+// ClearEdge clears the value of the edge with the given name. It returns an error
+// if that edge is not defined in the schema.
+func (m *RSSAuthorMutation) ClearEdge(name string) error {
+	switch name {
+	case rssauthor.EdgePerson:
+		m.ClearPerson()
+		return nil
+	case rssauthor.EdgeOrganization:
+		m.ClearOrganization()
+		return nil
+	}
+	return fmt.Errorf("unknown RSSAuthor unique edge %s", name)
+}
+
+// ResetEdge resets all changes to the edge with the given name in this mutation.
+// It returns an error if the edge is not defined in the schema.
+func (m *RSSAuthorMutation) ResetEdge(name string) error {
+	switch name {
+	case rssauthor.EdgePerson:
+		m.ResetPerson()
+		return nil
+	case rssauthor.EdgeOrganization:
+		m.ResetOrganization()
+		return nil
+	case rssauthor.EdgeNewsitem:
+		m.ResetNewsitem()
+		return nil
+	}
+	return fmt.Errorf("unknown RSSAuthor edge %s", name)
 }
 
 // RSSFeedMutation represents an operation that mutates the RSSFeed nodes in the graph.

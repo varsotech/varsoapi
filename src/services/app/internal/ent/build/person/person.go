@@ -23,15 +23,17 @@ const (
 	FieldEmail = "email"
 	// FieldName holds the string denoting the name field in the database.
 	FieldName = "name"
-	// EdgeItem holds the string denoting the item edge name in mutations.
-	EdgeItem = "item"
+	// EdgeAuthor holds the string denoting the author edge name in mutations.
+	EdgeAuthor = "author"
 	// Table holds the table name of the person in the database.
 	Table = "persons"
-	// ItemTable is the table that holds the item relation/edge. The primary key declared below.
-	ItemTable = "news_item_authors"
-	// ItemInverseTable is the table name for the NewsItem entity.
-	// It exists in this package in order to avoid circular dependency with the "newsitem" package.
-	ItemInverseTable = "news_items"
+	// AuthorTable is the table that holds the author relation/edge.
+	AuthorTable = "rss_authors"
+	// AuthorInverseTable is the table name for the RSSAuthor entity.
+	// It exists in this package in order to avoid circular dependency with the "rssauthor" package.
+	AuthorInverseTable = "rss_authors"
+	// AuthorColumn is the table column denoting the author relation/edge.
+	AuthorColumn = "rss_author_person"
 )
 
 // Columns holds all SQL columns for person fields.
@@ -42,12 +44,6 @@ var Columns = []string{
 	FieldEmail,
 	FieldName,
 }
-
-var (
-	// ItemPrimaryKey and ItemColumn2 are the table columns denoting the
-	// primary key for the item relation (M2M).
-	ItemPrimaryKey = []string{"news_item_id", "person_id"}
-)
 
 // ValidColumn reports if the column name is valid (part of the table columns).
 func ValidColumn(column string) bool {
@@ -98,23 +94,23 @@ func ByName(opts ...sql.OrderTermOption) OrderOption {
 	return sql.OrderByField(FieldName, opts...).ToFunc()
 }
 
-// ByItemCount orders the results by item count.
-func ByItemCount(opts ...sql.OrderTermOption) OrderOption {
+// ByAuthorCount orders the results by author count.
+func ByAuthorCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborsCount(s, newItemStep(), opts...)
+		sqlgraph.OrderByNeighborsCount(s, newAuthorStep(), opts...)
 	}
 }
 
-// ByItem orders the results by item terms.
-func ByItem(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+// ByAuthor orders the results by author terms.
+func ByAuthor(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	return func(s *sql.Selector) {
-		sqlgraph.OrderByNeighborTerms(s, newItemStep(), append([]sql.OrderTerm{term}, terms...)...)
+		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
-func newItemStep() *sqlgraph.Step {
+func newAuthorStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
-		sqlgraph.To(ItemInverseTable, FieldID),
-		sqlgraph.Edge(sqlgraph.M2M, true, ItemTable, ItemPrimaryKey...),
+		sqlgraph.To(AuthorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, AuthorTable, AuthorColumn),
 	)
 }

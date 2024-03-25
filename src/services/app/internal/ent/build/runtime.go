@@ -9,6 +9,7 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/schema"
 )
@@ -94,6 +95,19 @@ func init() {
 	personDescID := personFields[0].Descriptor()
 	// person.DefaultID holds the default value on creation for the id field.
 	person.DefaultID = personDescID.Default.(func() uuid.UUID)
+	rssauthorMixin := schema.RSSAuthor{}.Mixin()
+	rssauthorMixinFields0 := rssauthorMixin[0].Fields()
+	_ = rssauthorMixinFields0
+	rssauthorFields := schema.RSSAuthor{}.Fields()
+	_ = rssauthorFields
+	// rssauthorDescCreateTime is the schema descriptor for create_time field.
+	rssauthorDescCreateTime := rssauthorMixinFields0[0].Descriptor()
+	// rssauthor.DefaultCreateTime holds the default value on creation for the create_time field.
+	rssauthor.DefaultCreateTime = rssauthorDescCreateTime.Default.(func() time.Time)
+	// rssauthorDescID is the schema descriptor for id field.
+	rssauthorDescID := rssauthorFields[0].Descriptor()
+	// rssauthor.DefaultID holds the default value on creation for the id field.
+	rssauthor.DefaultID = rssauthorDescID.Default.(func() uuid.UUID)
 	rssfeedMixin := schema.RSSFeed{}.Mixin()
 	rssfeedMixinFields0 := rssfeedMixin[0].Fields()
 	_ = rssfeedMixinFields0

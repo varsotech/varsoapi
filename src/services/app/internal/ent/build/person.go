@@ -34,20 +34,20 @@ type Person struct {
 
 // PersonEdges holds the relations/edges for other nodes in the graph.
 type PersonEdges struct {
-	// Item holds the value of the item edge.
-	Item []*NewsItem `json:"item,omitempty"`
+	// Author holds the value of the author edge.
+	Author []*RSSAuthor `json:"author,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
 	loadedTypes [1]bool
 }
 
-// ItemOrErr returns the Item value or an error if the edge
+// AuthorOrErr returns the Author value or an error if the edge
 // was not loaded in eager-loading.
-func (e PersonEdges) ItemOrErr() ([]*NewsItem, error) {
+func (e PersonEdges) AuthorOrErr() ([]*RSSAuthor, error) {
 	if e.loadedTypes[0] {
-		return e.Item, nil
+		return e.Author, nil
 	}
-	return nil, &NotLoadedError{edge: "item"}
+	return nil, &NotLoadedError{edge: "author"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -119,9 +119,9 @@ func (pe *Person) Value(name string) (ent.Value, error) {
 	return pe.selectValues.Get(name)
 }
 
-// QueryItem queries the "item" edge of the Person entity.
-func (pe *Person) QueryItem() *NewsItemQuery {
-	return NewPersonClient(pe.config).QueryItem(pe)
+// QueryAuthor queries the "author" edge of the Person entity.
+func (pe *Person) QueryAuthor() *RSSAuthorQuery {
+	return NewPersonClient(pe.config).QueryAuthor(pe)
 }
 
 // Update returns a builder for updating this Person.

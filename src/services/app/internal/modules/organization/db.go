@@ -34,10 +34,11 @@ func GetOrganizationsWithFeedItems(ctx context.Context) ([]*build.Organization, 
 	return posts, nil
 }
 
-func UpsertOrganization(ctx context.Context, orgUUID uuid.UUID, name, description, websiteUrl string) error {
+func UpsertOrganization(ctx context.Context, orgUUID uuid.UUID, uniqueName, name, description, websiteUrl string) error {
 	err := ent.Database.Organization.Create().
 		SetID(orgUUID).
 		SetName(name).
+		SetUniqueName(uniqueName).
 		SetDescription(description).
 		SetWebsiteURL(websiteUrl).
 		OnConflictColumns(organization.FieldID).

@@ -47,7 +47,7 @@ func (NewsItem) Fields() []ent.Field {
 
 func (NewsItem) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.To("authors", Person.Type),
+		edge.To("authors", RSSAuthor.Type),
 		edge.To("feed", RSSFeed.Type).Unique(),
 	}
 }

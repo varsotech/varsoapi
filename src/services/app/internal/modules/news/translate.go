@@ -48,7 +48,7 @@ func TranslateRSSItem(item *build.NewsItem, orgUUID uuid.UUID) *models.RSSItem {
 	}
 }
 
-func TranslateRSSAuthors(authors []*build.Person) []*models.RSSAuthor {
+func TranslateRSSAuthors(authors []*build.RSSAuthor) []*models.RSSAuthor {
 	var translated []*models.RSSAuthor
 	for _, author := range authors {
 		translated = append(translated, TranslateRSSAuthor(author))
@@ -56,7 +56,7 @@ func TranslateRSSAuthors(authors []*build.Person) []*models.RSSAuthor {
 	return translated
 }
 
-func TranslateRSSAuthor(author *build.Person) *models.RSSAuthor {
+func TranslateRSSAuthor(author *build.RSSAuthor) *models.RSSAuthor {
 	if author == nil {
 		return &models.RSSAuthor{}
 	}

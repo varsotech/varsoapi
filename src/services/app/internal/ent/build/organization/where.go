@@ -176,16 +176,6 @@ func UniqueNameHasSuffix(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldHasSuffix(FieldUniqueName, v))
 }
 
-// UniqueNameIsNil applies the IsNil predicate on the "unique_name" field.
-func UniqueNameIsNil() predicate.Organization {
-	return predicate.Organization(sql.FieldIsNull(FieldUniqueName))
-}
-
-// UniqueNameNotNil applies the NotNil predicate on the "unique_name" field.
-func UniqueNameNotNil() predicate.Organization {
-	return predicate.Organization(sql.FieldNotNull(FieldUniqueName))
-}
-
 // UniqueNameEqualFold applies the EqualFold predicate on the "unique_name" field.
 func UniqueNameEqualFold(v string) predicate.Organization {
 	return predicate.Organization(sql.FieldEqualFold(FieldUniqueName, v))
@@ -406,6 +396,29 @@ func HasFeeds() predicate.Organization {
 func HasFeedsWith(preds ...predicate.RSSFeed) predicate.Organization {
 	return predicate.Organization(func(s *sql.Selector) {
 		step := newFeedsStep()
+		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
+			for _, p := range preds {
+				p(s)
+			}
+		})
+	})
+}
+
+// HasAuthor applies the HasEdge predicate on the "author" edge.
+func HasAuthor() predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := sqlgraph.NewStep(
+			sqlgraph.From(Table, FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, AuthorTable, AuthorColumn),
+		)
+		sqlgraph.HasNeighbors(s, step)
+	})
+}
+
+// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
+func HasAuthorWith(preds ...predicate.RSSAuthor) predicate.Organization {
+	return predicate.Organization(func(s *sql.Selector) {
+		step := newAuthorStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

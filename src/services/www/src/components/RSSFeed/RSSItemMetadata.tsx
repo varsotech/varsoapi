@@ -4,6 +4,7 @@ import { timeAgo } from "../../utils/timeago";
 import { useToken } from "components/Auth/AuthProvider";
 import { useToggleBlur } from "api/news";
 import { useState } from "react";
+import ButtonToggle from "components/ButtonToggle/ButtonToggle";
 
 type RSSItemMetadataProps = {
   item: RSSItem;
@@ -24,19 +25,21 @@ function RSSItemMetadata({ item, organization }: RSSItemMetadataProps) {
       <span style={{ marginLeft: 5, color: "#5c5c5c", display: "inline" }}>
         {item.publishDate ? "· " + timeAgo(item.publishDate) : ""}
       </span>
+      {/* <ButtonToggle
+        state={false}
+        onText={"ON"}
+        offText={"OFF"}
+        isLoading={false}
+        onClick={() => {}}
+      /> */}
       {hasSetBlurPermission ? (
-        <button
-          style={{
-            display: "inline-block",
-            padding: 3,
-            marginLeft: 10,
-          }}
-          onClick={(e) => {
-            toggleBlur(undefined);
-          }}
-        >
-          {isPending ? "🔜" : item.image?.blur ? "🫣" : "👁️"}
-        </button>
+        <ButtonToggle
+          state={item.image?.blur}
+          isLoading={isPending}
+          onClick={() => toggleBlur(undefined)}
+          onText={"🫣"}
+          offText={"👁️"}
+        />
       ) : null}
     </div>
   );

@@ -286,21 +286,21 @@ func NameContainsFold(v string) predicate.Person {
 	return predicate.Person(sql.FieldContainsFold(FieldName, v))
 }
 
-// HasItem applies the HasEdge predicate on the "item" edge.
-func HasItem() predicate.Person {
+// HasAuthor applies the HasEdge predicate on the "author" edge.
+func HasAuthor() predicate.Person {
 	return predicate.Person(func(s *sql.Selector) {
 		step := sqlgraph.NewStep(
 			sqlgraph.From(Table, FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, ItemTable, ItemPrimaryKey...),
+			sqlgraph.Edge(sqlgraph.O2M, true, AuthorTable, AuthorColumn),
 		)
 		sqlgraph.HasNeighbors(s, step)
 	})
 }
 
-// HasItemWith applies the HasEdge predicate on the "item" edge with a given conditions (other predicates).
-func HasItemWith(preds ...predicate.NewsItem) predicate.Person {
+// HasAuthorWith applies the HasEdge predicate on the "author" edge with a given conditions (other predicates).
+func HasAuthorWith(preds ...predicate.RSSAuthor) predicate.Person {
 	return predicate.Person(func(s *sql.Selector) {
-		step := newItemStep()
+		step := newAuthorStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {
 			for _, p := range preds {
 				p(s)

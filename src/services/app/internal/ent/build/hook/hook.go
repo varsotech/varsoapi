@@ -45,6 +45,18 @@ func (f PersonFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, 
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.PersonMutation", m)
 }
 
+// The RSSAuthorFunc type is an adapter to allow the use of ordinary
+// function as RSSAuthor mutator.
+type RSSAuthorFunc func(context.Context, *build.RSSAuthorMutation) (build.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f RSSAuthorFunc) Mutate(ctx context.Context, m build.Mutation) (build.Value, error) {
+	if mv, ok := m.(*build.RSSAuthorMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *build.RSSAuthorMutation", m)
+}
+
 // The RSSFeedFunc type is an adapter to allow the use of ordinary
 // function as RSSFeed mutator.
 type RSSFeedFunc func(context.Context, *build.RSSFeedMutation) (build.Value, error)

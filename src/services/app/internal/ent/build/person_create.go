@@ -13,8 +13,8 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 )
 
 // PersonCreate is the builder for creating a Person entity.
@@ -79,19 +79,19 @@ func (pc *PersonCreate) SetNillableID(u *uuid.UUID) *PersonCreate {
 	return pc
 }
 
-// AddItemIDs adds the "item" edge to the NewsItem entity by IDs.
-func (pc *PersonCreate) AddItemIDs(ids ...uuid.UUID) *PersonCreate {
-	pc.mutation.AddItemIDs(ids...)
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (pc *PersonCreate) AddAuthorIDs(ids ...uuid.UUID) *PersonCreate {
+	pc.mutation.AddAuthorIDs(ids...)
 	return pc
 }
 
-// AddItem adds the "item" edges to the NewsItem entity.
-func (pc *PersonCreate) AddItem(n ...*NewsItem) *PersonCreate {
-	ids := make([]uuid.UUID, len(n))
-	for i := range n {
-		ids[i] = n[i].ID
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (pc *PersonCreate) AddAuthor(r ...*RSSAuthor) *PersonCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pc.AddItemIDs(ids...)
+	return pc.AddAuthorIDs(ids...)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -209,15 +209,15 @@ func (pc *PersonCreate) createSpec() (*Person, *sqlgraph.CreateSpec) {
 		_spec.SetField(person.FieldName, field.TypeString, value)
 		_node.Name = value
 	}
-	if nodes := pc.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := pc.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

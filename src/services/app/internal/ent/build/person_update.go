@@ -12,9 +12,9 @@ import (
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 )
 
 // PersonUpdate is the builder for updating Person entities.
@@ -64,19 +64,19 @@ func (pu *PersonUpdate) SetNillableName(s *string) *PersonUpdate {
 	return pu
 }
 
-// AddItemIDs adds the "item" edge to the NewsItem entity by IDs.
-func (pu *PersonUpdate) AddItemIDs(ids ...uuid.UUID) *PersonUpdate {
-	pu.mutation.AddItemIDs(ids...)
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (pu *PersonUpdate) AddAuthorIDs(ids ...uuid.UUID) *PersonUpdate {
+	pu.mutation.AddAuthorIDs(ids...)
 	return pu
 }
 
-// AddItem adds the "item" edges to the NewsItem entity.
-func (pu *PersonUpdate) AddItem(n ...*NewsItem) *PersonUpdate {
-	ids := make([]uuid.UUID, len(n))
-	for i := range n {
-		ids[i] = n[i].ID
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (pu *PersonUpdate) AddAuthor(r ...*RSSAuthor) *PersonUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.AddItemIDs(ids...)
+	return pu.AddAuthorIDs(ids...)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -84,25 +84,25 @@ func (pu *PersonUpdate) Mutation() *PersonMutation {
 	return pu.mutation
 }
 
-// ClearItem clears all "item" edges to the NewsItem entity.
-func (pu *PersonUpdate) ClearItem() *PersonUpdate {
-	pu.mutation.ClearItem()
+// ClearAuthor clears all "author" edges to the RSSAuthor entity.
+func (pu *PersonUpdate) ClearAuthor() *PersonUpdate {
+	pu.mutation.ClearAuthor()
 	return pu
 }
 
-// RemoveItemIDs removes the "item" edge to NewsItem entities by IDs.
-func (pu *PersonUpdate) RemoveItemIDs(ids ...uuid.UUID) *PersonUpdate {
-	pu.mutation.RemoveItemIDs(ids...)
+// RemoveAuthorIDs removes the "author" edge to RSSAuthor entities by IDs.
+func (pu *PersonUpdate) RemoveAuthorIDs(ids ...uuid.UUID) *PersonUpdate {
+	pu.mutation.RemoveAuthorIDs(ids...)
 	return pu
 }
 
-// RemoveItem removes "item" edges to NewsItem entities.
-func (pu *PersonUpdate) RemoveItem(n ...*NewsItem) *PersonUpdate {
-	ids := make([]uuid.UUID, len(n))
-	for i := range n {
-		ids[i] = n[i].ID
+// RemoveAuthor removes "author" edges to RSSAuthor entities.
+func (pu *PersonUpdate) RemoveAuthor(r ...*RSSAuthor) *PersonUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return pu.RemoveItemIDs(ids...)
+	return pu.RemoveAuthorIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -159,28 +159,28 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	if value, ok := pu.mutation.Name(); ok {
 		_spec.SetField(person.FieldName, field.TypeString, value)
 	}
-	if pu.mutation.ItemCleared() {
+	if pu.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.RemovedItemIDs(); len(nodes) > 0 && !pu.mutation.ItemCleared() {
+	if nodes := pu.mutation.RemovedAuthorIDs(); len(nodes) > 0 && !pu.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -188,15 +188,15 @@ func (pu *PersonUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := pu.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := pu.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -258,19 +258,19 @@ func (puo *PersonUpdateOne) SetNillableName(s *string) *PersonUpdateOne {
 	return puo
 }
 
-// AddItemIDs adds the "item" edge to the NewsItem entity by IDs.
-func (puo *PersonUpdateOne) AddItemIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	puo.mutation.AddItemIDs(ids...)
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (puo *PersonUpdateOne) AddAuthorIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	puo.mutation.AddAuthorIDs(ids...)
 	return puo
 }
 
-// AddItem adds the "item" edges to the NewsItem entity.
-func (puo *PersonUpdateOne) AddItem(n ...*NewsItem) *PersonUpdateOne {
-	ids := make([]uuid.UUID, len(n))
-	for i := range n {
-		ids[i] = n[i].ID
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (puo *PersonUpdateOne) AddAuthor(r ...*RSSAuthor) *PersonUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.AddItemIDs(ids...)
+	return puo.AddAuthorIDs(ids...)
 }
 
 // Mutation returns the PersonMutation object of the builder.
@@ -278,25 +278,25 @@ func (puo *PersonUpdateOne) Mutation() *PersonMutation {
 	return puo.mutation
 }
 
-// ClearItem clears all "item" edges to the NewsItem entity.
-func (puo *PersonUpdateOne) ClearItem() *PersonUpdateOne {
-	puo.mutation.ClearItem()
+// ClearAuthor clears all "author" edges to the RSSAuthor entity.
+func (puo *PersonUpdateOne) ClearAuthor() *PersonUpdateOne {
+	puo.mutation.ClearAuthor()
 	return puo
 }
 
-// RemoveItemIDs removes the "item" edge to NewsItem entities by IDs.
-func (puo *PersonUpdateOne) RemoveItemIDs(ids ...uuid.UUID) *PersonUpdateOne {
-	puo.mutation.RemoveItemIDs(ids...)
+// RemoveAuthorIDs removes the "author" edge to RSSAuthor entities by IDs.
+func (puo *PersonUpdateOne) RemoveAuthorIDs(ids ...uuid.UUID) *PersonUpdateOne {
+	puo.mutation.RemoveAuthorIDs(ids...)
 	return puo
 }
 
-// RemoveItem removes "item" edges to NewsItem entities.
-func (puo *PersonUpdateOne) RemoveItem(n ...*NewsItem) *PersonUpdateOne {
-	ids := make([]uuid.UUID, len(n))
-	for i := range n {
-		ids[i] = n[i].ID
+// RemoveAuthor removes "author" edges to RSSAuthor entities.
+func (puo *PersonUpdateOne) RemoveAuthor(r ...*RSSAuthor) *PersonUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
-	return puo.RemoveItemIDs(ids...)
+	return puo.RemoveAuthorIDs(ids...)
 }
 
 // Where appends a list predicates to the PersonUpdate builder.
@@ -383,28 +383,28 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (_node *Person, err err
 	if value, ok := puo.mutation.Name(); ok {
 		_spec.SetField(person.FieldName, field.TypeString, value)
 	}
-	if puo.mutation.ItemCleared() {
+	if puo.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.RemovedItemIDs(); len(nodes) > 0 && !puo.mutation.ItemCleared() {
+	if nodes := puo.mutation.RemovedAuthorIDs(); len(nodes) > 0 && !puo.mutation.AuthorCleared() {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {
@@ -412,15 +412,15 @@ func (puo *PersonUpdateOne) sqlSave(ctx context.Context) (_node *Person, err err
 		}
 		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
 	}
-	if nodes := puo.mutation.ItemIDs(); len(nodes) > 0 {
+	if nodes := puo.mutation.AuthorIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
-			Rel:     sqlgraph.M2M,
+			Rel:     sqlgraph.O2M,
 			Inverse: true,
-			Table:   person.ItemTable,
-			Columns: person.ItemPrimaryKey,
+			Table:   person.AuthorTable,
+			Columns: []string{person.AuthorColumn},
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(newsitem.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

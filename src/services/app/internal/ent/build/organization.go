@@ -38,9 +38,11 @@ type Organization struct {
 type OrganizationEdges struct {
 	// Feeds holds the value of the feeds edge.
 	Feeds []*RSSFeed `json:"feeds,omitempty"`
+	// Author holds the value of the author edge.
+	Author []*RSSAuthor `json:"author,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [1]bool
+	loadedTypes [2]bool
 }
 
 // FeedsOrErr returns the Feeds value or an error if the edge
@@ -50,6 +52,15 @@ func (e OrganizationEdges) FeedsOrErr() ([]*RSSFeed, error) {
 		return e.Feeds, nil
 	}
 	return nil, &NotLoadedError{edge: "feeds"}
+}
+
+// AuthorOrErr returns the Author value or an error if the edge
+// was not loaded in eager-loading.
+func (e OrganizationEdges) AuthorOrErr() ([]*RSSAuthor, error) {
+	if e.loadedTypes[1] {
+		return e.Author, nil
+	}
+	return nil, &NotLoadedError{edge: "author"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -130,6 +141,11 @@ func (o *Organization) Value(name string) (ent.Value, error) {
 // QueryFeeds queries the "feeds" edge of the Organization entity.
 func (o *Organization) QueryFeeds() *RSSFeedQuery {
 	return NewOrganizationClient(o.config).QueryFeeds(o)
+}
+
+// QueryAuthor queries the "author" edge of the Organization entity.
+func (o *Organization) QueryAuthor() *RSSAuthorQuery {
+	return NewOrganizationClient(o.config).QueryAuthor(o)
 }
 
 // Update returns a builder for updating this Organization.

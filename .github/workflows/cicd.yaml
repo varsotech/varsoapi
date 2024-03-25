@@ -253,9 +253,6 @@ jobs:
           export DOCKER_IMAGE_TAG=${{ github.ref_name }}
           ./scripts/apply_env.sh .env
           ./scripts/cicd/test_go/start_docker_compose.sh
-
-      - name: Docker Compose Healthcheck
-        run: |
           ./scripts/cicd/test_go/docker_compose_healthcheck.sh
 
   release:

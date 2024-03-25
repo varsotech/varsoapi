@@ -31,7 +31,7 @@ func (Organization) Indexes() []ent.Index {
 func (Organization) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.New()).Default(uuid.New).Unique().StorageKey("uuid"),
-		field.String("unique_name").Match(regexp.MustCompile("[a-zA-Z_]+$")).MinLen(4).Optional(),
+		field.String("unique_name").Match(regexp.MustCompile("[a-zA-Z_]+$")).MinLen(3),
 		field.String("name"),
 		field.String("description"),
 		field.String("website_url"),
@@ -41,5 +41,6 @@ func (Organization) Fields() []ent.Field {
 func (Organization) Edges() []ent.Edge {
 	return []ent.Edge{
 		edge.To("feeds", RSSFeed.Type),
+		edge.To("author", RSSAuthor.Type),
 	}
 }

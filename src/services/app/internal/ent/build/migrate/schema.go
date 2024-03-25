@@ -57,7 +57,7 @@ var (
 	OrganizationsColumns = []*schema.Column{
 		{Name: "uuid", Type: field.TypeUUID, Unique: true},
 		{Name: "create_time", Type: field.TypeTime},
-		{Name: "unique_name", Type: field.TypeString, Nullable: true},
+		{Name: "unique_name", Type: field.TypeString},
 		{Name: "name", Type: field.TypeString},
 		{Name: "description", Type: field.TypeString},
 		{Name: "website_url", Type: field.TypeString},
@@ -106,6 +106,59 @@ var (
 			},
 		},
 	}
+	// RssAuthorsColumns holds the columns for the "rss_authors" table.
+	RssAuthorsColumns = []*schema.Column{
+		{Name: "uuid", Type: field.TypeUUID, Unique: true},
+		{Name: "create_time", Type: field.TypeTime},
+		{Name: "email", Type: field.TypeString, Nullable: true},
+		{Name: "name", Type: field.TypeString},
+		{Name: "organization_author", Type: field.TypeUUID, Nullable: true},
+		{Name: "rss_author_person", Type: field.TypeUUID, Nullable: true},
+		{Name: "rss_author_organization", Type: field.TypeUUID, Nullable: true},
+	}
+	// RssAuthorsTable holds the schema information for the "rss_authors" table.
+	RssAuthorsTable = &schema.Table{
+		Name:       "rss_authors",
+		Columns:    RssAuthorsColumns,
+		PrimaryKey: []*schema.Column{RssAuthorsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "rss_authors_organizations_author",
+				Columns:    []*schema.Column{RssAuthorsColumns[4]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "rss_authors_persons_person",
+				Columns:    []*schema.Column{RssAuthorsColumns[5]},
+				RefColumns: []*schema.Column{PersonsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+			{
+				Symbol:     "rss_authors_organizations_organization",
+				Columns:    []*schema.Column{RssAuthorsColumns[6]},
+				RefColumns: []*schema.Column{OrganizationsColumns[0]},
+				OnDelete:   schema.SetNull,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "rssauthor_uuid",
+				Unique:  true,
+				Columns: []*schema.Column{RssAuthorsColumns[0]},
+			},
+			{
+				Name:    "rssauthor_name",
+				Unique:  false,
+				Columns: []*schema.Column{RssAuthorsColumns[3]},
+			},
+			{
+				Name:    "rssauthor_name_rss_author_organization",
+				Unique:  true,
+				Columns: []*schema.Column{RssAuthorsColumns[3], RssAuthorsColumns[6]},
+			},
+		},
+	}
 	// RssFeedsColumns holds the columns for the "rss_feeds" table.
 	RssFeedsColumns = []*schema.Column{
 		{Name: "uuid", Type: field.TypeUUID, Unique: true},
@@ -143,7 +196,7 @@ var (
 	// NewsItemAuthorsColumns holds the columns for the "news_item_authors" table.
 	NewsItemAuthorsColumns = []*schema.Column{
 		{Name: "news_item_id", Type: field.TypeUUID},
-		{Name: "person_id", Type: field.TypeUUID},
+		{Name: "rss_author_id", Type: field.TypeUUID},
 	}
 	// NewsItemAuthorsTable holds the schema information for the "news_item_authors" table.
 	NewsItemAuthorsTable = &schema.Table{
@@ -158,9 +211,9 @@ var (
 				OnDelete:   schema.Cascade,
 			},
 			{
-				Symbol:     "news_item_authors_person_id",
+				Symbol:     "news_item_authors_rss_author_id",
 				Columns:    []*schema.Column{NewsItemAuthorsColumns[1]},
-				RefColumns: []*schema.Column{PersonsColumns[0]},
+				RefColumns: []*schema.Column{RssAuthorsColumns[0]},
 				OnDelete:   schema.Cascade,
 			},
 		},
@@ -170,6 +223,7 @@ var (
 		NewsItemsTable,
 		OrganizationsTable,
 		PersonsTable,
+		RssAuthorsTable,
 		RssFeedsTable,
 		NewsItemAuthorsTable,
 	}
@@ -177,7 +231,10 @@ var (
 
 func init() {
 	NewsItemsTable.ForeignKeys[0].RefTable = RssFeedsTable
+	RssAuthorsTable.ForeignKeys[0].RefTable = OrganizationsTable
+	RssAuthorsTable.ForeignKeys[1].RefTable = PersonsTable
+	RssAuthorsTable.ForeignKeys[2].RefTable = OrganizationsTable
 	RssFeedsTable.ForeignKeys[0].RefTable = OrganizationsTable
 	NewsItemAuthorsTable.ForeignKeys[0].RefTable = NewsItemsTable
-	NewsItemAuthorsTable.ForeignKeys[1].RefTable = PersonsTable
+	NewsItemAuthorsTable.ForeignKeys[1].RefTable = RssAuthorsTable
 }

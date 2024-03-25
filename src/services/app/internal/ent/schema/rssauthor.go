@@ -9,34 +9,36 @@ import (
 	"github.com/google/uuid"
 )
 
-type Person struct {
+type RSSAuthor struct {
 	ent.Schema
 }
 
-func (Person) Mixin() []ent.Mixin {
+func (RSSAuthor) Mixin() []ent.Mixin {
 	return []ent.Mixin{
 		mixin.CreateTime{},
-		mixin.UpdateTime{},
 	}
 }
 
-func (Person) Indexes() []ent.Index {
+func (RSSAuthor) Indexes() []ent.Index {
 	return []ent.Index{
 		index.Fields("id").Unique(),
-		index.Fields("email").Unique(),
+		index.Fields("name"),
+		index.Edges("organization").Fields("name").Unique(),
 	}
 }
 
-func (Person) Fields() []ent.Field {
+func (RSSAuthor) Fields() []ent.Field {
 	return []ent.Field{
 		field.UUID("id", uuid.New()).Default(uuid.New).Unique().StorageKey("uuid"),
-		field.String("email").Unique(),
+		field.String("email").Optional(),
 		field.String("name"),
 	}
 }
 
-func (Person) Edges() []ent.Edge {
+func (RSSAuthor) Edges() []ent.Edge {
 	return []ent.Edge{
-		edge.From("author", RSSAuthor.Type).Ref("person"),
+		edge.To("person", Person.Type).Unique(),
+		edge.To("organization", Organization.Type).Unique(),
+		edge.From("newsitem", NewsItem.Type).Ref("authors"),
 	}
 }

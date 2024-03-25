@@ -15,6 +15,7 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -79,6 +80,7 @@ func checkColumn(table, column string) error {
 			newsitem.Table:     newsitem.ValidColumn,
 			organization.Table: organization.ValidColumn,
 			person.Table:       person.ValidColumn,
+			rssauthor.Table:    rssauthor.ValidColumn,
 			rssfeed.Table:      rssfeed.ValidColumn,
 		})
 	})

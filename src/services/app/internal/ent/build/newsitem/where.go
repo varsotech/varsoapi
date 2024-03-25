@@ -773,7 +773,7 @@ func HasAuthors() predicate.NewsItem {
 }
 
 // HasAuthorsWith applies the HasEdge predicate on the "authors" edge with a given conditions (other predicates).
-func HasAuthorsWith(preds ...predicate.Person) predicate.NewsItem {
+func HasAuthorsWith(preds ...predicate.RSSAuthor) predicate.NewsItem {
 	return predicate.NewsItem(func(s *sql.Selector) {
 		step := newAuthorsStep()
 		sqlgraph.HasNeighborsWith(s, step, func(s *sql.Selector) {

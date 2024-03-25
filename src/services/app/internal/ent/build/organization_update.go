@@ -13,6 +13,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -40,12 +41,6 @@ func (ou *OrganizationUpdate) SetNillableUniqueName(s *string) *OrganizationUpda
 	if s != nil {
 		ou.SetUniqueName(*s)
 	}
-	return ou
-}
-
-// ClearUniqueName clears the value of the "unique_name" field.
-func (ou *OrganizationUpdate) ClearUniqueName() *OrganizationUpdate {
-	ou.mutation.ClearUniqueName()
 	return ou
 }
 
@@ -106,6 +101,21 @@ func (ou *OrganizationUpdate) AddFeeds(r ...*RSSFeed) *OrganizationUpdate {
 	return ou.AddFeedIDs(ids...)
 }
 
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (ou *OrganizationUpdate) AddAuthorIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	ou.mutation.AddAuthorIDs(ids...)
+	return ou
+}
+
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (ou *OrganizationUpdate) AddAuthor(r ...*RSSAuthor) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ou.AddAuthorIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (ou *OrganizationUpdate) Mutation() *OrganizationMutation {
 	return ou.mutation
@@ -130,6 +140,27 @@ func (ou *OrganizationUpdate) RemoveFeeds(r ...*RSSFeed) *OrganizationUpdate {
 		ids[i] = r[i].ID
 	}
 	return ou.RemoveFeedIDs(ids...)
+}
+
+// ClearAuthor clears all "author" edges to the RSSAuthor entity.
+func (ou *OrganizationUpdate) ClearAuthor() *OrganizationUpdate {
+	ou.mutation.ClearAuthor()
+	return ou
+}
+
+// RemoveAuthorIDs removes the "author" edge to RSSAuthor entities by IDs.
+func (ou *OrganizationUpdate) RemoveAuthorIDs(ids ...uuid.UUID) *OrganizationUpdate {
+	ou.mutation.RemoveAuthorIDs(ids...)
+	return ou
+}
+
+// RemoveAuthor removes "author" edges to RSSAuthor entities.
+func (ou *OrganizationUpdate) RemoveAuthor(r ...*RSSAuthor) *OrganizationUpdate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ou.RemoveAuthorIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -183,9 +214,6 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 	}
 	if value, ok := ou.mutation.UniqueName(); ok {
 		_spec.SetField(organization.FieldUniqueName, field.TypeString, value)
-	}
-	if ou.mutation.UniqueNameCleared() {
-		_spec.ClearField(organization.FieldUniqueName, field.TypeString)
 	}
 	if value, ok := ou.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
@@ -241,6 +269,51 @@ func (ou *OrganizationUpdate) sqlSave(ctx context.Context) (n int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if ou.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.RemovedAuthorIDs(); len(nodes) > 0 && !ou.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ou.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if n, err = sqlgraph.UpdateNodes(ctx, ou.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{organization.Label}
@@ -272,12 +345,6 @@ func (ouo *OrganizationUpdateOne) SetNillableUniqueName(s *string) *Organization
 	if s != nil {
 		ouo.SetUniqueName(*s)
 	}
-	return ouo
-}
-
-// ClearUniqueName clears the value of the "unique_name" field.
-func (ouo *OrganizationUpdateOne) ClearUniqueName() *OrganizationUpdateOne {
-	ouo.mutation.ClearUniqueName()
 	return ouo
 }
 
@@ -338,6 +405,21 @@ func (ouo *OrganizationUpdateOne) AddFeeds(r ...*RSSFeed) *OrganizationUpdateOne
 	return ouo.AddFeedIDs(ids...)
 }
 
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (ouo *OrganizationUpdateOne) AddAuthorIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	ouo.mutation.AddAuthorIDs(ids...)
+	return ouo
+}
+
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (ouo *OrganizationUpdateOne) AddAuthor(r ...*RSSAuthor) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ouo.AddAuthorIDs(ids...)
+}
+
 // Mutation returns the OrganizationMutation object of the builder.
 func (ouo *OrganizationUpdateOne) Mutation() *OrganizationMutation {
 	return ouo.mutation
@@ -362,6 +444,27 @@ func (ouo *OrganizationUpdateOne) RemoveFeeds(r ...*RSSFeed) *OrganizationUpdate
 		ids[i] = r[i].ID
 	}
 	return ouo.RemoveFeedIDs(ids...)
+}
+
+// ClearAuthor clears all "author" edges to the RSSAuthor entity.
+func (ouo *OrganizationUpdateOne) ClearAuthor() *OrganizationUpdateOne {
+	ouo.mutation.ClearAuthor()
+	return ouo
+}
+
+// RemoveAuthorIDs removes the "author" edge to RSSAuthor entities by IDs.
+func (ouo *OrganizationUpdateOne) RemoveAuthorIDs(ids ...uuid.UUID) *OrganizationUpdateOne {
+	ouo.mutation.RemoveAuthorIDs(ids...)
+	return ouo
+}
+
+// RemoveAuthor removes "author" edges to RSSAuthor entities.
+func (ouo *OrganizationUpdateOne) RemoveAuthor(r ...*RSSAuthor) *OrganizationUpdateOne {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return ouo.RemoveAuthorIDs(ids...)
 }
 
 // Where appends a list predicates to the OrganizationUpdate builder.
@@ -446,9 +549,6 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 	if value, ok := ouo.mutation.UniqueName(); ok {
 		_spec.SetField(organization.FieldUniqueName, field.TypeString, value)
 	}
-	if ouo.mutation.UniqueNameCleared() {
-		_spec.ClearField(organization.FieldUniqueName, field.TypeString)
-	}
 	if value, ok := ouo.mutation.Name(); ok {
 		_spec.SetField(organization.FieldName, field.TypeString, value)
 	}
@@ -496,6 +596,51 @@ func (ouo *OrganizationUpdateOne) sqlSave(ctx context.Context) (_node *Organizat
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(rssfeed.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if ouo.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.RemovedAuthorIDs(); len(nodes) > 0 && !ouo.mutation.AuthorCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := ouo.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

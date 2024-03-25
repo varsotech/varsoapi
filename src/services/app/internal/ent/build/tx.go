@@ -20,6 +20,8 @@ type Tx struct {
 	Organization *OrganizationClient
 	// Person is the client for interacting with the Person builders.
 	Person *PersonClient
+	// RSSAuthor is the client for interacting with the RSSAuthor builders.
+	RSSAuthor *RSSAuthorClient
 	// RSSFeed is the client for interacting with the RSSFeed builders.
 	RSSFeed *RSSFeedClient
 
@@ -156,6 +158,7 @@ func (tx *Tx) init() {
 	tx.NewsItem = NewNewsItemClient(tx.config)
 	tx.Organization = NewOrganizationClient(tx.config)
 	tx.Person = NewPersonClient(tx.config)
+	tx.RSSAuthor = NewRSSAuthorClient(tx.config)
 	tx.RSSFeed = NewRSSFeedClient(tx.config)
 }
 

@@ -14,7 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
-	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -164,17 +164,17 @@ func (nic *NewsItemCreate) SetNillableID(u *uuid.UUID) *NewsItemCreate {
 	return nic
 }
 
-// AddAuthorIDs adds the "authors" edge to the Person entity by IDs.
+// AddAuthorIDs adds the "authors" edge to the RSSAuthor entity by IDs.
 func (nic *NewsItemCreate) AddAuthorIDs(ids ...uuid.UUID) *NewsItemCreate {
 	nic.mutation.AddAuthorIDs(ids...)
 	return nic
 }
 
-// AddAuthors adds the "authors" edges to the Person entity.
-func (nic *NewsItemCreate) AddAuthors(p ...*Person) *NewsItemCreate {
-	ids := make([]uuid.UUID, len(p))
-	for i := range p {
-		ids[i] = p[i].ID
+// AddAuthors adds the "authors" edges to the RSSAuthor entity.
+func (nic *NewsItemCreate) AddAuthors(r ...*RSSAuthor) *NewsItemCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
 	}
 	return nic.AddAuthorIDs(ids...)
 }
@@ -389,7 +389,7 @@ func (nic *NewsItemCreate) createSpec() (*NewsItem, *sqlgraph.CreateSpec) {
 			Columns: newsitem.AuthorsPrimaryKey,
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
-				IDSpec: sqlgraph.NewFieldSpec(person.FieldID, field.TypeUUID),
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
 			},
 		}
 		for _, k := range nodes {

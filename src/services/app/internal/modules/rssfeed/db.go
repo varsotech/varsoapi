@@ -2,6 +2,7 @@ package rssfeed
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent"
@@ -11,6 +12,10 @@ import (
 )
 
 func Upsert(ctx context.Context, rssFeedUrl string, orgUuid uuid.UUID) error {
+	if rssFeedUrl == "" {
+		return fmt.Errorf("rss feed url cannot be empty")
+	}
+
 	return ent.Database.RSSFeed.Create().
 		SetRssFeedURL(rssFeedUrl).
 		SetOrganizationID(orgUuid).

@@ -6,8 +6,9 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/sirupsen/logrus"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build"
 	"github.com/varsotech/varsoapi/src/services/app/internal/modules/organization"
-	"github.com/varsotech/varsoapi/src/services/app/internal/modules/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/modules/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/modules/rssfeed"
 	"github.com/varsotech/varsoapi/src/services/app/internal/modules/rssitem"
 )
@@ -35,6 +36,8 @@ func SyncRSSFeeds(ctx context.Context) error {
 }
 
 func syncRSSFeeds(ctx context.Context) error {
+	logrus.Info("Syncing RSS feeds")
+
 	orgs, err := organization.GetOrganizations(ctx)
 	if err != nil {
 		return errors.Wrapf(err, "failed getting orgs for sync")
@@ -55,17 +58,17 @@ func syncRSSFeeds(ctx context.Context) error {
 			}
 
 			// Upsert authors
-			authorEmailToName := map[string]string{}
+			nameToAuthor := map[string]*build.RSSAuthor{}
 			for _, item := range goFeed.Items {
 				for _, author := range item.Authors {
-					authorEmailToName[author.Email] = author.Name
-				}
-			}
+					dbAuthor, err := rssauthor.Upsert(ctx, org, author.Name, author.Email)
+					if err != nil {
+						logrus.WithError(err).WithField("rssFeedURL", feed.RssFeedURL).Errorf("failed to bulk upsert authors")
+						continue
+					}
 
-			authors, err := person.UpsertBulk(ctx, authorEmailToName)
-			if err != nil {
-				logrus.WithError(err).WithField("rssFeedURL", feed.RssFeedURL).Errorf("failed to bulk upsert authors")
-				continue
+					nameToAuthor[dbAuthor.Name] = dbAuthor
+				}
 			}
 
 			err = rssfeed.Upsert(ctx, feed.RssFeedURL, org.ID)
@@ -82,7 +85,14 @@ func syncRSSFeeds(ctx context.Context) error {
 					imageUrl = item.Image.URL
 					imageTitle = item.Image.Title
 				}
-				err = rssitem.Upsert(ctx, feed.ID, item.GUID, item.Title, item.Description, item.Content, item.Link, item.Links, item.PublishedParsed, item.UpdatedParsed, imageUrl, imageTitle, item.Categories, authors)
+
+				// Get DB authors
+				var dbAuthors []*build.RSSAuthor
+				for _, author := range item.Authors {
+					dbAuthors = append(dbAuthors, nameToAuthor[author.Name])
+				}
+
+				err = rssitem.Upsert(ctx, feed.ID, item.GUID, item.Title, item.Description, item.Content, item.Link, item.Links, item.PublishedParsed, item.UpdatedParsed, imageUrl, imageTitle, item.Categories, dbAuthors)
 				if err != nil {
 					logrus.WithError(err).WithField("itemGUID", item.GUID).Errorf("failed upserting rss item")
 				}

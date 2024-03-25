@@ -15,6 +15,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/predicate"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -26,6 +27,7 @@ type OrganizationQuery struct {
 	inters     []Interceptor
 	predicates []predicate.Organization
 	withFeeds  *RSSFeedQuery
+	withAuthor *RSSAuthorQuery
 	modifiers  []func(*sql.Selector)
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
@@ -78,6 +80,28 @@ func (oq *OrganizationQuery) QueryFeeds() *RSSFeedQuery {
 			sqlgraph.From(organization.Table, organization.FieldID, selector),
 			sqlgraph.To(rssfeed.Table, rssfeed.FieldID),
 			sqlgraph.Edge(sqlgraph.O2M, false, organization.FeedsTable, organization.FeedsColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryAuthor chains the current query on the "author" edge.
+func (oq *OrganizationQuery) QueryAuthor() *RSSAuthorQuery {
+	query := (&RSSAuthorClient{config: oq.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := oq.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := oq.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, selector),
+			sqlgraph.To(rssauthor.Table, rssauthor.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AuthorTable, organization.AuthorColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(oq.driver.Dialect(), step)
 		return fromU, nil
@@ -278,6 +302,7 @@ func (oq *OrganizationQuery) Clone() *OrganizationQuery {
 		inters:     append([]Interceptor{}, oq.inters...),
 		predicates: append([]predicate.Organization{}, oq.predicates...),
 		withFeeds:  oq.withFeeds.Clone(),
+		withAuthor: oq.withAuthor.Clone(),
 		// clone intermediate query.
 		sql:  oq.sql.Clone(),
 		path: oq.path,
@@ -292,6 +317,17 @@ func (oq *OrganizationQuery) WithFeeds(opts ...func(*RSSFeedQuery)) *Organizatio
 		opt(query)
 	}
 	oq.withFeeds = query
+	return oq
+}
+
+// WithAuthor tells the query-builder to eager-load the nodes that are connected to
+// the "author" edge. The optional arguments are used to configure the query builder of the edge.
+func (oq *OrganizationQuery) WithAuthor(opts ...func(*RSSAuthorQuery)) *OrganizationQuery {
+	query := (&RSSAuthorClient{config: oq.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	oq.withAuthor = query
 	return oq
 }
 
@@ -373,8 +409,9 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 	var (
 		nodes       = []*Organization{}
 		_spec       = oq.querySpec()
-		loadedTypes = [1]bool{
+		loadedTypes = [2]bool{
 			oq.withFeeds != nil,
+			oq.withAuthor != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -402,6 +439,13 @@ func (oq *OrganizationQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]
 		if err := oq.loadFeeds(ctx, query, nodes,
 			func(n *Organization) { n.Edges.Feeds = []*RSSFeed{} },
 			func(n *Organization, e *RSSFeed) { n.Edges.Feeds = append(n.Edges.Feeds, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := oq.withAuthor; query != nil {
+		if err := oq.loadAuthor(ctx, query, nodes,
+			func(n *Organization) { n.Edges.Author = []*RSSAuthor{} },
+			func(n *Organization, e *RSSAuthor) { n.Edges.Author = append(n.Edges.Author, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -434,6 +478,37 @@ func (oq *OrganizationQuery) loadFeeds(ctx context.Context, query *RSSFeedQuery,
 		node, ok := nodeids[*fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "organization_feeds" returned %v for node %v`, *fk, n.ID)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (oq *OrganizationQuery) loadAuthor(ctx context.Context, query *RSSAuthorQuery, nodes []*Organization, init func(*Organization), assign func(*Organization, *RSSAuthor)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[uuid.UUID]*Organization)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	query.withFKs = true
+	query.Where(predicate.RSSAuthor(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(organization.AuthorColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.organization_author
+		if fk == nil {
+			return fmt.Errorf(`foreign-key "organization_author" is nil for node %v`, n.ID)
+		}
+		node, ok := nodeids[*fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "organization_author" returned %v for node %v`, *fk, n.ID)
 		}
 		assign(node, n)
 	}

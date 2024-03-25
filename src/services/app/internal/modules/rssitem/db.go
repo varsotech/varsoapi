@@ -2,6 +2,7 @@ package rssitem
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +24,11 @@ func ToggleBlur(ctx context.Context, itemUUID uuid.UUID) error {
 	return ent.Database.NewsItem.Update().Where(newsitem.ID(itemUUID)).SetBlur(!newsItem.Blur).Exec(ctx)
 }
 
-func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description, content, link string, links []string, publishTime, updateTime *time.Time, imageUrl, imageTitle string, categories []string, authors []*build.Person) error {
+func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description, content, link string, links []string, publishTime, updateTime *time.Time, imageUrl, imageTitle string, categories []string, authors []*build.RSSAuthor) error {
+	if rssGuid == "" {
+		return fmt.Errorf("rss guid cannot be empty")
+	}
+
 	creator := ent.Database.NewsItem.
 		Create().
 		SetFeedID(feedUUID).
@@ -35,8 +40,7 @@ func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description
 		SetLinks(links).
 		SetImageURL(imageUrl).
 		SetImageTitle(imageTitle).
-		SetCategories(categories).
-		AddAuthors(authors...) // TODO: Check that if the article already exists, it doesn't add authors again
+		SetCategories(categories)
 
 	if publishTime != nil {
 		creator.SetItemPublishTime(*publishTime)
@@ -47,7 +51,7 @@ func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description
 	}
 
 	// Don't override - blur
-	return creator.OnConflictColumns(newsitem.FieldRssGUID).
+	err := creator.OnConflictColumns(newsitem.FieldRssGUID).
 		UpdateTitle().
 		UpdateDescription().
 		UpdateContent().
@@ -57,4 +61,14 @@ func Upsert(ctx context.Context, feedUUID uuid.UUID, rssGuid, title, description
 		UpdateImageTitle().
 		UpdateCategories().
 		Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	err = ent.Database.NewsItem.Update().ClearAuthors().AddAuthors(authors...).Where(newsitem.RssGUID(rssGuid)).Exec(ctx)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

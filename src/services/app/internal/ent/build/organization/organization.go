@@ -27,6 +27,8 @@ const (
 	FieldWebsiteURL = "website_url"
 	// EdgeFeeds holds the string denoting the feeds edge name in mutations.
 	EdgeFeeds = "feeds"
+	// EdgeAuthor holds the string denoting the author edge name in mutations.
+	EdgeAuthor = "author"
 	// Table holds the table name of the organization in the database.
 	Table = "organizations"
 	// FeedsTable is the table that holds the feeds relation/edge.
@@ -36,6 +38,13 @@ const (
 	FeedsInverseTable = "rss_feeds"
 	// FeedsColumn is the table column denoting the feeds relation/edge.
 	FeedsColumn = "organization_feeds"
+	// AuthorTable is the table that holds the author relation/edge.
+	AuthorTable = "rss_authors"
+	// AuthorInverseTable is the table name for the RSSAuthor entity.
+	// It exists in this package in order to avoid circular dependency with the "rssauthor" package.
+	AuthorInverseTable = "rss_authors"
+	// AuthorColumn is the table column denoting the author relation/edge.
+	AuthorColumn = "organization_author"
 )
 
 // Columns holds all SQL columns for organization fields.
@@ -113,10 +122,31 @@ func ByFeeds(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newFeedsStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByAuthorCount orders the results by author count.
+func ByAuthorCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newAuthorStep(), opts...)
+	}
+}
+
+// ByAuthor orders the results by author terms.
+func ByAuthor(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newAuthorStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newFeedsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(FeedsInverseTable, FieldID),
 		sqlgraph.Edge(sqlgraph.O2M, false, FeedsTable, FeedsColumn),
+	)
+}
+func newAuthorStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(AuthorInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, false, AuthorTable, AuthorColumn),
 	)
 }

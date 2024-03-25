@@ -51,9 +51,9 @@ const (
 	Table = "news_items"
 	// AuthorsTable is the table that holds the authors relation/edge. The primary key declared below.
 	AuthorsTable = "news_item_authors"
-	// AuthorsInverseTable is the table name for the Person entity.
-	// It exists in this package in order to avoid circular dependency with the "person" package.
-	AuthorsInverseTable = "persons"
+	// AuthorsInverseTable is the table name for the RSSAuthor entity.
+	// It exists in this package in order to avoid circular dependency with the "rssauthor" package.
+	AuthorsInverseTable = "rss_authors"
 	// FeedTable is the table that holds the feed relation/edge.
 	FeedTable = "news_items"
 	// FeedInverseTable is the table name for the RSSFeed entity.
@@ -91,7 +91,7 @@ var ForeignKeys = []string{
 var (
 	// AuthorsPrimaryKey and AuthorsColumn2 are the table columns denoting the
 	// primary key for the authors relation (M2M).
-	AuthorsPrimaryKey = []string{"news_item_id", "person_id"}
+	AuthorsPrimaryKey = []string{"news_item_id", "rss_author_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).

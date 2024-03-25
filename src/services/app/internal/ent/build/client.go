@@ -19,6 +19,7 @@ import (
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/newsitem"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/person"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 
 	stdsql "database/sql"
@@ -35,6 +36,8 @@ type Client struct {
 	Organization *OrganizationClient
 	// Person is the client for interacting with the Person builders.
 	Person *PersonClient
+	// RSSAuthor is the client for interacting with the RSSAuthor builders.
+	RSSAuthor *RSSAuthorClient
 	// RSSFeed is the client for interacting with the RSSFeed builders.
 	RSSFeed *RSSFeedClient
 }
@@ -51,6 +54,7 @@ func (c *Client) init() {
 	c.NewsItem = NewNewsItemClient(c.config)
 	c.Organization = NewOrganizationClient(c.config)
 	c.Person = NewPersonClient(c.config)
+	c.RSSAuthor = NewRSSAuthorClient(c.config)
 	c.RSSFeed = NewRSSFeedClient(c.config)
 }
 
@@ -147,6 +151,7 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		NewsItem:     NewNewsItemClient(cfg),
 		Organization: NewOrganizationClient(cfg),
 		Person:       NewPersonClient(cfg),
+		RSSAuthor:    NewRSSAuthorClient(cfg),
 		RSSFeed:      NewRSSFeedClient(cfg),
 	}, nil
 }
@@ -170,6 +175,7 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		NewsItem:     NewNewsItemClient(cfg),
 		Organization: NewOrganizationClient(cfg),
 		Person:       NewPersonClient(cfg),
+		RSSAuthor:    NewRSSAuthorClient(cfg),
 		RSSFeed:      NewRSSFeedClient(cfg),
 	}, nil
 }
@@ -202,6 +208,7 @@ func (c *Client) Use(hooks ...Hook) {
 	c.NewsItem.Use(hooks...)
 	c.Organization.Use(hooks...)
 	c.Person.Use(hooks...)
+	c.RSSAuthor.Use(hooks...)
 	c.RSSFeed.Use(hooks...)
 }
 
@@ -211,6 +218,7 @@ func (c *Client) Intercept(interceptors ...Interceptor) {
 	c.NewsItem.Intercept(interceptors...)
 	c.Organization.Intercept(interceptors...)
 	c.Person.Intercept(interceptors...)
+	c.RSSAuthor.Intercept(interceptors...)
 	c.RSSFeed.Intercept(interceptors...)
 }
 
@@ -223,6 +231,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Organization.mutate(ctx, m)
 	case *PersonMutation:
 		return c.Person.mutate(ctx, m)
+	case *RSSAuthorMutation:
+		return c.RSSAuthor.mutate(ctx, m)
 	case *RSSFeedMutation:
 		return c.RSSFeed.mutate(ctx, m)
 	default:
@@ -339,13 +349,13 @@ func (c *NewsItemClient) GetX(ctx context.Context, id uuid.UUID) *NewsItem {
 }
 
 // QueryAuthors queries the authors edge of a NewsItem.
-func (c *NewsItemClient) QueryAuthors(ni *NewsItem) *PersonQuery {
-	query := (&PersonClient{config: c.config}).Query()
+func (c *NewsItemClient) QueryAuthors(ni *NewsItem) *RSSAuthorQuery {
+	query := (&RSSAuthorClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := ni.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(newsitem.Table, newsitem.FieldID, id),
-			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.To(rssauthor.Table, rssauthor.FieldID),
 			sqlgraph.Edge(sqlgraph.M2M, false, newsitem.AuthorsTable, newsitem.AuthorsPrimaryKey...),
 		)
 		fromV = sqlgraph.Neighbors(ni.driver.Dialect(), step)
@@ -519,6 +529,22 @@ func (c *OrganizationClient) QueryFeeds(o *Organization) *RSSFeedQuery {
 	return query
 }
 
+// QueryAuthor queries the author edge of a Organization.
+func (c *OrganizationClient) QueryAuthor(o *Organization) *RSSAuthorQuery {
+	query := (&RSSAuthorClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := o.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(organization.Table, organization.FieldID, id),
+			sqlgraph.To(rssauthor.Table, rssauthor.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, false, organization.AuthorTable, organization.AuthorColumn),
+		)
+		fromV = sqlgraph.Neighbors(o.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // Hooks returns the client hooks.
 func (c *OrganizationClient) Hooks() []Hook {
 	return c.hooks.Organization
@@ -652,15 +678,15 @@ func (c *PersonClient) GetX(ctx context.Context, id uuid.UUID) *Person {
 	return obj
 }
 
-// QueryItem queries the item edge of a Person.
-func (c *PersonClient) QueryItem(pe *Person) *NewsItemQuery {
-	query := (&NewsItemClient{config: c.config}).Query()
+// QueryAuthor queries the author edge of a Person.
+func (c *PersonClient) QueryAuthor(pe *Person) *RSSAuthorQuery {
+	query := (&RSSAuthorClient{config: c.config}).Query()
 	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
 		id := pe.ID
 		step := sqlgraph.NewStep(
 			sqlgraph.From(person.Table, person.FieldID, id),
-			sqlgraph.To(newsitem.Table, newsitem.FieldID),
-			sqlgraph.Edge(sqlgraph.M2M, true, person.ItemTable, person.ItemPrimaryKey...),
+			sqlgraph.To(rssauthor.Table, rssauthor.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, person.AuthorTable, person.AuthorColumn),
 		)
 		fromV = sqlgraph.Neighbors(pe.driver.Dialect(), step)
 		return fromV, nil
@@ -690,6 +716,187 @@ func (c *PersonClient) mutate(ctx context.Context, m *PersonMutation) (Value, er
 		return (&PersonDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("build: unknown Person mutation op: %q", m.Op())
+	}
+}
+
+// RSSAuthorClient is a client for the RSSAuthor schema.
+type RSSAuthorClient struct {
+	config
+}
+
+// NewRSSAuthorClient returns a client for the RSSAuthor from the given config.
+func NewRSSAuthorClient(c config) *RSSAuthorClient {
+	return &RSSAuthorClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `rssauthor.Hooks(f(g(h())))`.
+func (c *RSSAuthorClient) Use(hooks ...Hook) {
+	c.hooks.RSSAuthor = append(c.hooks.RSSAuthor, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `rssauthor.Intercept(f(g(h())))`.
+func (c *RSSAuthorClient) Intercept(interceptors ...Interceptor) {
+	c.inters.RSSAuthor = append(c.inters.RSSAuthor, interceptors...)
+}
+
+// Create returns a builder for creating a RSSAuthor entity.
+func (c *RSSAuthorClient) Create() *RSSAuthorCreate {
+	mutation := newRSSAuthorMutation(c.config, OpCreate)
+	return &RSSAuthorCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of RSSAuthor entities.
+func (c *RSSAuthorClient) CreateBulk(builders ...*RSSAuthorCreate) *RSSAuthorCreateBulk {
+	return &RSSAuthorCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *RSSAuthorClient) MapCreateBulk(slice any, setFunc func(*RSSAuthorCreate, int)) *RSSAuthorCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &RSSAuthorCreateBulk{err: fmt.Errorf("calling to RSSAuthorClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*RSSAuthorCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &RSSAuthorCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for RSSAuthor.
+func (c *RSSAuthorClient) Update() *RSSAuthorUpdate {
+	mutation := newRSSAuthorMutation(c.config, OpUpdate)
+	return &RSSAuthorUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *RSSAuthorClient) UpdateOne(ra *RSSAuthor) *RSSAuthorUpdateOne {
+	mutation := newRSSAuthorMutation(c.config, OpUpdateOne, withRSSAuthor(ra))
+	return &RSSAuthorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *RSSAuthorClient) UpdateOneID(id uuid.UUID) *RSSAuthorUpdateOne {
+	mutation := newRSSAuthorMutation(c.config, OpUpdateOne, withRSSAuthorID(id))
+	return &RSSAuthorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for RSSAuthor.
+func (c *RSSAuthorClient) Delete() *RSSAuthorDelete {
+	mutation := newRSSAuthorMutation(c.config, OpDelete)
+	return &RSSAuthorDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *RSSAuthorClient) DeleteOne(ra *RSSAuthor) *RSSAuthorDeleteOne {
+	return c.DeleteOneID(ra.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *RSSAuthorClient) DeleteOneID(id uuid.UUID) *RSSAuthorDeleteOne {
+	builder := c.Delete().Where(rssauthor.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.op = OpDeleteOne
+	return &RSSAuthorDeleteOne{builder}
+}
+
+// Query returns a query builder for RSSAuthor.
+func (c *RSSAuthorClient) Query() *RSSAuthorQuery {
+	return &RSSAuthorQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeRSSAuthor},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a RSSAuthor entity by its id.
+func (c *RSSAuthorClient) Get(ctx context.Context, id uuid.UUID) (*RSSAuthor, error) {
+	return c.Query().Where(rssauthor.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *RSSAuthorClient) GetX(ctx context.Context, id uuid.UUID) *RSSAuthor {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryPerson queries the person edge of a RSSAuthor.
+func (c *RSSAuthorClient) QueryPerson(ra *RSSAuthor) *PersonQuery {
+	query := (&PersonClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ra.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rssauthor.Table, rssauthor.FieldID, id),
+			sqlgraph.To(person.Table, person.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, rssauthor.PersonTable, rssauthor.PersonColumn),
+		)
+		fromV = sqlgraph.Neighbors(ra.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryOrganization queries the organization edge of a RSSAuthor.
+func (c *RSSAuthorClient) QueryOrganization(ra *RSSAuthor) *OrganizationQuery {
+	query := (&OrganizationClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ra.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rssauthor.Table, rssauthor.FieldID, id),
+			sqlgraph.To(organization.Table, organization.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, rssauthor.OrganizationTable, rssauthor.OrganizationColumn),
+		)
+		fromV = sqlgraph.Neighbors(ra.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryNewsitem queries the newsitem edge of a RSSAuthor.
+func (c *RSSAuthorClient) QueryNewsitem(ra *RSSAuthor) *NewsItemQuery {
+	query := (&NewsItemClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := ra.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(rssauthor.Table, rssauthor.FieldID, id),
+			sqlgraph.To(newsitem.Table, newsitem.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, rssauthor.NewsitemTable, rssauthor.NewsitemPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(ra.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *RSSAuthorClient) Hooks() []Hook {
+	return c.hooks.RSSAuthor
+}
+
+// Interceptors returns the client interceptors.
+func (c *RSSAuthorClient) Interceptors() []Interceptor {
+	return c.inters.RSSAuthor
+}
+
+func (c *RSSAuthorClient) mutate(ctx context.Context, m *RSSAuthorMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&RSSAuthorCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&RSSAuthorUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&RSSAuthorUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&RSSAuthorDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("build: unknown RSSAuthor mutation op: %q", m.Op())
 	}
 }
 
@@ -861,10 +1068,10 @@ func (c *RSSFeedClient) mutate(ctx context.Context, m *RSSFeedMutation) (Value, 
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		NewsItem, Organization, Person, RSSFeed []ent.Hook
+		NewsItem, Organization, Person, RSSAuthor, RSSFeed []ent.Hook
 	}
 	inters struct {
-		NewsItem, Organization, Person, RSSFeed []ent.Interceptor
+		NewsItem, Organization, Person, RSSAuthor, RSSFeed []ent.Interceptor
 	}
 )
 

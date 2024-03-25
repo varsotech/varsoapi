@@ -14,6 +14,7 @@ import (
 	"entgo.io/ent/schema/field"
 	"github.com/google/uuid"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/organization"
+	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssauthor"
 	"github.com/varsotech/varsoapi/src/services/app/internal/ent/build/rssfeed"
 )
 
@@ -42,14 +43,6 @@ func (oc *OrganizationCreate) SetNillableCreateTime(t *time.Time) *OrganizationC
 // SetUniqueName sets the "unique_name" field.
 func (oc *OrganizationCreate) SetUniqueName(s string) *OrganizationCreate {
 	oc.mutation.SetUniqueName(s)
-	return oc
-}
-
-// SetNillableUniqueName sets the "unique_name" field if the given value is not nil.
-func (oc *OrganizationCreate) SetNillableUniqueName(s *string) *OrganizationCreate {
-	if s != nil {
-		oc.SetUniqueName(*s)
-	}
 	return oc
 }
 
@@ -98,6 +91,21 @@ func (oc *OrganizationCreate) AddFeeds(r ...*RSSFeed) *OrganizationCreate {
 		ids[i] = r[i].ID
 	}
 	return oc.AddFeedIDs(ids...)
+}
+
+// AddAuthorIDs adds the "author" edge to the RSSAuthor entity by IDs.
+func (oc *OrganizationCreate) AddAuthorIDs(ids ...uuid.UUID) *OrganizationCreate {
+	oc.mutation.AddAuthorIDs(ids...)
+	return oc
+}
+
+// AddAuthor adds the "author" edges to the RSSAuthor entity.
+func (oc *OrganizationCreate) AddAuthor(r ...*RSSAuthor) *OrganizationCreate {
+	ids := make([]uuid.UUID, len(r))
+	for i := range r {
+		ids[i] = r[i].ID
+	}
+	return oc.AddAuthorIDs(ids...)
 }
 
 // Mutation returns the OrganizationMutation object of the builder.
@@ -149,6 +157,9 @@ func (oc *OrganizationCreate) defaults() {
 func (oc *OrganizationCreate) check() error {
 	if _, ok := oc.mutation.CreateTime(); !ok {
 		return &ValidationError{Name: "create_time", err: errors.New(`build: missing required field "Organization.create_time"`)}
+	}
+	if _, ok := oc.mutation.UniqueName(); !ok {
+		return &ValidationError{Name: "unique_name", err: errors.New(`build: missing required field "Organization.unique_name"`)}
 	}
 	if v, ok := oc.mutation.UniqueName(); ok {
 		if err := organization.UniqueNameValidator(v); err != nil {
@@ -236,6 +247,22 @@ func (oc *OrganizationCreate) createSpec() (*Organization, *sqlgraph.CreateSpec)
 		}
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := oc.mutation.AuthorIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: false,
+			Table:   organization.AuthorTable,
+			Columns: []string{organization.AuthorColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(rssauthor.FieldID, field.TypeUUID),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	return _node, _spec
 }
 
@@ -297,12 +324,6 @@ func (u *OrganizationUpsert) SetUniqueName(v string) *OrganizationUpsert {
 // UpdateUniqueName sets the "unique_name" field to the value that was provided on create.
 func (u *OrganizationUpsert) UpdateUniqueName() *OrganizationUpsert {
 	u.SetExcluded(organization.FieldUniqueName)
-	return u
-}
-
-// ClearUniqueName clears the value of the "unique_name" field.
-func (u *OrganizationUpsert) ClearUniqueName() *OrganizationUpsert {
-	u.SetNull(organization.FieldUniqueName)
 	return u
 }
 
@@ -404,13 +425,6 @@ func (u *OrganizationUpsertOne) SetUniqueName(v string) *OrganizationUpsertOne {
 func (u *OrganizationUpsertOne) UpdateUniqueName() *OrganizationUpsertOne {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateUniqueName()
-	})
-}
-
-// ClearUniqueName clears the value of the "unique_name" field.
-func (u *OrganizationUpsertOne) ClearUniqueName() *OrganizationUpsertOne {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.ClearUniqueName()
 	})
 }
 
@@ -685,13 +699,6 @@ func (u *OrganizationUpsertBulk) SetUniqueName(v string) *OrganizationUpsertBulk
 func (u *OrganizationUpsertBulk) UpdateUniqueName() *OrganizationUpsertBulk {
 	return u.Update(func(s *OrganizationUpsert) {
 		s.UpdateUniqueName()
-	})
-}
-
-// ClearUniqueName clears the value of the "unique_name" field.
-func (u *OrganizationUpsertBulk) ClearUniqueName() *OrganizationUpsertBulk {
-	return u.Update(func(s *OrganizationUpsert) {
-		s.ClearUniqueName()
 	})
 }
 

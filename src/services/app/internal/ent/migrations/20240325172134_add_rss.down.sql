@@ -1,3 +1,13 @@
+-- reverse: create "news_item_authors" table
+DROP TABLE "news_item_authors";
+-- reverse: create index "rssauthor_uuid" to table: "rss_authors"
+DROP INDEX "rssauthor_uuid";
+-- reverse: create index "rssauthor_name_rss_author_organization" to table: "rss_authors"
+DROP INDEX "rssauthor_name_rss_author_organization";
+-- reverse: create index "rssauthor_name" to table: "rss_authors"
+DROP INDEX "rssauthor_name";
+-- reverse: create "rss_authors" table
+DROP TABLE "rss_authors";
 -- reverse: create index "persons_email_key" to table: "persons"
 DROP INDEX "persons_email_key";
 -- reverse: create index "person_uuid" to table: "persons"
@@ -22,5 +32,7 @@ DROP INDEX "rssfeed_rss_feed_url";
 DROP INDEX "rss_feeds_rss_feed_url_key";
 -- reverse: create "rss_feeds" table
 DROP TABLE "rss_feeds";
+-- reverse: create index "organization_unique_name" to table: "organizations"
+DROP INDEX "organization_unique_name";
 -- reverse: modify "organizations" table
-ALTER TABLE "organizations" ADD COLUMN "rss_feed_url" character varying NOT NULL;
+ALTER TABLE "organizations" DROP COLUMN "website_url", DROP COLUMN "description", DROP COLUMN "unique_name", ADD COLUMN "rss_feed_url" character varying NOT NULL;

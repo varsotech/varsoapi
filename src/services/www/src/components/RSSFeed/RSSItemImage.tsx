@@ -47,6 +47,8 @@ function RSSImage({ image, featured }: RSSImageProps) {
           justifyContent: "center",
           alignItems: "center",
           textAlign: "center",
+          border: featured ? "5px solid white" : "none",
+          boxShadow: featured ? "0px 0px 30px 3px #f7f7f7" : "none",
         }}
       >
         {image.blur && !unblur && (
@@ -60,7 +62,9 @@ function RSSImage({ image, featured }: RSSImageProps) {
               fontSize: 14,
             }}
           >
-            <span>This image was marked as sensitive.</span>
+            <span style={{ cursor: "default" }}>
+              This image was marked as sensitive.
+            </span>
             <button
               style={{
                 backgroundColor: "#343434",
