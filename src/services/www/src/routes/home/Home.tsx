@@ -30,7 +30,7 @@ function Home() {
         >
           <div style={{ display: "flex", flexDirection: "column" }}>
             <RSSFeedPreview
-              items={data?.data?.latest?.items.slice(2) || []}
+              items={data?.data?.latest?.items || []}
               organizations={data?.data?.organizations || {}}
             />
           </div>
@@ -41,17 +41,8 @@ function Home() {
             padding: 30,
             flex: 1,
           }}
-        >
-          {/* <div style={{ display: "flex", flexDirection: "column" }}>
-            <RSSFeedPreview
-              items={data?.data.featured ? [data?.data?.featured] : []}
-              organizations={data?.data?.organizations || {}}
-              featured
-            />
-          </div> */}
-        </div>
+        ></div>
       </div>
-      {/* <div style={{ flex: 1, minWidth: 300 }}>Hey</div> */}
     </Layout>
   );
 }
