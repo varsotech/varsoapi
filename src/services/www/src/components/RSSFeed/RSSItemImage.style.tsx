@@ -7,10 +7,13 @@ export const BlurStretch = styled.div<{ blur: boolean; unblur: boolean }>`
   height: 100%;
   width: 100%;
 
+  background-color: ${({ blur, unblur }) =>
+    blur && !unblur ? "rgba(59, 59, 59, 0.7)" : "none"};
+
   backdrop-filter: ${({ blur, unblur }) =>
-    blur && !unblur ? "blur(20px)" : undefined};
+    blur && !unblur ? "blur(16px)" : undefined};
   -webkit-backdrop-filter: ${({ blur, unblur }) =>
-    blur && !unblur ? "blur(20px)" : undefined};
+    blur && !unblur ? "blur(16px)" : undefined};
 
   transition: backdrop-filter 0.3s;
 `;
