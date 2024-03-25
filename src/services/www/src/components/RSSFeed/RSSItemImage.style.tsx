@@ -11,9 +11,9 @@ export const BlurStretch = styled.div<{ blur: boolean; unblur: boolean }>`
     blur && !unblur ? "rgba(59, 59, 59, 0.85)" : "none"};
 
   backdrop-filter: ${({ blur, unblur }) =>
-    blur && !unblur ? "blur(15px)" : undefined};
+    blur && !unblur ? "blur(15px)" : "none"};
   -webkit-backdrop-filter: ${({ blur, unblur }) =>
-    blur && !unblur ? "blur(15px)" : undefined};
+    blur && !unblur ? "blur(15px)" : "none"};
 
   transition: backdrop-filter 0.3s;
 `;

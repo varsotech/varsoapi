@@ -10,9 +10,25 @@ function Layout({ children, style }: LayoutProps) {
     <Styled.Layout>
       <Styled.Navbar>
         <div
-          style={{ flex: 1, maxWidth: 1200, paddingLeft: 40, paddingRight: 40 }}
+          style={{
+            flex: 1,
+            maxWidth: 1200,
+            paddingLeft: 40,
+            paddingRight: 40,
+            fontSize: 24,
+            fontFamily: "Source Serif Pro",
+          }}
         >
-          <b>varso</b>.org
+          <span style={{ fontWeight: 300, fontSize: 15, marginRight: 6 }}>
+            {">"}
+          </span>
+          <b>Varso</b>
+          {/* <span style={{ fontWeight: 300, fontSize: 15, marginLeft: 6 }}>
+            {">"}
+          </span> */}
+          {/* <span style={{ fontWeight: 100 }}>{"_"}</span> */}
+          {/* <span style={{ marginLeft: 15, marginRight: 15 }}>{""}</span> */}
+          {/* <span>News</span> */}
         </div>
       </Styled.Navbar>
       <Styled.PageWrapper style={style}>{children}</Styled.PageWrapper>
