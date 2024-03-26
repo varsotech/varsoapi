@@ -11,7 +11,7 @@ function Home() {
 
   return (
     <Layout>
-      <div style={{ padding: 40 }}>
+      <div style={{ padding: 20 }}>
         <RSSFeedPreview
           items={data?.data.featured ? [data?.data?.featured] : []}
           organizations={data?.data?.organizations || {}}
@@ -22,7 +22,7 @@ function Home() {
         <div
           style={{
             display: "flex",
-            padding: 40,
+            padding: 20,
             flexDirection: "column",
             borderRight: "1px solid #eaeaea",
             flex: 2,

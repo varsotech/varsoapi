@@ -5,7 +5,7 @@ export const RSSItemPreview = styled.div`
   /* padding: 25px 20px; */
   /* padding-left: 0; */
   padding-bottom: 25px;
-  border-bottom: 1px solid #f2f2f2;
+  border-bottom: 1px solid #eaeaea;
   flex-wrap: wrap-reverse;
   gap: 10px;
   align-items: center;

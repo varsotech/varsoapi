@@ -68,9 +68,11 @@ func Initialize(ctx context.Context) error {
 			return errors.Wrapf(err, "failed upserting org with uuid '%s'", org.Uuid)
 		}
 
-		err = rssfeed.Upsert(ctx, org.RssFeedUrl, orgUuid)
-		if err != nil {
-			return errors.Wrapf(err, "failed upserting RSS feed")
+		if org.RssFeedUrl != "" {
+			err = rssfeed.Upsert(ctx, org.RssFeedUrl, orgUuid)
+			if err != nil {
+				return errors.Wrapf(err, "failed upserting RSS feed")
+			}
 		}
 	}
 

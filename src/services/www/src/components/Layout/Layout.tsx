@@ -17,18 +17,22 @@ function Layout({ children, style }: LayoutProps) {
             paddingRight: 40,
             fontSize: 24,
             fontFamily: "Source Serif Pro",
+            display: "flex",
           }}
         >
-          <span style={{ fontWeight: 300, fontSize: 15, marginRight: 6 }}>
-            {">"}
-          </span>
-          <b>Varso</b>
-          {/* <span style={{ fontWeight: 300, fontSize: 15, marginLeft: 6 }}>
-            {">"}
-          </span> */}
-          {/* <span style={{ fontWeight: 100 }}>{"_"}</span> */}
-          {/* <span style={{ marginLeft: 15, marginRight: 15 }}>{""}</span> */}
-          {/* <span>News</span> */}
+          <a href="/" style={{ display: "flex", alignItems: "center" }}>
+            <span
+              style={{
+                fontWeight: 300,
+                fontSize: 15,
+                marginRight: 4,
+                marginTop: 3,
+              }}
+            >
+              {">"}
+            </span>
+            <b>Varso</b>
+          </a>
         </div>
       </Styled.Navbar>
       <Styled.PageWrapper style={style}>{children}</Styled.PageWrapper>
