@@ -49,13 +49,14 @@ function RSSImage({ href, image, featured }: RSSImageProps) {
         maxWidth: 700,
         borderRadius: 5,
         overflow: "hidden",
+        minWidth: 250,
       }}
     >
       <img
         src={image?.url}
         alt={image?.title}
         width={"100%"} // 100% ?
-        style={{ display: "block", minWidth: 250, borderRadius: 5 }}
+        style={{ display: "block" }}
       />
       <Styled.BlurStretch blur={image.blur} unblur={unblur} />
       <div
